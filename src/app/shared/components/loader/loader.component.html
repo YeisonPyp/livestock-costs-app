@@ -1,0 +1,93 @@
+@if (isLoading) {
+  <div class="loader-overlay" [class.transparent]="transparent" [class.no-overlay]="!overlay">
+    <div class="loader-container">
+      <div class="loader-content">
+        <!-- Spinner Loader -->
+        @if (type === 'spinner') {
+          <div [class]="loaderClasses">
+            <svg class="spinner-svg" viewBox="0 0 50 50">
+              <circle
+                class="spinner-path"
+                cx="25"
+                cy="25"
+                r="20"
+                fill="none"
+                stroke-width="4"
+              ></circle>
+            </svg>
+          </div>
+        }
+
+        <!-- Dots Loader -->
+        @if (type === 'dots') {
+          <div [class]="loaderClasses">
+            <div class="dot dot-1"></div>
+            <div class="dot dot-2"></div>
+            <div class="dot dot-3"></div>
+          </div>
+        }
+
+        <!-- Pulse Loader -->
+        @if (type === 'pulse') {
+          <div [class]="loaderClasses">
+            <div class="pulse-ring pulse-ring-1"></div>
+            <div class="pulse-ring pulse-ring-2"></div>
+            <div class="pulse-ring pulse-ring-3"></div>
+            <div class="pulse-center"></div>
+          </div>
+        }
+
+        <!-- Bars Loader -->
+        @if (type === 'bars') {
+          <div [class]="loaderClasses">
+            <div class="bar bar-1"></div>
+            <div class="bar bar-2"></div>
+            <div class="bar bar-3"></div>
+            <div class="bar bar-4"></div>
+            <div class="bar bar-5"></div>
+          </div>
+        }
+
+        <!-- Circular Loader -->
+        @if (type === 'circular') {
+          <div [class]="loaderClasses">
+            <svg class="circular-svg" viewBox="25 25 50 50">
+              <circle
+                class="circular-path"
+                cx="50"
+                cy="50"
+                r="20"
+                fill="none"
+                stroke-width="4"
+                stroke-miterlimit="10"
+              />
+            </svg>
+          </div>
+        }
+
+        <!-- Dual Ring Loader -->
+        @if (type === 'dual-ring') {
+          <div [class]="loaderClasses">
+            <div class="dual-ring-outer"></div>
+            <div class="dual-ring-inner"></div>
+          </div>
+        }
+
+        @if (type === 'logo') {
+          <div [class]="loaderClasses">
+            <div class="loader-brand">
+                <img src="assets/logo.png" alt="Loading Logo" class="logo-loader-image">
+            </div>
+          </div>
+        }
+
+        <!-- Loading Message -->
+        @if (showMessage && message) {
+          <div class="loader-message">
+            <p class="message-text">{{ message }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

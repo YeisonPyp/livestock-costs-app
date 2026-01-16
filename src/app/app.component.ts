@@ -7,7 +7,7 @@ import { LoaderComponent } from './shared/components/loader/loader.component';
   standalone: true,
   imports: [RouterOutlet, LoaderComponent],
   template: `
-    <app-loader></app-loader>
+    <app-loader type="logo"></app-loader>
     <router-outlet></router-outlet>
   `,
   styles: []

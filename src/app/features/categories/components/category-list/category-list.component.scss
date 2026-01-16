@@ -1,0 +1,185 @@
+// Variables
+$primary-color: #2563eb;
+$success-color: #10b981;
+$danger-color: #ef4444;
+$warning-color: #f59e0b;
+$text-primary: #0f172a;
+$text-secondary: #64748b;
+$background-light: #f8fafc;
+$background-white: #ffffff;
+$border-color: #e2e8f0;
+
+.category-list-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+
+  @media (max-width: 640px) {
+    padding: 1rem;
+  }
+}
+
+// Page Header
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.header-content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.header-text {
+  flex: 1;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: $text-primary;
+  margin: 0 0 0.5rem 0;
+
+  @media (max-width: 640px) {
+    font-size: 1.5rem;
+  }
+}
+
+.page-description {
+  font-size: 1rem;
+  color: $text-secondary;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+// Table Card
+.table-card {
+  background: $background-white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+// Row Actions
+.table-row-actions {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: center;
+}
+
+// Category Details
+.category-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid $border-color;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.detail-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $text-secondary;
+  min-width: 150px;
+  flex-shrink: 0;
+}
+
+.detail-value {
+  font-size: 0.9375rem;
+  color: $text-primary;
+  flex: 1;
+  word-break: break-word;
+}
+
+.badge-level {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  background: rgba($primary-color, 0.1);
+  color: $primary-color;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+
+  &.badge-success {
+    background: rgba($success-color, 0.1);
+    color: darken($success-color, 10%);
+  }
+
+  &.badge-default {
+    background: rgba($text-secondary, 0.1);
+    color: $text-secondary;
+  }
+}
+
+// Delete Confirmation
+.delete-confirmation {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.warning-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.5rem;
+  background: rgba($warning-color, 0.1);
+  border-radius: 50%;
+  color: $warning-color;
+
+  svg {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+.warning-text {
+  font-size: 1rem;
+  color: $text-primary;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.5;
+
+  strong {
+    font-weight: 700;
+    color: $primary-color;
+  }
+}
+
+.warning-subtext {
+  font-size: 0.875rem;
+  color: $text-secondary;
+  margin: 0;
+}

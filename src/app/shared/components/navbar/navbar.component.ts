@@ -1,50 +1,111 @@
-import { Component } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../features/auth/services/auth.service';
+import { filter } from 'rxjs/operators';
+
+interface NavItem {
+  label: string;
+  route: string;
+  icon: string;
+  badge?: number;
+}
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  template: `
-    <nav class="bg-blue-600 text-white shadow-lg">
-      <div class="container mx-auto px-4">
-        <div class="flex items-center justify-between h-16">
-          <div class="flex items-center space-x-8">
-            <h1 class="text-xl font-bold">Sistema Ganadero</h1>
-            <div class="hidden md:flex space-x-4">
-              <a routerLink="/dashboard" routerLinkActive="bg-blue-700" class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                Dashboard
-              </a>
-              <a routerLink="/categories" routerLinkActive="bg-blue-700" class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                Categorías
-              </a>
-              <a routerLink="/costs" routerLinkActive="bg-blue-700" class="px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                Costos
-              </a>
-            </div>
-          </div>
-          <div class="flex items-center space-x-4">
-            @if (authService.currentUser$ | async; as user) {
-              <span class="text-sm">{{ user.full_name }}</span>
-              <button
-                (click)="logout()"
-                class="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-md transition-colors"
-              >
-                Cerrar Sesión
-              </button>
-            }
-          </div>
-        </div>
-      </div>
-    </nav>
-  `
+  templateUrl: './navbar.component.html',
+  styleUrls: ['./navbar.component.scss']
 })
-export class NavbarComponent {
-  constructor(public authService: AuthService) {}
+export class NavbarComponent implements OnInit {
+  mobileMenuOpen = false;
+  userMenuOpen = false;
+  scrolled = false;
+  currentRoute = '';
+
+  navItems: NavItem[] = [
+    {
+      label: 'Dashboard',
+      route: '/dashboard',
+      icon: 'dashboard'
+    },
+    {
+      label: 'Categorías',
+      route: '/categories',
+      icon: 'category'
+    },
+    {
+      label: 'Costos',
+      route: '/costs',
+      icon: 'payments'
+    }
+  ];
+
+  constructor(
+    public authService: AuthService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    // Track current route
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe((event: any) => {
+        this.currentRoute = event.url;
+        this.mobileMenuOpen = false;
+        this.userMenuOpen = false;
+      });
+  }
+
+  @HostListener('window:scroll', [])
+  onWindowScroll(): void {
+    this.scrolled = window.scrollY > 20;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.user-menu-container')) {
+      this.userMenuOpen = false;
+    }
+  }
+
+  toggleMobileMenu(): void {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+    if (this.mobileMenuOpen) {
+      this.userMenuOpen = false;
+    }
+  }
+
+  toggleUserMenu(): void {
+    this.userMenuOpen = !this.userMenuOpen;
+    if (this.userMenuOpen) {
+      this.mobileMenuOpen = false;
+    }
+  }
 
   logout(): void {
     this.authService.logout();
+    this.userMenuOpen = false;
+  }
+
+  navigateToProfile(): void {
+    this.router.navigate(['/profile']);
+    this.userMenuOpen = false;
+  }
+
+  navigateToSettings(): void {
+    this.router.navigate(['/settings']);
+    this.userMenuOpen = false;
+  }
+
+  getInitials(fullName: string): string {
+    if (!fullName) return 'U';
+    const names = fullName.split(' ');
+    if (names.length >= 2) {
+      return (names[0][0] + names[1][0]).toUpperCase();
+    }
+    return fullName.substring(0, 2).toUpperCase();
   }
 }

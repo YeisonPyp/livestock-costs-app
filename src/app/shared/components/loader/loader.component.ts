@@ -1,24 +1,54 @@
-import { Component } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LoadingService } from '../../../core/services/loading.service';
+import { Subscription } from 'rxjs';
+
+export type LoaderType = 'spinner' | 'dots' | 'pulse' | 'bars' | 'circular' | 'dual-ring' | 'logo';
+export type LoaderSize = 'sm' | 'md' | 'lg' | 'xl';
 
 @Component({
   selector: 'app-loader',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    @if (loadingService.loading$ | async) {
-      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 shadow-xl">
-          <div class="flex items-center space-x-3">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span class="text-gray-700 font-medium">Cargando...</span>
-          </div>
-        </div>
-      </div>
-    }
-  `
+  templateUrl: './loader.component.html',
+  styleUrls: ['./loader.component.scss']
 })
-export class LoaderComponent {
+export class LoaderComponent implements OnInit, OnDestroy {
+  @Input() type: LoaderType = 'pulse';
+  @Input() size: LoaderSize = 'md';
+  @Input() message = 'Cargando...';
+  @Input() showMessage = true;
+  @Input() overlay = true;
+  @Input() transparent = false;
+
+  isLoading = false;
+  private subscription?: Subscription;
+
   constructor(public loadingService: LoadingService) {}
+
+  ngOnInit(): void {
+    this.subscription = this.loadingService.loading$.subscribe(
+      loading => {
+        this.isLoading = loading;
+        
+        // Prevent body scroll when loading
+        if (this.overlay) {
+          if (loading) {
+            document.body.style.overflow = 'hidden';
+          } else {
+            document.body.style.overflow = '';
+          }
+        }
+      }
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscription?.unsubscribe();
+    document.body.style.overflow = '';
+  }
+
+  get loaderClasses(): string {
+    return `loader-${this.type} loader-${this.size}`;
+  }
 }
