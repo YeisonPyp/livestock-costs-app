@@ -1,0 +1,136 @@
+<form [formGroup]="costForm" (ngSubmit)="onSubmit()" class="cost-form">
+  <div class="form-grid">
+    <!-- Categoría -->
+    <div class="form-group">
+      <label for="category" class="form-label">
+        Categoría <span class="required">*</span>
+      </label>
+      <select
+        id="category"
+        formControlName="category"
+        class="form-select"
+        [class.error]="hasError('category', 'required')"
+      >
+        <option [value]="null">-- Seleccionar categoría --</option>
+        @for (cat of movementCategories; track cat.id) {
+          <option [value]="cat.id">{{ cat.code }} - {{ cat.name }}</option>
+        }
+      </select>
+      @if (hasError('category', 'required')) {
+        <span class="error-message">La categoría es requerida</span>
+      }
+      <p class="form-hint">Solo se muestran categorías que permiten movimiento</p>
+    </div>
+
+    <!-- Fecha -->
+    <div class="form-group">
+      <label for="date_incurred" class="form-label">
+        Fecha del Gasto <span class="required">*</span>
+      </label>
+      <input
+        type="date"
+        id="date_incurred"
+        formControlName="date_incurred"
+        class="form-input"
+        [class.error]="hasError('date_incurred', 'required')"
+        [max]="maxDate"
+      />
+      @if (hasError('date_incurred', 'required')) {
+        <span class="error-message">La fecha es requerida</span>
+      }
+    </div>
+
+    <!-- Monto -->
+    <div class="form-group">
+      <label for="amount" class="form-label">
+        Monto (COP) <span class="required">*</span>
+      </label>
+      <div class="input-with-icon">
+        <span class="input-icon">$</span>
+        <input
+          type="number"
+          id="amount"
+          formControlName="amount"
+          class="form-input with-icon"
+          [class.error]="hasError('amount', 'required') || hasError('amount', 'min')"
+          placeholder="0.00"
+          step="0.01"
+          min="0"
+          (blur)="formatCurrency($event)"
+        />
+      </div>
+      @if (hasError('amount', 'required')) {
+        <span class="error-message">El monto es requerido</span>
+      }
+      @if (hasError('amount', 'min')) {
+        <span class="error-message">El monto debe ser mayor a 0</span>
+      }
+    </div>
+  </div>
+
+  <!-- Descripción -->
+  <div class="form-group">
+    <label for="description" class="form-label">
+      Descripción <span class="required">*</span>
+    </label>
+    <textarea
+      id="description"
+      formControlName="description"
+      class="form-textarea"
+      [class.error]="hasError('description', 'required') || hasError('description', 'maxlength')"
+      placeholder="Describe brevemente el gasto..."
+      rows="3"
+    ></textarea>
+    @if (hasError('description', 'required')) {
+      <span class="error-message">La descripción es requerida</span>
+    }
+    @if (hasError('description', 'maxlength')) {
+      <span class="error-message">Máximo 500 caracteres</span>
+    }
+    <div class="character-count">
+      {{ description?.value?.length || 0 }} / 500
+    </div>
+  </div>
+
+  <!-- Notas -->
+  <div class="form-group">
+    <label for="notes" class="form-label">
+      Notas Adicionales
+    </label>
+    <textarea
+      id="notes"
+      formControlName="notes"
+      class="form-textarea"
+      [class.error]="hasError('notes', 'maxlength')"
+      placeholder="Notas adicionales (opcional)..."
+      rows="3"
+    ></textarea>
+    @if (hasError('notes', 'maxlength')) {
+      <span class="error-message">Máximo 1000 caracteres</span>
+    }
+    <div class="character-count">
+      {{ notes?.value?.length || 0 }} / 1000
+    </div>
+  </div>
+
+  <!-- Form Actions -->
+  <div class="form-actions">
+    <app-button
+      type="button"
+      variant="secondary"
+      (clicked)="onCancel()"
+      [disabled]="isSubmitting"
+    >
+      Cancelar
+    </app-button>
+    <app-button
+      type="submit"
+      variant="primary"
+      icon="save"
+      [loading]="isSubmitting"
+      [disabled]="costForm.invalid"
+    >
+      {{ isEditMode ? 'Actualizar' : 'Guardar' }} Costo
+    </app-button>
+  </div>
+</form>

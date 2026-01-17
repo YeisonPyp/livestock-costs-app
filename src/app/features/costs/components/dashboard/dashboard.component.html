@@ -1,0 +1,244 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h1 class="dashboard-title">Dashboard de Costos</h1>
+        <p class="dashboard-subtitle">Monitorea y analiza los costos de tu operación ganadera</p>
+      </div>
+      <div class="header-actions">
+        <app-button
+          variant="ghost"
+          icon="refresh"
+          size="sm"
+          (clicked)="refreshData()"
+        >
+          Actualizar
+        </app-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Month Selector -->
+  <div class="month-selector">
+    <button class="month-nav-btn" (click)="previousMonthClick()" [disabled]="selectedMonthIndex >= availableMonths.length - 1">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    
+    <div class="current-month">
+      <svg class="calendar-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span class="month-text">{{ capitalizeFirstLetter(currentMonth.name) }}</span>
+    </div>
+    
+    <button class="month-nav-btn" (click)="nextMonthClick()" [disabled]="selectedMonthIndex === 0">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <!-- Total del Mes -->
+    <div class="stat-card featured">
+      <div class="stat-header">
+        <div class="stat-icon blue">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="stat-meta">
+          <h3 class="stat-label">Total del Mes</h3>
+          @if (stats.comparison.percentageChange > 0) {
+            <span class="stat-badge" [class.positive]="!stats.comparison.isPositive" [class.negative]="stats.comparison.isPositive">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                @if (stats.comparison.isPositive) {
+                  <path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                } @else {
+                  <path d="M17 7L7 17M7 17h10M7 17V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                }
+              </svg>
+              {{ formatPercentage(stats.comparison.percentageChange) }}%
+            </span>
+          }
+        </div>
+      </div>
+      <p class="stat-value">{{ formatCurrency(stats.totalMonth) }}</p>
+      <p class="stat-description">
+        Comparado con {{ previousMonth.name }}
+      </p>
+    </div>
+
+    <!-- Total del Año -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon green">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 class="stat-label">Acumulado {{ currentMonth.year }}</h3>
+      </div>
+      <p class="stat-value">{{ formatCurrency(stats.totalYear) }}</p>
+      <p class="stat-description">Total del año en curso</p>
+    </div>
+
+    <!-- Categorías Activas -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 7h18M3 12h18M3 17h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3 class="stat-label">Categorías Activas</h3>
+      </div>
+      <p class="stat-value">{{ formatNumber(stats.categoriesActive) }}</p>
+      <p class="stat-description">Categorías con movimiento</p>
+    </div>
+
+    <!-- Registros del Mes -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon orange">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </div>
+        <h3 class="stat-label">Registros del Mes</h3>
+      </div>
+      <p class="stat-value">{{ formatNumber(stats.costsCount) }}</p>
+      <p class="stat-description">Costos registrados</p>
+    </div>
+
+    <!-- Promedio por Registro -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon teal">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </div>
+        <h3 class="stat-label">Promedio</h3>
+      </div>
+      <p class="stat-value">{{ formatCurrency(stats.averageCost) }}</p>
+      <p class="stat-description">Costo promedio por registro</p>
+    </div>
+
+    <!-- Costo Máximo -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon red">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3 class="stat-label">Categoría Mayor</h3>
+      </div>
+      <p class="stat-value">{{ formatCurrency(stats.maxCost) }}</p>
+      <p class="stat-description">Mayor gasto en una categoría</p>
+    </div>
+  </div>
+
+  <!-- Monthly Report by Categories -->
+  <div class="report-card">
+    <div class="report-header">
+      <div>
+        <h2 class="report-title">Distribución por Categorías</h2>
+        <p class="report-subtitle">Análisis de gastos del mes actual</p>
+      </div>
+      <div class="report-total">
+        <span class="total-label">Total:</span>
+        <span class="total-value">{{ formatCurrency(stats.totalMonth) }}</span>
+      </div>
+    </div>
+
+    <div class="report-content">
+      @if (loading) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Cargando reporte...</p>
+        </div>
+      } @else if (monthlyReport.length === 0) {
+        <div class="empty-state">
+          <svg class="empty-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v13a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9z" fill="currentColor" opacity="0.2"/>
+            <path d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v13a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9z" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <p class="empty-text">No hay costos registrados para este mes</p>
+          <p class="empty-subtext">Los datos aparecerán aquí cuando registres nuevos costos</p>
+        </div>
+      } @else {
+        <div class="categories-list">
+          @for (item of monthlyReport; track item.category; let i = $index) {
+            <div class="category-item" [style.animation-delay.ms]="i * 50">
+              <div class="category-info">
+                <div class="category-rank">{{ i + 1 }}</div>
+                <div class="category-details">
+                  <h4 class="category-name">{{ item.category }}</h4>
+                  <div class="category-bar">
+                    <div class="bar-fill" [style.width.%]="getPercentageWidth(item.total)"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="category-stats">
+                <p class="category-amount">{{ formatCurrency(item.total) }}</p>
+                <p class="category-percentage">
+                  {{ formatPercentage((item.total / stats.totalMonth) * 100) }}%
+                </p>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <h3 class="quick-actions-title">Acciones Rápidas</h3>
+    <div class="actions-grid">
+      <a href="/costs" class="action-card">
+        <div class="action-icon blue">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="action-content">
+          <h4 class="action-title">Nuevo Costo</h4>
+          <p class="action-description">Registrar un nuevo gasto</p>
+        </div>
+      </a>
+
+      <a href="/costs" class="action-card">
+        <div class="action-icon green">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="action-content">
+          <h4 class="action-title">Ver Costos</h4>
+          <p class="action-description">Lista completa de registros</p>
+        </div>
+      </a>
+
+      <a href="/categories" class="action-card">
+        <div class="action-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 7h18M3 12h18M3 17h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="action-content">
+          <h4 class="action-title">Categorías</h4>
+          <p class="action-description">Gestionar categorías</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,150 @@
+// Variables
+$primary-color: #2563eb;
+$error-color: #ef4444;
+$text-primary: #0f172a;
+$text-secondary: #64748b;
+$text-muted: #94a3b8;
+$border-color: #e2e8f0;
+$background-light: #f8fafc;
+
+// Mixins
+@mixin smooth-transition($properties...) {
+  transition-property: #{$properties};
+  transition-duration: 0.2s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cost-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $text-primary;
+
+  .required {
+    color: $error-color;
+    margin-left: 0.125rem;
+  }
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  color: $text-primary;
+  background: #ffffff;
+  outline: none;
+  @include smooth-transition(border-color, box-shadow);
+
+  &::placeholder {
+    color: $text-muted;
+  }
+
+  &:focus {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+  }
+
+  &.error {
+    border-color: $error-color;
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba($error-color, 0.1);
+    }
+  }
+
+  &:disabled,
+  &[readonly] {
+    background: $background-light;
+    cursor: not-allowed;
+  }
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.875rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $text-secondary;
+  pointer-events: none;
+}
+
+.form-input.with-icon {
+  padding-left: 2rem;
+}
+
+.form-hint {
+  font-size: 0.8125rem;
+  color: $text-secondary;
+  margin: 0;
+}
+
+.error-message {
+  font-size: 0.8125rem;
+  color: $error-color;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.character-count {
+  font-size: 0.75rem;
+  color: $text-muted;
+  text-align: right;
+  margin-top: -0.25rem;
+}
+
+// Form Actions
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid $border-color;
+  margin-top: 0.5rem;
+
+  @media (max-width: 640px) {
+    flex-direction: column-reverse;
+    
+    app-button {
+      width: 100%;
+    }
+  }
+}
