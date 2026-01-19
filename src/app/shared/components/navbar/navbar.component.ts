@@ -39,6 +39,11 @@ export class NavbarComponent implements OnInit {
       label: 'Costos',
       route: '/costs',
       icon: 'payments'
+    },
+    {
+      label: 'Reportes',
+      route: '/costs/reports',
+      icon: 'bar_chart'
     }
   ];
 

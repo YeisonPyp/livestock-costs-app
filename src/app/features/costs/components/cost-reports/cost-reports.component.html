@@ -1,0 +1,140 @@
+<div class="report-container">
+  <!-- Header -->
+  <div class="report-header">
+    <h2>📊 Reporte de Gastos</h2>
+    <p class="subtitle">Genera y descarga reportes detallados de tus gastos</p>
+  </div>
+
+  <!-- Filtros y Acciones -->
+  <div class="filters-card">
+    <div class="filters-section">
+      <h3>Período de Reporte</h3>
+      <div class="date-inputs">
+        <div class="form-group">
+          <label for="start-date">Desde</label>
+          <input 
+            id="start-date"
+            type="date" 
+            [(ngModel)]="startDate"
+            class="date-input"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="end-date">Hasta</label>
+          <input 
+            id="end-date"
+            type="date" 
+            [(ngModel)]="endDate"
+            class="date-input"
+          >
+        </div>
+      </div>
+    </div>
+
+    <div class="actions-section">
+      <app-button 
+        label="Generar Reporte"
+        icon="📈"
+        (clicked)="generateReport()"
+      >Generar Reporte</app-button>
+
+      <div class="download-buttons">
+        <app-button 
+          label="Descargar PDF"
+          icon="📄"
+          variant="secondary"
+          (clicked)="downloadPdf()"
+        >Descargar PDF</app-button>
+
+        <app-button 
+          label="Descargar Excel"
+          icon="📊"
+          variant="success"
+          (clicked)="downloadExcel()"
+        >Descargar Excel</app-button>
+      </div>
+
+      <app-button 
+        *ngIf="reports.length > 0"
+        label="Limpiar"
+        icon="🗑️"
+        variant="danger"
+        (clicked)="clearReport()"
+      >Limpiar</app-button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Generando reporte...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && reports.length === 0" class="empty-state">
+    <div class="empty-icon">📋</div>
+    <h3>No hay datos para mostrar</h3>
+    <p>Selecciona un período y haz clic en "Generar Reporte" para ver los resultados</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage && !loading" class="error-message">
+    <div class="error-content">
+      <span class="error-icon">⚠️</span>
+      <p>{{ errorMessage }}</p>
+      <button class="close-btn" (click)="closeError()">✕</button>
+    </div>
+  </div>
+
+  <!-- Reportes por Mes -->
+  <div *ngIf="!loading && reports.length > 0" class="reports-section">
+    
+    <!-- Resumen General -->
+    <div class="summary-card">
+      <div class="summary-item">
+        <span class="summary-label">Total de Meses</span>
+        <span class="summary-value">{{ reports.length }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Total de Entradas</span>
+        <span class="summary-value">{{ totalEntries }}</span>
+      </div>
+      <div class="summary-item highlight">
+        <span class="summary-label">Total General</span>
+        <span class="summary-value">{{ totalGeneral | currency:'COP':'symbol-narrow' }}</span>
+      </div>
+    </div>
+
+    <!-- Reportes Mensuales -->
+    <ng-container *ngFor="let report of reports; let i = index">
+      <div class="month-report">
+        
+        <!-- Encabezado del Mes -->
+        <div class="month-header">
+          <div class="month-info">
+            <h3>📅 {{ formatMonthDisplay(report.month) }}</h3>
+            <span class="month-total">
+              Total del mes: <strong>{{ report.total | currency:'COP':'symbol-narrow' }}</strong>
+            </span>
+          </div>
+        </div>
+
+        <!-- Tabla de Entradas -->
+        <app-table
+          [columns]="tableColumns"
+          [data]="report.entries || []"
+          [config]="tableConfig"
+          [loading]="false"
+          emptyMessage="No hay entradas en este mes"
+          (rowClick)="onRowClick($event)"
+        ></app-table>
+
+        <!-- Footer del Mes -->
+        <div class="month-footer">
+          <span>{{ (report.entries || []).length }} {{ (report.entries || []).length === 1 ? 'entrada' : 'entradas' }} en este mes</span>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>
