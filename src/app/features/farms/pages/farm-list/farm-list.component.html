@@ -104,10 +104,6 @@
               <span class="stat-value">{{ farm.current_cattle_count }}</span>
               <span class="stat-label">Cabezas</span>
             </div>
-            <div class="stat">
-              <span class="stat-value">{{ farm.total_paddocks }}</span>
-              <span class="stat-label">Potreros</span>
-            </div>
             <div class="stat" [class.stat-warn]="farm.occupancy_percentage > 80" [class.stat-danger]="farm.occupancy_percentage > 90">
               <span class="stat-value">{{ formatNumber(farm.occupancy_percentage, 0) }}%</span>
               <span class="stat-label">Ocupación</span>

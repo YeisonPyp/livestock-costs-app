@@ -1,4 +1,6 @@
-@use '../../../styles/variables' as *;
+@use '../../../../styles/variables' as *;
+@use "sass:color";
+@use "sass:list";
 
 $alert-variants: (
   'info':    ($info,    $info-muted,    rgba($info, .2)),
@@ -18,15 +20,15 @@ $alert-variants: (
 }
 
 @each $name, $vals in $alert-variants {
-  $color:  nth($vals, 1);
-  $bg:     nth($vals, 2);
-  $border: nth($vals, 3);
+  $color:  list.nth($vals, 1);
+  $bg:     list.nth($vals, 2);
+  $border: list.nth($vals, 3);
 
   .alert-#{$name} {
     background: $bg;
     border-color: $border;
     .alert-icon { color: $color; }
-    .alert-title { color: darken($color, 8%); }
+    .alert-title { color: color.adjust($color, $lightness: 8%); }
   }
 }
 

@@ -1,4 +1,5 @@
-@use '../../../styles/variables' as *;
+@use '../../../../styles/variables' as *;
+@use "sass:list";
 
 $kpi-colors: (
   'blue':   ($primary,       $primary-muted),
@@ -44,8 +45,8 @@ $kpi-colors: (
 }
 
 @each $name, $pair in $kpi-colors {
-  $color: nth($pair, 1);
-  $bg:    nth($pair, 2);
+  $color: list.nth($pair, 1);
+  $bg:    list.nth($pair, 2);
 
   .kpi-card.color-#{$name} {
     .kpi-icon { background: $bg; color: $color; }

@@ -6,6 +6,7 @@ export interface Category {
   parent: number | null;
   level: number;
   is_movement: boolean;
+  is_active: boolean;
 }
 
 export interface CategoryTree extends Category {

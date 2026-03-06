@@ -24,6 +24,12 @@
             "outputPath": "dist/livestock-costs-app",
             "index": "src/index.html",
             "browser": "src/main.ts",
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "src",
+                "src/app/styles"
+              ]
+            },
             "polyfills": [
               "zone.js"
             ],

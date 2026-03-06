@@ -1,3 +1,4 @@
+@use "sass:color";
 // Variables
 $primary-color: #2563eb;
 $success-color: #10b981;
@@ -121,7 +122,7 @@ $border-color: #e2e8f0;
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem 1.5rem;
-  background: linear-gradient(135deg, $primary-color, darken($primary-color, 10%));
+  background: linear-gradient(135deg, $primary-color, color.adjust($primary-color, $lightness: -10%));
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba($primary-color, 0.2);
 }
@@ -161,7 +162,7 @@ $border-color: #e2e8f0;
 
   &.featured {
     grid-column: span 2;
-    background: linear-gradient(135deg, $primary-color, darken($primary-color, 10%));
+    background: linear-gradient(135deg, $primary-color, color.adjust($primary-color, $lightness: -10%));
 
     .stat-label,
     .stat-value,
@@ -399,7 +400,7 @@ $border-color: #e2e8f0;
   animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 
   &:hover {
-    background: darken($background-light, 2%);
+    background: color.adjust($background-light, $lightness: -2%);
     transform: translateX(4px);
   }
 }
@@ -450,7 +451,7 @@ $border-color: #e2e8f0;
 
 .bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, $primary-color, lighten($primary-color, 10%));
+  background: linear-gradient(90deg, $primary-color, color.adjust($primary-color, $lightness: 10%));
   border-radius: 4px;
   @include smooth-transition(width);
 }

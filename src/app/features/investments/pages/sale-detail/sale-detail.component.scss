@@ -1,4 +1,5 @@
-@use '../../../../../shared/styles/variables' as *;
+@use '../../../../styles/variables' as *;
+@use "sass:color";
 
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: $space-4; margin-bottom: $space-5; }
 
@@ -36,7 +37,7 @@
 .date-cell { color: $slate-500; }
 .muted     { color: $slate-300; }
 
-.btn-decide { font-size: $font-xs; font-weight: $weight-bold; color: $primary; text-decoration: none; padding: $space-1 $space-2; border-radius: $border-radius-sm; background: $primary-muted; @include transition(background-color); &:hover { background: darken($primary-muted, 5%); } }
+.btn-decide { font-size: $font-xs; font-weight: $weight-bold; color: $primary; text-decoration: none; padding: $space-1 $space-2; border-radius: $border-radius-sm; background: $primary-muted; @include transition(background-color); &:hover { background: color.adjust($primary-muted, $lightness: -5%); } }
 
 .btn { display: inline-flex; align-items: center; gap: $space-2; border: 1.5px solid transparent; border-radius: $border-radius; font-size: $font-sm; font-weight: $weight-medium; cursor: pointer; text-decoration: none; @include transition(background-color, border-color);
   &.btn-primary { padding: $space-2 $space-4; background: $primary; color: $white; &:hover:not(:disabled) { background: $primary-hover; } &:disabled { opacity: .6; cursor: not-allowed; } }

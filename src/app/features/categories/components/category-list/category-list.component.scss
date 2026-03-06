@@ -1,3 +1,4 @@
+@use "sass:color";
 // Variables
 $primary-color: #2563eb;
 $success-color: #10b981;
@@ -134,7 +135,7 @@ $border-color: #e2e8f0;
 
   &.badge-success {
     background: rgba($success-color, 0.1);
-    color: darken($success-color, 10%);
+    color: color.adjust($success-color, $lightness: -10%);
   }
 
   &.badge-default {

@@ -1,4 +1,4 @@
-@use '../../../styles/variables' as *;
+@use '../../../../styles/variables' as *;
 
 .field { display: flex; flex-direction: column; gap: $space-2; }
 .field-label { font-size: $font-sm; font-weight: $weight-semibold; color: $slate-700; }

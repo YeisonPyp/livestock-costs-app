@@ -1,4 +1,4 @@
-@use '../../../../../shared/styles/variables' as *;
+@use '../../../../styles/variables' as *;
 
 .profile-card { display: flex; align-items: center; gap: $space-4; background: $white; border: 1px solid $border-color; border-radius: $border-radius-md; padding: $space-5; margin-bottom: $space-5; box-shadow: $shadow-sm; }
 .profile-info { flex: 1; min-width: 0; }

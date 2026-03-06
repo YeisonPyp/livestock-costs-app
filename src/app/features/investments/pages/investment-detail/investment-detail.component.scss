@@ -1,4 +1,5 @@
-@use '../../../../../shared/styles/variables' as *;
+@use '../../../../styles/variables' as *;
+@use "sass:color";
 
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: $space-4; margin-bottom: $space-5; }
 
@@ -68,8 +69,8 @@
   svg { width: 14px; height: 14px; }
 
   &.btn-sm { padding: $space-1 $space-3; font-size: $font-xs; }
-  &.btn-success        { background: $success; color: $white; border-color: $success; &:hover { background: darken($success, 8%); } }
-  &.btn-danger         { background: $danger;  color: $white; border-color: $danger;  &:hover { background: darken($danger,  8%); } }
+  &.btn-success        { background: $success; color: $white; border-color: $success; &:hover { background: color.adjust($success, $lightness: -8%); } }
+  &.btn-danger         { background: $danger;  color: $white; border-color: $danger;  &:hover { background: color.adjust($danger, $lightness: -8%); } }
   &.btn-danger-outline { background: $white; border-color: $danger; color: $danger; &:hover { background: $danger-muted; } }
   &.btn-ghost          { background: transparent; color: $slate-600; &:hover { background: $slate-100; } }
   &:disabled { opacity: .6; cursor: not-allowed; }

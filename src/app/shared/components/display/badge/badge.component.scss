@@ -1,4 +1,6 @@
-@use '../../../styles/variables' as *;
+@use '../../../../styles/variables' as *;
+@use "sass:color";
+@use "sass:list";
 
 $badge-variants: (
   'primary':   ($primary,   $primary-muted),
@@ -25,12 +27,12 @@ $badge-variants: (
 }
 
 @each $name, $pair in $badge-variants {
-  $color: nth($pair, 1);
-  $bg:    nth($pair, 2);
+  $color: list.nth($pair, 1);
+  $bg:    list.nth($pair, 2);
 
   .badge-#{$name} {
     background: $bg;
-    color: darken($color, 5%);
+    color: color.adjust($color, $lightness: -10%);
 
     &.badge-outline {
       background: transparent;

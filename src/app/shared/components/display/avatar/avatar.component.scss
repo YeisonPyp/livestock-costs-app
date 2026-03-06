@@ -1,4 +1,4 @@
-@use '../../../styles/variables' as *;
+@use '../../../../styles/variables' as *;
 
 $sizes: ('xs': 24px, 'sm': 32px, 'md': 40px, 'lg': 56px, 'xl': 72px);
 $font-sizes: ('xs': 0.6rem, 'sm': $font-xs, 'md': $font-sm, 'lg': $font-md, 'xl': $font-xl);

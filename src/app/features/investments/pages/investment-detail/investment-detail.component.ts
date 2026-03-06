@@ -24,7 +24,7 @@ import { formatCurrency } from '../../../../core/utils/helpers';
   imports: [
     CommonModule, RouterLink, MatTabsModule, ReactiveFormsModule,
     PageHeaderComponent, LoaderComponent, KpiCardComponent,
-    BadgeComponent, AmountDisplayComponent, AlertComponent, EmptyStateComponent,
+    BadgeComponent, AmountDisplayComponent, EmptyStateComponent,
   ],
   templateUrl: './investment-detail.component.html',
   styleUrl:    './investment-detail.component.scss',

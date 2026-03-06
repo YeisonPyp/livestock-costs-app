@@ -2,7 +2,7 @@
 @use '@angular/material' as mat;
 
 // 2. Luego los @import
-@import 'ngx-toastr/toastr';
+@use 'ngx-toastr/toastr';
 
 // Definimos el tema de Material para tener control de los colores
 $my-theme: mat.define-theme((

@@ -44,6 +44,11 @@ export class NavbarComponent implements OnInit {
       label: 'Fincas',
       route: '/farms',
       icon: 'agriculture'
+    },
+    {
+      label: 'Inversiones',
+      route: '/investments',
+      icon: 'trending_up'
     }
   ];
 

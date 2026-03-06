@@ -36,15 +36,6 @@
     </app-stats-card>
 
     <app-stats-card
-      label="Potreros"
-      [value]="(summary()?.paddocks?.total ?? paddocks().length).toString()"
-      [subtitle]="(summary()?.paddocks?.available ?? 0) + ' disponibles'"
-      color="yellow"
-    >
-      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-    </app-stats-card>
-
-    <app-stats-card
       label="Empleados Activos"
       [value]="(summary()?.employees?.active_count ?? employees().length).toString()"
       color="purple"
@@ -121,55 +112,6 @@
             <div class="notes-card">
               <h4 class="info-card-title">Notas</h4>
               <p class="notes-text">{{ farm()!.notes }}</p>
-            </div>
-          }
-        </div>
-      </mat-tab>
-
-      <!-- ── Tab: Potreros ─────────────────────────────────────────────── -->
-      <mat-tab label="Potreros ({{ paddocks().length }})">
-        <div class="tab-content">
-          <div class="tab-header">
-            <h4>Potreros</h4>
-            <button class="btn btn-sm btn-primary" (click)="openPaddockForm()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Nuevo Potrero
-            </button>
-          </div>
-
-          @if (paddocks().length === 0) {
-            <app-empty-state title="Sin potreros" message="Agrega el primer potrero a esta finca." [compact]="true"></app-empty-state>
-          } @else {
-            <div class="table-container">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Código</th><th>Nombre</th><th>Tipo</th>
-                    <th>Área (ha)</th><th>Ocupación</th><th>Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (p of paddocks(); track p.id) {
-                    <tr>
-                      <td class="mono">{{ p.code }}</td>
-                      <td>{{ p.name }}</td>
-                      <td>{{ p.paddock_type }}</td>
-                      <td>{{ formatNumber(p.area) }}</td>
-                      <td>
-                        <div class="inline-progress">
-                          <div class="inline-track">
-                            <div class="inline-fill" [style.width.%]="p.occupancy_percentage" [class.high]="p.occupancy_percentage > 80"></div>
-                          </div>
-                          <span class="progress-label-text">{{ p.current_cattle_count }}/{{ p.capacity }}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <app-badge [color]="paddockStatusColor(p.status)">{{ getPaddockStatusLabel(p.status) }}</app-badge>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
             </div>
           }
         </div>
