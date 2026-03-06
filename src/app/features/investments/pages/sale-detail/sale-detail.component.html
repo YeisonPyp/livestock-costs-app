@@ -1,0 +1,125 @@
+<app-page-header [title]="sale()?.description ?? 'Venta'">
+  <ng-container breadcrumb>
+    <a routerLink="/investments/sales" class="bc-link">Ventas</a>
+    <span class="bc-sep">/</span>
+    <span>{{ sale()?.sale_date }}</span>
+  </ng-container>
+
+  @if (sale() && !sale()!.is_finalized) {
+    <button class="btn btn-primary" (click)="confirmFinalize()" [disabled]="finalizing() || pendingCount > 0">
+      @if (finalizing()) { <span class="btn-spinner-sm"></span> Finalizando... }
+      @else { ✓ Finalizar Venta }
+    </button>
+  }
+</app-page-header>
+
+@if (loading()) {
+  <app-loader [overlay]="false" type="spinner" />
+} @else if (sale()) {
+
+  <!-- Status alert -->
+  @if (!sale()!.is_finalized && pendingCount > 0) {
+    <app-alert type="warning" [dismissible]="false">
+      Hay <strong>{{ pendingCount }} decisión{{ pendingCount !== 1 ? 'es' : '' }} pendiente{{ pendingCount !== 1 ? 's' : '' }}</strong>.
+      La venta no puede finalizarse hasta que todos los inversionistas tomen su decisión.
+    </app-alert>
+  }
+  @if (sale()!.is_finalized) {
+    <app-alert type="success" [dismissible]="false">
+      Venta finalizada el {{ sale()!.finalized_at | date:'dd/MM/yyyy HH:mm' }}.
+      Se procesaron {{ processedCount }} decisiones.
+    </app-alert>
+  }
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <app-kpi-card label="Cabezas"       [value]="sale()!.total_heads.toString()"                           color="blue"></app-kpi-card>
+    <app-kpi-card label="Peso Total"    [value]="sale()!.total_weight.toString() + ' kg'"                  color="yellow"></app-kpi-card>
+    <app-kpi-card label="Precio / kg"   [value]="formatCurrency(sale()!.price_per_kg)"                     color="purple"></app-kpi-card>
+    <app-kpi-card label="Monto Bruto"   [value]="formatCurrency(sale()!.gross_amount)"                     color="blue"></app-kpi-card>
+    <app-kpi-card label="Costos Venta"  [value]="formatCurrency(sale()!.sale_costs)"                       color="red"></app-kpi-card>
+    <app-kpi-card label="Monto Neto"    [value]="formatCurrency(sale()!.net_amount)"                       color="green"></app-kpi-card>
+  </div>
+
+  <!-- Info card -->
+  <div class="info-card">
+    <div class="info-item"><span class="lbl">Fecha</span>      <span class="val">{{ sale()!.sale_date }}</span></div>
+    <div class="info-item"><span class="lbl">Comprador</span>  <span class="val">{{ sale()!.buyer_name || '—' }}</span></div>
+    <div class="info-item"><span class="lbl">Estado</span>
+      <app-badge [color]="sale()!.is_finalized ? 'success' : 'warning'">{{ sale()!.is_finalized ? 'Finalizada' : 'Pendiente' }}</app-badge>
+    </div>
+    @if (sale()!.notes) {
+      <div class="info-item full"><span class="lbl">Notas</span><span class="val">{{ sale()!.notes }}</span></div>
+    }
+  </div>
+
+  <!-- Decisions table -->
+  <div class="section-header">
+    <h3>Decisiones de Inversionistas</h3>
+    <div class="decision-summary">
+      <app-badge color="secondary">{{ decisions().length }} total</app-badge>
+      @if (pendingCount > 0) { <app-badge color="warning">{{ pendingCount }} pendientes</app-badge> }
+      @if (processedCount > 0) { <app-badge color="success">{{ processedCount }} procesadas</app-badge> }
+    </div>
+  </div>
+
+  @if (decisions().length === 0) {
+    <app-empty-state title="Sin decisiones" message="No hay decisiones registradas para esta venta." [compact]="true"></app-empty-state>
+  } @else {
+    <div class="table-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Inversionista</th>
+            <th>Monto</th>
+            <th>Ganancia/Pérdida</th>
+            <th>Decisión</th>
+            <th>Reinvertir</th>
+            <th>Retirar</th>
+            <th>Procesado</th>
+            <th>Límite</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (d of decisions(); track d.id) {
+            <tr [class.row-pending]="d.decision_type === 'pending'">
+              <td>
+                <div class="investor-cell">
+                  <span class="code">{{ d.investor_code ?? '—' }}</span>
+                  <span>{{ d.investor_name ?? '—' }}</span>
+                </div>
+              </td>
+              <td><app-amount-display [amount]="d.investor_amount" type="income" size="sm"></app-amount-display></td>
+              <td><app-amount-display [amount]="d.profit_loss" [type]="d.profit_loss >= 0 ? 'income' : 'expense'" size="sm"></app-amount-display></td>
+              <td>
+                <app-badge [color]="decisionColor(d.decision_type)">{{ decisionLabel(d.decision_type) }}</app-badge>
+              </td>
+              <td>
+                @if (d.reinvest_amount > 0) {
+                  <app-amount-display [amount]="d.reinvest_amount" type="income" size="sm"></app-amount-display>
+                } @else { <span class="muted">—</span> }
+              </td>
+              <td>
+                @if (d.withdraw_amount > 0) {
+                  <app-amount-display [amount]="d.withdraw_amount" type="expense" size="sm"></app-amount-display>
+                } @else { <span class="muted">—</span> }
+              </td>
+              <td class="center">
+                <app-badge [color]="d.is_processed ? 'success' : 'secondary'" size="sm">
+                  {{ d.is_processed ? 'Sí' : 'No' }}
+                </app-badge>
+              </td>
+              <td class="date-cell">{{ d.decision_deadline ?? '—' }}</td>
+              <td>
+                @if (d.decision_type === 'pending') {
+                  <a [routerLink]="['/investments/decisions', d.id]" class="btn-decide">Decidir →</a>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}

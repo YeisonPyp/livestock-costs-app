@@ -31,7 +31,7 @@ export class CostFormComponent implements OnInit {
 
     this.costForm = this.fb.group({
       category: [null, [Validators.required]],
-      date_incurred: ['', [Validators.required]],
+      date: ['', [Validators.required]],
       amount: ['', [Validators.required, Validators.min(0.01)]],
       description: ['', [Validators.required, Validators.maxLength(500)]],
       notes: ['', [Validators.maxLength(1000)]]
@@ -43,7 +43,7 @@ export class CostFormComponent implements OnInit {
       this.isEditMode = true;
       this.costForm.patchValue({
         category: this.cost.category,
-        date_incurred: this.cost.date_incurred,
+        date: this.cost.date,
         amount: this.cost.amount,
         description: this.cost.description,
         notes: this.cost.notes || ''
@@ -51,7 +51,7 @@ export class CostFormComponent implements OnInit {
     } else {
       // Si es nuevo, establecer fecha de hoy por defecto
       this.costForm.patchValue({
-        date_incurred: this.maxDate
+        date: this.maxDate
       });
     }
   }
@@ -65,7 +65,7 @@ export class CostFormComponent implements OnInit {
     const formValue = this.costForm.value;
     const costData: Partial<Cost> = {
       category: Number(formValue.category),
-      date_incurred: formValue.date_incurred,
+      date: formValue.date,
       amount: Number(formValue.amount),
       description: formValue.description,
       notes: formValue.notes || ''
@@ -87,8 +87,8 @@ export class CostFormComponent implements OnInit {
     return this.costForm.get('category');
   }
 
-  get date_incurred() {
-    return this.costForm.get('date_incurred');
+  get date() {
+    return this.costForm.get('date');
   }
 
   get amount() {

@@ -1,0 +1,205 @@
+@use '../../../../shared/styles/variables' as *;
+
+// ── Layout ────────────────────────────────────────────────────────────────────
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $space-4;
+  margin-bottom: $space-5;
+}
+
+.occupancy-bar-card {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  padding: $space-4 $space-5;
+  margin-bottom: $space-5;
+  box-shadow: $shadow-sm;
+}
+
+.tabs-container {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+}
+
+.tab-content { padding: $space-6; }
+
+// ── Tab header ────────────────────────────────────────────────────────────────
+.tab-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-5;
+
+  h4 { margin: 0; font-size: $font-md; font-weight: $weight-semibold; color: $slate-900; }
+}
+
+// ── Info grid ─────────────────────────────────────────────────────────────────
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: $space-4;
+  margin-bottom: $space-4;
+}
+
+.info-card {
+  background: $slate-50;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  padding: $space-4;
+}
+
+.info-card-title {
+  margin: 0 0 $space-3;
+  font-size: $font-sm;
+  font-weight: $weight-bold;
+  color: $slate-700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding-bottom: $space-2;
+  border-bottom: 1px solid $border-color;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-2 0;
+  border-bottom: 1px solid rgba($border-color, .6);
+  gap: $space-3;
+
+  &:last-child { border-bottom: none; }
+}
+
+.info-label { font-size: $font-xs; color: $slate-400; flex-shrink: 0; }
+.info-value  { font-size: $font-sm; font-weight: $weight-medium; color: $slate-800; text-align: right; }
+.mono        { font-family: 'Courier New', monospace; font-size: .8125rem !important; }
+
+.notes-card {
+  background: $slate-50;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  padding: $space-4;
+}
+
+.notes-text { margin: 0; font-size: $font-sm; color: $slate-600; line-height: 1.6; }
+
+// ── Table ─────────────────────────────────────────────────────────────────────
+.table-container { overflow-x: auto; }
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th, td {
+    padding: $space-3 $space-4;
+    text-align: left;
+    font-size: $font-sm;
+    border-bottom: 1px solid $border-color;
+    vertical-align: middle;
+  }
+
+  th {
+    background: $slate-50;
+    font-weight: $weight-semibold;
+    color: $slate-600;
+    white-space: nowrap;
+    font-size: $font-xs;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  tbody tr {
+    @include transition(background-color);
+    &:hover { background: $slate-50; }
+    &.row-inactive { opacity: .55; }
+    &:last-child td { border-bottom: none; }
+  }
+}
+
+// ── Employee cell ─────────────────────────────────────────────────────────────
+.cell-name {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.employee-avatar {
+  flex-shrink: 0;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: $primary-muted;
+  color: $primary;
+  @include flex-center;
+  font-size: $font-xs;
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+}
+
+.employee-name   { display: block; font-weight: $weight-medium; color: $slate-900; }
+.employee-phone  { display: block; font-size: $font-xs; color: $slate-400; }
+
+.cell-actions { width: 40px; text-align: right; }
+
+.icon-btn-sm {
+  @include flex-center;
+  width: 30px; height: 30px;
+  background: none; border: none;
+  border-radius: $border-radius-sm;
+  color: $slate-400; cursor: pointer;
+  @include transition(background-color, color);
+  svg { width: 16px; height: 16px; }
+  &:hover { background: $slate-100; color: $slate-700; }
+}
+
+// ── Inline progress ───────────────────────────────────────────────────────────
+.inline-progress {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.inline-track {
+  width: 60px; height: 6px;
+  background: $slate-200;
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.inline-fill {
+  height: 100%;
+  background: $primary;
+  border-radius: 3px;
+  @include transition(width);
+
+  &.high { background: $warning; }
+}
+
+.progress-label-text { font-size: $font-xs; color: $slate-500; white-space: nowrap; }
+
+// ── Breadcrumb ────────────────────────────────────────────────────────────────
+.breadcrumb-link { color: $primary; text-decoration: none; font-size: $font-sm; &:hover { text-decoration: underline; } }
+.breadcrumb-sep  { margin: 0 $space-2; color: $slate-400; font-size: $font-sm; }
+
+// ── Header actions ────────────────────────────────────────────────────────────
+.header-actions { display: flex; gap: $space-3; align-items: center; }
+
+// ── Buttons (local) ───────────────────────────────────────────────────────────
+.btn {
+  display: inline-flex; align-items: center; gap: $space-2;
+  padding: $space-2 $space-4; border-radius: $border-radius;
+  font-size: $font-sm; font-weight: $weight-medium;
+  cursor: pointer; border: 1.5px solid transparent;
+  @include transition(background-color, border-color, color, box-shadow);
+  text-decoration: none;
+
+  svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+  &.btn-primary { background: $primary; color: $white; &:hover { background: $primary-hover; } }
+  &.btn-outline { background: $white; border-color: $border-color; color: $slate-700; &:hover { border-color: $primary; color: $primary; } }
+  &.btn-sm { padding: $space-1 $space-3; font-size: $font-xs; }
+}

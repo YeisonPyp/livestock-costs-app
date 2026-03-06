@@ -1,0 +1,7 @@
+<!-- amount-display.component.html -->
+<span class="amount" [class]="'amount-' + type + ' amount-' + size" [class.amount-muted]="muted">
+  @if (showSign && type !== 'neutral') {
+    <span class="amount-sign">{{ type === 'income' ? '+' : '-' }}</span>
+  }
+  <span class="amount-value">{{ formatted }}</span>
+</span>

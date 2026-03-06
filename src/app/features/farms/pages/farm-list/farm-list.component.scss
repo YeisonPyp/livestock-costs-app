@@ -1,0 +1,230 @@
+@use '../../../../shared/styles/variables' as *;
+
+// ── KPI grid ──────────────────────────────────────────────────────────────────
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $space-4;
+  margin-bottom: $space-5;
+}
+
+// ── Filters ───────────────────────────────────────────────────────────────────
+.filters-card {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  padding: $space-4 $space-5;
+  margin-bottom: $space-5;
+  box-shadow: $shadow-sm;
+}
+
+.filters-row {
+  display: flex;
+  gap: $space-3;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-wrapper {
+  flex: 1;
+  min-width: 220px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute; left: $space-3;
+  width: 16px; height: 16px;
+  color: $slate-400; pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 $space-3 0 2.5rem;
+  border: 1.5px solid $border-color;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-family: $font-family;
+  outline: none;
+  @include transition(border-color, box-shadow);
+  &::placeholder { color: $slate-400; }
+  &:focus { border-color: $primary; box-shadow: 0 0 0 3px $primary-muted; }
+}
+
+.filter-select { flex-shrink: 0; }
+
+.native-select {
+  height: 40px;
+  padding: 0 2.5rem 0 $space-3;
+  border: 1.5px solid $border-color;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-family: $font-family;
+  background: $white;
+  appearance: none;
+  outline: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right $space-3 center;
+  background-size: 14px;
+  @include transition(border-color);
+  &:focus { border-color: $primary; }
+}
+
+.btn-clear {
+  display: flex; align-items: center; gap: $space-1;
+  background: none; border: none; cursor: pointer;
+  font-size: $font-xs; color: $slate-400;
+  @include transition(color);
+  svg { width: 13px; height: 13px; }
+  &:hover { color: $danger; }
+}
+
+.results-count {
+  margin: $space-2 0 0;
+  font-size: $font-xs;
+  color: $slate-400;
+}
+
+// ── Farm grid ─────────────────────────────────────────────────────────────────
+.farms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: $space-5;
+}
+
+.farm-card {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  @include transition(box-shadow, transform);
+
+  &:hover { box-shadow: $shadow-md; transform: translateY(-2px); }
+}
+
+// Card header
+.farm-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: $space-4 $space-5;
+  border-bottom: 1px solid $border-color;
+  gap: $space-3;
+}
+
+.farm-info { flex: 1; min-width: 0; }
+
+.farm-code {
+  display: block;
+  font-size: $font-xs;
+  font-weight: $weight-bold;
+  color: $primary;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: $space-1;
+}
+
+.farm-name {
+  margin: 0 0 $space-1;
+  font-size: $font-md;
+  font-weight: $weight-bold;
+  color: $slate-900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.farm-location {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  font-size: $font-xs;
+  color: $slate-400;
+  svg { width: 12px; height: 12px; flex-shrink: 0; }
+}
+
+.card-badges { flex-shrink: 0; }
+
+// Card body
+.farm-card-body { padding: $space-4 $space-5; flex: 1; }
+
+.farm-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-2;
+  margin-bottom: $space-4;
+  text-align: center;
+}
+
+.stat { display: flex; flex-direction: column; gap: 2px; }
+.stat-value { font-size: $font-lg; font-weight: $weight-bold; color: $slate-900; line-height: 1; }
+.stat-label { font-size: 0.65rem; color: $slate-400; text-transform: uppercase; letter-spacing: .04em; }
+
+.stat-warn  .stat-value { color: $warning-hover; }
+.stat-danger .stat-value { color: $danger; }
+
+.occ-track {
+  height: 6px;
+  background: $slate-200;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: $space-1;
+}
+
+.occ-fill {
+  height: 100%;
+  background: $primary;
+  border-radius: 3px;
+  @include transition(width);
+  &.warn   { background: $warning; }
+  &.danger { background: $danger;  }
+}
+
+.occ-label { font-size: $font-xs; color: $slate-400; }
+
+// Card footer
+.farm-card-footer {
+  display: flex;
+  gap: $space-2;
+  padding: $space-3 $space-5;
+  background: $slate-50;
+  border-top: 1px solid $border-color;
+}
+
+// Buttons
+.btn {
+  display: inline-flex; align-items: center; gap: $space-1;
+  border: 1.5px solid transparent; border-radius: $border-radius;
+  font-size: $font-sm; font-weight: $weight-medium;
+  cursor: pointer; text-decoration: none;
+  @include transition(background-color, border-color, color);
+
+  svg { width: 15px; height: 15px; }
+
+  &.btn-primary   { padding: $space-2 $space-5; background: $primary; color: $white; &:hover { background: $primary-hover; } }
+  &.btn-sm        { padding: $space-1 $space-3; font-size: $font-xs; }
+  &.btn-secondary { background: $slate-100; color: $slate-700; border-color: $border-color; &:hover { background: $slate-200; } }
+  &.btn-outline   { background: $white; border-color: $border-color; color: $slate-600; &:hover { border-color: $primary; color: $primary; } }
+  &.btn-icon      { padding: $space-1; width: 30px; height: 30px; @include flex-center; }
+  &.btn-danger-ghost { &:hover { background: $danger-muted; color: $danger; } }
+
+  &:disabled { opacity: .5; cursor: not-allowed; }
+}
+
+// Pagination
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: $space-4;
+  margin-top: $space-6;
+}
+
+.page-info { font-size: $font-sm; color: $slate-500; }

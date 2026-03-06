@@ -1,5 +1,24 @@
 <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()" class="category-form">
   <div class="form-grid">
+
+        <!-- Categoría Padre -->
+    <div class="form-group">
+      <label for="parent" class="form-label">
+        Categoría Padre
+      </label>
+      <select
+        id="parent"
+        formControlName="parent"
+        class="form-select"
+      >
+        <option [value]="null">-- Sin categoría padre --</option>
+        @for (cat of availableParentCategories; track cat.id) {
+          <option [value]="cat.id">{{ cat.code }} - {{ cat.name }}</option>
+        }
+      </select>
+      <p class="form-hint">Si seleccionas una categoría padre, el nivel se ajustará automáticamente</p>
+    </div>
+    
     <!-- Código -->
     <div class="form-group">
       <label for="code" class="form-label">
@@ -40,24 +59,6 @@
       @if (hasError('name', 'maxlength')) {
         <span class="error-message">Máximo 100 caracteres</span>
       }
-    </div>
-
-    <!-- Categoría Padre -->
-    <div class="form-group">
-      <label for="parent" class="form-label">
-        Categoría Padre
-      </label>
-      <select
-        id="parent"
-        formControlName="parent"
-        class="form-select"
-      >
-        <option [value]="null">-- Sin categoría padre --</option>
-        @for (cat of availableParentCategories; track cat.id) {
-          <option [value]="cat.id">{{ cat.code }} - {{ cat.name }}</option>
-        }
-      </select>
-      <p class="form-hint">Si seleccionas una categoría padre, el nivel se ajustará automáticamente</p>
     </div>
 
     <!-- Nivel -->

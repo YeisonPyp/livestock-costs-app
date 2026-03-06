@@ -1,0 +1,59 @@
+@use '../../../styles/variables' as *;
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-3 $space-4;
+  border-radius: $border-radius;
+  @include transition(background-color);
+
+  &.clickable { cursor: pointer; &:hover { background: $slate-50; } }
+}
+
+.transaction-icon {
+  flex-shrink: 0;
+  width: 42px; height: 42px;
+  border-radius: $border-radius;
+  @include flex-center;
+
+  ::ng-deep svg { width: 20px; height: 20px; display: block; }
+}
+
+.transaction-info {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 2px;
+}
+
+.transaction-name {
+  font-size: $font-sm; font-weight: $weight-semibold;
+  color: $slate-900; @include truncate;
+}
+
+.transaction-meta {
+  font-size: $font-xs; color: $slate-400; @include truncate;
+}
+
+.transaction-date {
+  font-size: $font-xs; color: $slate-400;
+  white-space: nowrap; flex-shrink: 0;
+
+  @include respond-below($bp-sm) { display: none; }
+}
+
+.transaction-amount {
+  flex-shrink: 0;
+  display: flex; align-items: baseline; gap: 1px;
+  font-size: $font-sm; font-weight: $weight-bold;
+  white-space: nowrap;
+
+  &.amount-income  { color: $success; }
+  &.amount-expense { color: $danger;  }
+}
+
+.amount-sign { font-size: $font-xs; }
+
+.transaction-actions {
+  flex-shrink: 0;
+  &:empty { display: none; }
+}

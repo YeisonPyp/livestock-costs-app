@@ -1,0 +1,29 @@
+<!-- progress-bar.component.html -->
+<div class="progress-wrapper">
+  @if (label || showValue) {
+    <div class="progress-header">
+      @if (label) { <span class="progress-label">{{ label }}</span> }
+      @if (showValue) {
+        <span class="progress-value" [class]="'text-' + statusColor">
+          {{ displayValue }}
+        </span>
+      }
+    </div>
+  }
+
+  <div class="progress-track" [style.height.px]="trackHeight">
+    <div
+      class="progress-fill"
+      [class]="'fill-' + statusColor"
+      [style.width.%]="clampedValue"
+      [attr.role]="'progressbar'"
+      [attr.aria-valuenow]="value"
+      [attr.aria-valuemin]="0"
+      [attr.aria-valuemax]="max"
+    ></div>
+  </div>
+
+  @if (showSubtitle) {
+    <p class="progress-subtitle">{{ subtitle }}</p>
+  }
+</div>

@@ -1,0 +1,46 @@
+<nav class="sidebar" [class.collapsed]="collapsed">
+  <!-- Logo -->
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <ng-content select="[logo-icon]"></ng-content>
+    </div>
+    @if (!collapsed) {
+      <span class="logo-text">{{ appName }}</span>
+    }
+  </div>
+
+  <!-- Navigation -->
+  <div class="sidebar-nav">
+    @for (group of navGroups; track group.label) {
+      <div class="nav-group">
+        @if (!collapsed && group.label) {
+          <span class="nav-group-label">{{ group.label }}</span>
+        }
+        @for (item of group.items; track item.route) {
+          <a
+            class="nav-item"
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+            [title]="collapsed ? item.label : ''"
+          >
+            <span class="nav-icon" [innerHTML]="item.icon"></span>
+            @if (!collapsed) {
+              <span class="nav-label">{{ item.label }}</span>
+              @if (item.badge) {
+                <span class="nav-badge" [class]="'badge-' + (item.badgeColor || 'primary')">
+                  {{ item.badge }}
+                </span>
+              }
+            }
+          </a>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Footer slot -->
+  <div class="sidebar-footer">
+    <ng-content select="[sidebar-footer]"></ng-content>
+  </div>
+</nav>

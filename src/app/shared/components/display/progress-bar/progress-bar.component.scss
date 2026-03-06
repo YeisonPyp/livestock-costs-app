@@ -1,0 +1,39 @@
+@use '../../../styles/variables' as *;
+
+.progress-wrapper { display: flex; flex-direction: column; gap: $space-2; }
+
+.progress-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: $space-2;
+}
+
+.progress-label { font-size: $font-sm; font-weight: $weight-medium; color: $slate-700; }
+
+.progress-value {
+  font-size: $font-sm; font-weight: $weight-bold;
+  &.text-primary { color: $primary; }
+  &.text-success { color: $success; }
+  &.text-warning { color: $warning-hover; }
+  &.text-danger  { color: $danger; }
+}
+
+.progress-track {
+  width: 100%;
+  background: $slate-200;
+  border-radius: $border-radius-full;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: $border-radius-full;
+  @include transition(width);
+  transition-duration: .5s;
+
+  &.fill-primary { background: $primary; }
+  &.fill-success { background: $success; }
+  &.fill-warning { background: $warning; }
+  &.fill-danger  { background: $danger; }
+}
+
+.progress-subtitle { margin: 0; font-size: $font-xs; color: $slate-400; }

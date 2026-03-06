@@ -1,0 +1,135 @@
+<app-page-header title="Reportes de Inversión" subtitle="Participación, capital y ganado por inversionista"></app-page-header>
+
+<!-- KPIs globales -->
+<div class="kpi-grid">
+  <app-kpi-card label="Capital Total"        [value]="formatCurrency(totals().totalCapital)" color="blue">
+    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+  </app-kpi-card>
+  <app-kpi-card label="Ganancias Totales"    [value]="formatCurrency(totals().totalProfits)" [color]="totals().totalProfits >= 0 ? 'green' : 'red'">
+    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+  </app-kpi-card>
+  <app-kpi-card label="Ganado Total"         [value]="totals().totalCattle.toString()" color="yellow">
+    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+  </app-kpi-card>
+  <app-kpi-card label="ROI Promedio"         [value]="totals().avgRoi.toFixed(1) + '%'" [color]="totals().avgRoi >= 0 ? 'green' : 'red'">
+    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>
+  </app-kpi-card>
+</div>
+
+<!-- Participación -->
+<div class="section-card">
+  <div class="section-header">
+    <h3>Participación por Inversionista</h3>
+  </div>
+
+  @if (loadingPart()) {
+    <app-loader [overlay]="false" type="spinner" />
+  } @else if (participation().length === 0) {
+    <app-empty-state title="Sin datos" [compact]="true"></app-empty-state>
+  } @else {
+    <div class="participation-list">
+      @for (r of participation(); track r.investor_code) {
+        <div class="participation-row">
+          <div class="investor-info">
+            <a [routerLink]="['/investments/investors']" class="inv-code-link">{{ r.investor_code }}</a>
+            <span class="inv-name">{{ r.investor_name }}</span>
+          </div>
+          <div class="participation-bar">
+            <app-progress-bar
+              [value]="participationPct(r.total_capital)"
+              [max]="100"
+              format="percent"
+              [trackHeight]="8"
+              [showValue]="false"
+            ></app-progress-bar>
+            <span class="pct-label">{{ participationPct(r.total_capital).toFixed(1) }}%</span>
+          </div>
+          <div class="participation-stats">
+            <div class="stat-item">
+              <span class="stat-lbl">Capital</span>
+              <app-amount-display [amount]="r.total_capital" type="neutral" size="sm"></app-amount-display>
+            </div>
+            <div class="stat-item">
+              <span class="stat-lbl">Ganancia</span>
+              <app-amount-display [amount]="r.total_profits" [type]="r.total_profits >= 0 ? 'income' : 'expense'" size="sm"></app-amount-display>
+            </div>
+            <div class="stat-item">
+              <span class="stat-lbl">ROI</span>
+              <span class="roi-val" [class.positive]="r.roi_percentage >= 0" [class.negative]="r.roi_percentage < 0">
+                {{ r.roi_percentage.toFixed(1) }}%
+              </span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-lbl">Cabezas</span>
+              <span class="stat-val">{{ r.cattle_count }}</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-lbl">Valor Ganado</span>
+              <app-amount-display [amount]="r.cattle_value" type="neutral" size="sm"></app-amount-display>
+            </div>
+            @if (r.pending_decisions > 0) {
+              <div class="stat-item">
+                <app-badge color="warning" size="sm">{{ r.pending_decisions }} pend.</app-badge>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Propietarios de Ganado -->
+<div class="section-card">
+  <div class="section-header">
+    <h3>Ganado por Inversionista</h3>
+  </div>
+
+  @if (loadingCattle()) {
+    <app-loader [overlay]="false" type="spinner" />
+  } @else if (cattleOwners().length === 0) {
+    <app-empty-state title="Sin datos" [compact]="true"></app-empty-state>
+  } @else {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Inversionista</th>
+            <th>Tipo</th>
+            <th>Referencia</th>
+            <th>Cantidad</th>
+            <th>% Prop.</th>
+            <th>Valor Compra</th>
+            <th>Valor Actual</th>
+            <th>Ganancia Peso</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of cattleOwners(); track row.id) {
+            <tr>
+              <td>
+                <div class="investor-cell">
+                  <span class="inv-code-sm">{{ row.investor_code }}</span>
+                  <span>{{ row.investor_name }}</span>
+                </div>
+              </td>
+              <td>{{ row.ownership_type_display ?? row.ownership_type }}</td>
+              <td>{{ row.animal_tag ?? row.lot_code ?? '—' }}</td>
+              <td class="center">{{ row.quantity }}</td>
+              <td class="center">{{ row.ownership_percentage }}%</td>
+              <td><app-amount-display [amount]="row.purchase_value" type="neutral" size="sm"></app-amount-display></td>
+              <td><app-amount-display [amount]="row.current_value ?? 0" type="neutral" size="sm"></app-amount-display></td>
+              <td [class.positive]="(row.weight_gain ?? 0) > 0">{{ row.weight_gain ? row.weight_gain.toFixed(1) + ' kg' : '—' }}</td>
+              <td>
+                <app-badge [color]="row.status === 'active' ? 'success' : row.status === 'sold' ? 'info' : 'secondary'" size="sm">
+                  {{ row.status }}
+                </app-badge>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

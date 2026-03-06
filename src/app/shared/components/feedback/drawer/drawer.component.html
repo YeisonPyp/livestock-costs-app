@@ -1,0 +1,26 @@
+<!-- drawer.component.html -->
+@if (isOpen) {
+  <div class="drawer-overlay" (click)="onOverlayClick()" [@fadeOverlay]></div>
+}
+
+<div class="drawer-panel" [class]="'drawer-' + size" [class.open]="isOpen">
+  <div class="drawer-header">
+    <div class="drawer-title-group">
+      <h3 class="drawer-title">{{ title }}</h3>
+      @if (subtitle) { <p class="drawer-subtitle">{{ subtitle }}</p> }
+    </div>
+    <button class="drawer-close" (click)="close()" aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="drawer-body">
+    <ng-content></ng-content>
+  </div>
+
+  <div class="drawer-footer">
+    <ng-content select="[drawer-footer]"></ng-content>
+  </div>
+</div>

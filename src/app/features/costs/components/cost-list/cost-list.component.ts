@@ -49,7 +49,7 @@ export class CostListComponent implements OnInit, AfterViewInit {
 
   columns: TableColumn[] = [
     {
-      key: 'date_incurred',
+      key: 'date',
       label: 'Fecha',
       sortable: true,
       type: 'date',

@@ -1,0 +1,31 @@
+@use '../../../styles/variables' as *;
+
+.field { display: flex; flex-direction: column; gap: $space-2; }
+.field-label { font-size: $font-sm; font-weight: $weight-semibold; color: $slate-700; }
+.required-mark { color: $danger; margin-left: 2px; }
+.field-wrapper { position: relative; display: flex; align-items: center; }
+
+.field-select {
+  width: 100%; height: 42px;
+  padding: 0 2.5rem 0 $space-3;
+  font-size: $font-sm; font-family: $font-family;
+  color: $slate-900; background: $white;
+  border: 1.5px solid $border-color; border-radius: $border-radius;
+  outline: none; appearance: none; cursor: pointer;
+  @include transition(border-color, box-shadow);
+
+  &:focus { border-color: $primary; box-shadow: 0 0 0 3px $primary-muted; }
+  &:disabled { background: $slate-50; color: $slate-400; cursor: not-allowed; }
+}
+
+.select-arrow {
+  position: absolute; right: $space-3;
+  @include flex-center;
+  pointer-events: none; color: $slate-400;
+  svg { width: 16px; height: 16px; }
+}
+
+.field-footer { min-height: 18px; }
+.field-error  { font-size: $font-xs; color: $danger; }
+.field-hint   { font-size: $font-xs; color: $slate-400; }
+.has-error .field-select { border-color: $danger; &:focus { box-shadow: 0 0 0 3px $danger-muted; } }

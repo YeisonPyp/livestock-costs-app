@@ -1,0 +1,12 @@
+<div class="stats-card" [class]="'color-' + color">
+  <div class="stats-icon">
+    <ng-content select="[icon]"></ng-content>
+  </div>
+  <div class="stats-content">
+    <p class="stats-label">{{ label }}</p>
+    <p class="stats-value">{{ value }}</p>
+    @if (subtitle) {
+      <p class="stats-subtitle">{{ subtitle }}</p>
+    }
+  </div>
+</div>

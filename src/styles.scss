@@ -1,16 +1,46 @@
-/* You can add global styles to this file, and also import other style files */
+// 1. LAS REGLAS @USE SIEMPRE PRIMERO
+@use '@angular/material' as mat;
+
+// 2. Luego los @import
 @import 'ngx-toastr/toastr';
 
+// Definimos el tema de Material para tener control de los colores
+$my-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$azure-palette,
+    tertiary: mat.$blue-palette,
+  ),
+  typography: (
+    brand-family: 'Inter, sans-serif', // O la fuente que prefieras
+    bold-weight: 700
+  ),
+));
+
+// Aplicamos el tema a todos los componentes de Material
+html {
+  @include mat.all-component-themes($my-theme);
+  @include mat.typography-hierarchy($my-theme);
+}
+
+// 3. Tailwind CSS
+// Nota: Se recomienda ponerlos después del tema de Material 
+// para que las utilidades de Tailwind tengan prioridad (especificidad)
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-* {
+// 4. Estilos Globales y Reseteo
+// Tailwind ya incluye un "Preflight" (reseteo) que hace esto por ti,
+// pero puedes añadir reglas personalizadas aquí.
+body {
+  @apply bg-gray-50 text-gray-900; // Ejemplo de uso de Tailwind en SCSS
   margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+// 5. Overrides (Control Total)
+// Aquí es donde "domas" a Angular Material si algo no te gusta
+.mat-mdc-card {
+  @apply border border-gray-200 shadow-sm rounded-xl; // Usas Tailwind para darle estilo a la tarjeta de Material
 }

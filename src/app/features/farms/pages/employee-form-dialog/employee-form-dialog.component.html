@@ -1,0 +1,151 @@
+<h2 mat-dialog-title>
+  <span class="dialog-icon icon-{{ isTerminate ? 'danger' : 'info' }}">
+    @if (isTerminate) {
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <line x1="17" y1="8" x2="23" y2="14"/><line x1="23" y1="8" x2="17" y2="14"/>
+      </svg>
+    } @else {
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+      </svg>
+    }
+  </span>
+  {{ dialogTitle }}
+</h2>
+
+<mat-dialog-content>
+  @if (isTerminate) {
+    <!-- ── TERMINATE FORM ── -->
+    <form [formGroup]="terminateForm" class="dialog-form">
+      <app-alert type="warning" title="Confirmar retiro">
+        Estás a punto de retirar a <strong>{{ data.employee?.full_name }}</strong> de la finca.
+        Esta acción cambiará su estado a inactivo.
+      </app-alert>
+
+      <div class="form-row">
+        <app-input-field
+          label="Fecha de retiro *"
+          type="text"
+          placeholder="AAAA-MM-DD"
+          formControlName="termination_date"
+          [control]="terminateForm.get('termination_date')"
+        ></app-input-field>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label class="field-label">Motivo del retiro</label>
+          <textarea
+            formControlName="reason"
+            class="field-textarea"
+            rows="3"
+            placeholder="Describe el motivo del retiro..."
+          ></textarea>
+        </div>
+      </div>
+    </form>
+  } @else {
+    <!-- ── CREATE / EDIT FORM ── -->
+    <form [formGroup]="employeeForm" class="dialog-form">
+      <div class="form-row">
+        <app-input-field
+          label="ID de Persona *"
+          placeholder="UUID de la persona"
+          formControlName="person"
+          [control]="employeeForm.get('person')"
+          hint="Ingresa el ID único de la persona registrada en el sistema"
+        ></app-input-field>
+      </div>
+
+      <div class="form-grid">
+        <app-select-field
+          label="Rol *"
+          formControlName="role"
+          [options]="roleOptions"
+          [control]="employeeForm.get('role')"
+        ></app-select-field>
+
+        <app-input-field
+          label="Cargo"
+          placeholder="Ej: Jefe de finca"
+          formControlName="job_title"
+        ></app-input-field>
+      </div>
+
+      <div class="form-grid">
+        <app-input-field
+          label="Fecha de contratación *"
+          type="text"
+          placeholder="AAAA-MM-DD"
+          formControlName="hire_date"
+          [control]="employeeForm.get('hire_date')"
+        ></app-input-field>
+
+        <app-select-field
+          label="Frecuencia de pago"
+          formControlName="salary_frequency"
+          [options]="salaryFrequencyOptions"
+        ></app-select-field>
+      </div>
+
+      <div class="form-row">
+        <app-currency-input
+          label="Salario"
+          formControlName="salary"
+          [control]="employeeForm.get('salary')"
+        ></app-currency-input>
+      </div>
+
+      <div class="form-grid">
+        <app-input-field
+          label="Contacto de emergencia"
+          placeholder="Nombre completo"
+          formControlName="emergency_contact_name"
+        ></app-input-field>
+
+        <app-input-field
+          label="Teléfono de emergencia"
+          type="tel"
+          placeholder="300 000 0000"
+          formControlName="emergency_contact_phone"
+        ></app-input-field>
+      </div>
+
+      <app-checkbox-toggle
+        label="Vive en la finca"
+        description="El empleado tiene residencia dentro de la finca"
+        mode="toggle"
+        formControlName="lives_on_farm"
+      ></app-checkbox-toggle>
+
+      @if (employeeForm.get('lives_on_farm')?.value) {
+        <div class="form-row">
+          <app-input-field
+            label="Ubicación de vivienda"
+            placeholder="Ej: Casa principal, cabaña norte..."
+            formControlName="housing_location"
+          ></app-input-field>
+        </div>
+      }
+    </form>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancelar</button>
+  <button
+    mat-flat-button
+    [color]="isTerminate ? 'warn' : 'primary'"
+    (click)="onSubmit()"
+    [disabled]="saving"
+  >
+    @if (saving) {
+      <span class="btn-spinner-inline"></span>
+      Guardando...
+    } @else {
+      {{ isTerminate ? 'Retirar empleado' : (data.employee ? 'Actualizar' : 'Agregar empleado') }}
+    }
+  </button>
+</mat-dialog-actions>

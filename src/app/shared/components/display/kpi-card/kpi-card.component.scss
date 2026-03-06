@@ -1,0 +1,82 @@
+@use '../../../styles/variables' as *;
+
+$kpi-colors: (
+  'blue':   ($primary,       $primary-muted),
+  'green':  (#16a34a,        rgba(#16a34a,.08)),
+  'yellow': ($warning-hover, $warning-muted),
+  'red':    ($danger-hover,  $danger-muted),
+  'purple': (#9333ea,        rgba(#9333ea,.08)),
+);
+
+.kpi-card {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  padding: $space-5;
+  box-shadow: $shadow-sm;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  @include transition(box-shadow, transform);
+
+  &:hover { box-shadow: $shadow-md; transform: translateY(-1px); }
+}
+
+.kpi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kpi-label {
+  font-size: $font-xs;
+  font-weight: $weight-semibold;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: $slate-400;
+}
+
+.kpi-icon {
+  width: 36px; height: 36px;
+  @include flex-center;
+  border-radius: $border-radius;
+  svg, mat-icon { width: 18px; height: 18px; }
+}
+
+@each $name, $pair in $kpi-colors {
+  $color: nth($pair, 1);
+  $bg:    nth($pair, 2);
+
+  .kpi-card.color-#{$name} {
+    .kpi-icon { background: $bg; color: $color; }
+    .kpi-value { color: $slate-900; }
+  }
+}
+
+.kpi-value {
+  margin: 0;
+  font-size: $font-3xl;
+  font-weight: $weight-bold;
+  color: $slate-900;
+  letter-spacing: -.02em;
+  line-height: 1;
+}
+
+.kpi-trend {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  font-size: $font-xs;
+  font-weight: $weight-semibold;
+
+  svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  &.trend-up   { color: $success; }
+  &.trend-down { color: $danger;  }
+}
+
+.trend-description {
+  color: $slate-400;
+  font-weight: $weight-normal;
+  margin-left: 2px;
+}

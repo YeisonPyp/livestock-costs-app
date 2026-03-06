@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Category } from '../../models/category.interface';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { CategoryService } from '../../services/category.service';
 
 @Component({
   selector: 'app-category-form',
@@ -22,7 +23,7 @@ export class CategoryFormComponent implements OnInit {
   categoryForm: FormGroup;
   isEditMode = false;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private categoryService: CategoryService) {
     this.categoryForm = this.fb.group({
       code: ['', [Validators.required, Validators.maxLength(20)]],
       name: ['', [Validators.required, Validators.maxLength(100)]],
@@ -44,23 +45,41 @@ export class CategoryFormComponent implements OnInit {
         level: this.category.level,
         is_movement: this.category.is_movement
       });
+    } else {
+      this.loadNextCategoryCode();
     }
 
-    // Listener para calcular nivel automáticamente
-    this.categoryForm.get('parent')?.valueChanges.subscribe(parentId => {
-      if (parentId) {
-        const parentCategory = this.categories.find(c => c.id === Number(parentId));
-        if (parentCategory) {
-          this.categoryForm.patchValue({
-            level: parentCategory.level + 1
-          }, { emitEvent: false });
+    this.setupParentChangeListener();
+  }
+
+  private loadNextCategoryCode(): void {
+    this.categoryService.getNextCategoryCode().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.categoryForm.patchValue({ code: response.data });
         }
-      } else {
-        this.categoryForm.patchValue({
-          level: 1
-        }, { emitEvent: false });
       }
     });
+  }
+
+  private setupParentChangeListener(): void {
+    this.categoryForm.get('parent')?.valueChanges.subscribe(parentId => {
+      this.updateLevelFromParent(parentId);
+    });
+  }
+
+  private updateLevelFromParent(parentId: number | null): void {
+    if (parentId) {
+      const parentCategory = this.categories.find(c => c.id === Number(parentId));
+      if (parentCategory) {
+        this.categoryForm.patchValue(
+          { level: parentCategory.level + 1 },
+          { emitEvent: false }
+        );
+      }
+    } else {
+      this.categoryForm.patchValue({ level: 1 }, { emitEvent: false });
+    }
   }
 
   onSubmit(): void {
@@ -90,11 +109,9 @@ export class CategoryFormComponent implements OnInit {
     if (!this.isEditMode) {
       return this.categories;
     }
-    // En modo edición, excluir la categoría actual y sus hijos
     return this.categories.filter(c => c.id !== this.category?.id);
   }
 
-  // Getters para validación
   get code() {
     return this.categoryForm.get('code');
   }

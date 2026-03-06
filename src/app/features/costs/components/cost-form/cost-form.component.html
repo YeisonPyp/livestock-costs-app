@@ -24,18 +24,18 @@
 
     <!-- Fecha -->
     <div class="form-group">
-      <label for="date_incurred" class="form-label">
+      <label for="date" class="form-label">
         Fecha del Gasto <span class="required">*</span>
       </label>
       <input
         type="date"
-        id="date_incurred"
-        formControlName="date_incurred"
+        id="date"
+        formControlName="date"
         class="form-input"
-        [class.error]="hasError('date_incurred', 'required')"
+        [class.error]="hasError('date', 'required')"
         [max]="maxDate"
       />
-      @if (hasError('date_incurred', 'required')) {
+      @if (hasError('date', 'required')) {
         <span class="error-message">La fecha es requerida</span>
       }
     </div>

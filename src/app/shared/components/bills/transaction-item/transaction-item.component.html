@@ -1,0 +1,30 @@
+<!-- transaction-item.component.html -->
+<div class="transaction-item" [class.clickable]="clickable" (click)="clicked.emit(transaction)">
+  <!-- Category icon -->
+  <div class="transaction-icon" [style.background]="transaction.categoryColor + '18'" [style.color]="transaction.categoryColor">
+    <span [innerHTML]="transaction.categoryIcon"></span>
+  </div>
+
+  <!-- Info -->
+  <div class="transaction-info">
+    <span class="transaction-name">{{ transaction.name }}</span>
+    <span class="transaction-meta">
+      {{ transaction.category }}
+      @if (transaction.note) { · {{ transaction.note }} }
+    </span>
+  </div>
+
+  <!-- Date -->
+  <span class="transaction-date">{{ formattedDate }}</span>
+
+  <!-- Amount -->
+  <div class="transaction-amount" [class]="transaction.type === 'income' ? 'amount-income' : 'amount-expense'">
+    <span class="amount-sign">{{ transaction.type === 'income' ? '+' : '-' }}</span>
+    <span>{{ formattedAmount }}</span>
+  </div>
+
+  <!-- Optional actions slot -->
+  <div class="transaction-actions" (click)="$event.stopPropagation()">
+    <ng-content></ng-content>
+  </div>
+</div>

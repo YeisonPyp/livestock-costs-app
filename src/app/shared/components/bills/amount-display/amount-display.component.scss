@@ -1,0 +1,21 @@
+@use '../../../styles/variables' as *;
+
+.amount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+
+  &.amount-income  { color: $success; }
+  &.amount-expense { color: $danger;  }
+  &.amount-neutral { color: $slate-900; }
+  &.amount-muted   { opacity: .55; }
+
+  &.amount-sm { font-size: $font-xs; }
+  &.amount-md { font-size: $font-sm; }
+  &.amount-lg { font-size: $font-xl; }
+  &.amount-xl { font-size: $font-3xl; letter-spacing: -.025em; }
+}
+
+.amount-sign { font-size: .8em; margin-right: 1px; }

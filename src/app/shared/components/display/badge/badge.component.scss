@@ -1,0 +1,47 @@
+@use '../../../styles/variables' as *;
+
+$badge-variants: (
+  'primary':   ($primary,   $primary-muted),
+  'success':   ($success,   $success-muted),
+  'warning':   ($warning,   $warning-muted),
+  'danger':    ($danger,    $danger-muted),
+  'info':      ($info,      $info-muted),
+  'secondary': ($secondary, rgba($secondary,.1)),
+  'gray':      ($gray-500,  $gray-100),
+);
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  padding: .2rem .6rem;
+  border-radius: $border-radius-full;
+  font-size: $font-xs;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  line-height: 1.5;
+
+  &.badge-sm { padding: .1rem .45rem; font-size: 0.6875rem; }
+}
+
+@each $name, $pair in $badge-variants {
+  $color: nth($pair, 1);
+  $bg:    nth($pair, 2);
+
+  .badge-#{$name} {
+    background: $bg;
+    color: darken($color, 5%);
+
+    &.badge-outline {
+      background: transparent;
+      border: 1.5px solid currentColor;
+    }
+  }
+}
+
+.badge-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}

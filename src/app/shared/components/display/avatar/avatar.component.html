@@ -1,0 +1,11 @@
+<!-- avatar.component.html -->
+<span class="avatar" [class]="'avatar-' + size + ' avatar-' + shape" [title]="name">
+  @if (src) {
+    <img [src]="src" [alt]="name" class="avatar-img" (error)="onImgError()" />
+  } @else {
+    <span class="avatar-initials" [style.background]="bgColor">{{ initials }}</span>
+  }
+  @if (status) {
+    <span class="avatar-status" [class]="'status-' + status"></span>
+  }
+</span>

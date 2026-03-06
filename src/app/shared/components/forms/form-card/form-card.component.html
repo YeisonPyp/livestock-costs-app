@@ -1,0 +1,20 @@
+<!-- form-card.component.html -->
+<div class="form-card">
+  @if (title || subtitle) {
+    <div class="form-card-header">
+      <div>
+        @if (title) { <h3 class="form-card-title">{{ title }}</h3> }
+        @if (subtitle) { <p class="form-card-subtitle">{{ subtitle }}</p> }
+      </div>
+      <ng-content select="[card-header-actions]"></ng-content>
+    </div>
+  }
+
+  <div class="form-card-body">
+    <ng-content></ng-content>
+  </div>
+
+  <div class="form-card-footer">
+    <ng-content select="[card-footer]"></ng-content>
+  </div>
+</div>

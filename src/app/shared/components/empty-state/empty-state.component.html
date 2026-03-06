@@ -1,0 +1,14 @@
+<div class="empty-state" [class.compact]="compact">
+  <div class="empty-state-icon">
+    <ng-content select="[icon]"></ng-content>
+  </div>
+  <div class="empty-state-body">
+    <h3 class="empty-state-title">{{ title }}</h3>
+    @if (message) {
+      <p class="empty-state-message">{{ message }}</p>
+    }
+  </div>
+  <div class="empty-state-action">
+    <ng-content></ng-content>
+  </div>
+</div>

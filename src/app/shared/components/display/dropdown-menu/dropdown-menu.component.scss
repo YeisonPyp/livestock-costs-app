@@ -1,0 +1,66 @@
+@use '../../../styles/variables' as *;
+
+.dropdown { position: relative; display: inline-block; }
+
+.dropdown-trigger { cursor: pointer; }
+
+.dropdown-panel {
+  position: absolute;
+  top: calc(100% + $space-2);
+  z-index: $z-dropdown;
+  min-width: 180px;
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-lg;
+  padding: $space-2;
+  animation: dropdown-in .15s ease;
+  overflow: hidden;
+
+  &.align-right { right: 0; }
+  &.align-left  { left: 0;  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  width: 100%;
+  padding: $space-2 $space-3;
+  background: none; border: none;
+  border-radius: $border-radius;
+  font-size: $font-sm; font-family: $font-family;
+  color: $slate-700; cursor: pointer; text-align: left;
+  @include transition(background-color, color);
+
+  &:hover:not(:disabled) { background: $slate-100; }
+  &:disabled { opacity: .45; cursor: not-allowed; }
+
+  &.item-danger  { color: $danger;        &:hover { background: $danger-muted; } }
+  &.item-warning { color: $warning-hover; &:hover { background: $warning-muted; } }
+  &.item-success { color: $success;       &:hover { background: $success-muted; } }
+}
+
+.item-icon {
+  flex-shrink: 0; color: inherit;
+  ::ng-deep svg { width: 16px; height: 16px; display: block; }
+}
+
+.item-label { flex: 1; }
+
+.item-badge {
+  flex-shrink: 0;
+  padding: .1rem .4rem;
+  background: $slate-200;
+  border-radius: $border-radius-full;
+  font-size: 0.65rem;
+  font-weight: $weight-bold;
+  color: $slate-600;
+}
+
+.dropdown-divider { height: 1px; background: $border-color; margin: $space-2 (-$space-2); }
+
+@keyframes dropdown-in {
+  from { opacity: 0; transform: translateY(-6px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}

@@ -1,0 +1,5 @@
+<!-- badge.component.html -->
+<span class="badge" [class]="'badge-' + color + (outline ? ' badge-outline' : '') + (size ? ' badge-' + size : '')">
+  @if (dot) { <span class="badge-dot"></span> }
+  <ng-content></ng-content>
+</span>

@@ -1,0 +1,155 @@
+<app-page-header title="Decisión de Venta">
+  <ng-container breadcrumb>
+    <a routerLink="/investments/sales" class="bc-link">Ventas</a>
+    <span class="bc-sep">/</span>
+    <a [routerLink]="['/investments/sales', decision()?.sale_event]" class="bc-link">Venta</a>
+    <span class="bc-sep">/</span>
+    <span>Decisión</span>
+  </ng-container>
+</app-page-header>
+
+@if (loading()) {
+  <app-loader [overlay]="false" type="spinner" />
+} @else if (decision()) {
+
+  <!-- Summary card -->
+  <div class="decision-card">
+    <div class="decision-header">
+      <div>
+        <span class="inv-code">{{ decision()!.investor_code ?? '—' }}</span>
+        <h2 class="inv-name">{{ decision()!.investor_name ?? '—' }}</h2>
+      </div>
+      <app-badge [color]="decisionColor(decision()!.decision_type)" size="md">
+        {{ decision()!.decision_type === 'pending' ? 'Pendiente' : decision()!.decision_type_display ?? decision()!.decision_type }}
+      </app-badge>
+    </div>
+
+    <div class="amounts-row">
+      <div class="amount-block">
+        <span class="amount-label">Monto de la Venta</span>
+        <app-amount-display [amount]="decision()!.investor_amount" type="income" size="xl"></app-amount-display>
+      </div>
+      <div class="amount-block">
+        <span class="amount-label">Ganancia / Pérdida</span>
+        <app-amount-display
+          [amount]="decision()!.profit_loss"
+          [type]="decision()!.profit_loss >= 0 ? 'income' : 'expense'"
+          [showSign]="true"
+          size="lg"
+        ></app-amount-display>
+      </div>
+      @if (decision()!.decision_deadline) {
+        <div class="amount-block">
+          <span class="amount-label">Fecha Límite</span>
+          <span class="deadline">{{ decision()!.decision_deadline }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Already decided -->
+  @if (isAlreadyDecided) {
+    <app-alert type="success" [dismissible]="false">
+      Ya se registró una decisión para esta venta: <strong>{{ decision()!.decision_type_display ?? decision()!.decision_type }}</strong>.
+      @if (decision()!.reinvest_amount > 0) { Se reinvertirán {{ formatCurrency(decision()!.reinvest_amount) }}. }
+      @if (decision()!.withdraw_amount > 0) { Se retirarán {{ formatCurrency(decision()!.withdraw_amount) }}. }
+    </app-alert>
+
+    <a [routerLink]="['/investments/sales', decision()!.sale_event]" class="btn btn-outline">
+      ← Volver a la Venta
+    </a>
+  }
+
+  <!-- Decision selector (only when pending) -->
+  @if (!isAlreadyDecided) {
+    <div class="decision-section">
+      <h3>¿Qué deseas hacer con tu monto?</h3>
+
+      <div class="options-grid">
+
+        <!-- Reinvertir -->
+        <button
+          class="option-card"
+          [class.selected]="selectedType() === 'reinvest'"
+          (click)="selectDecision('reinvest')"
+        >
+          <div class="option-icon option-icon--success">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          </div>
+          <div class="option-content">
+            <span class="option-title">Reinvertir Todo</span>
+            <span class="option-desc">El monto completo se reinvierte en la siguiente operación</span>
+            <span class="option-amount success">{{ formatCurrency(decision()!.investor_amount) }}</span>
+          </div>
+        </button>
+
+        <!-- Retirar -->
+        <button
+          class="option-card"
+          [class.selected]="selectedType() === 'withdraw'"
+          (click)="selectDecision('withdraw')"
+        >
+          <div class="option-icon option-icon--danger">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+          <div class="option-content">
+            <span class="option-title">Retirar Todo</span>
+            <span class="option-desc">El monto completo se acredita a tu cuenta</span>
+            <span class="option-amount danger">{{ formatCurrency(decision()!.investor_amount) }}</span>
+          </div>
+        </button>
+
+        <!-- Parcial -->
+        <button
+          class="option-card"
+          [class.selected]="selectedType() === 'partial'"
+          (click)="selectDecision('partial')"
+        >
+          <div class="option-icon option-icon--warning">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          </div>
+          <div class="option-content">
+            <span class="option-title">Distribuir</span>
+            <span class="option-desc">Decide cuánto reinvertir y cuánto retirar</span>
+            <span class="option-amount warning">Personalizable</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- Partial form -->
+      @if (selectedType() === 'partial') {
+        <form [formGroup]="partialForm" class="partial-form">
+          <div class="partial-fields">
+            <div class="field">
+              <label class="field-label">Monto a Reinvertir *</label>
+              <input type="number" formControlName="reinvest_amount" class="field-input"
+                min="0" [max]="decision()!.investor_amount" step="0.01"
+                placeholder="0.00" />
+              @if (partialForm.get('reinvest_amount')?.invalid && partialForm.get('reinvest_amount')?.touched) {
+                <span class="field-error">Ingresa un monto válido</span>
+              }
+            </div>
+            <div class="field">
+              <label class="field-label">Monto a Retirar (automático)</label>
+              <input type="text" formControlName="withdraw_amount" class="field-input field-readonly" readonly />
+            </div>
+          </div>
+          <div class="total-display">
+            Total: {{ formatCurrency(decision()!.investor_amount) }}
+          </div>
+        </form>
+      }
+
+      <!-- Confirm button -->
+      @if (selectedType()) {
+        <div class="confirm-actions">
+          <button class="btn btn-ghost" (click)="selectedType.set(null)">Cancelar</button>
+          <button class="btn btn-primary" (click)="confirmDecision()" [disabled]="saving()">
+            @if (saving()) { <span class="btn-spinner-sm"></span> Guardando... }
+            @else { Confirmar Decisión }
+          </button>
+        </div>
+      }
+    </div>
+  }
+}

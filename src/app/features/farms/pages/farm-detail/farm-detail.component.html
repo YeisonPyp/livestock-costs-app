@@ -1,0 +1,243 @@
+<app-page-header [title]="farm()?.name || 'Cargando...'">
+  <ng-container breadcrumb>
+    <a routerLink="/farms" class="breadcrumb-link">Fincas</a>
+    <span class="breadcrumb-sep">/</span>
+    <span>{{ farm()?.code }}</span>
+  </ng-container>
+
+  <div class="header-actions">
+    <a [routerLink]="['edit']" class="btn btn-outline btn-sm">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+      Editar Finca
+    </a>
+  </div>
+</app-page-header>
+
+@if (loading()) {
+  <app-loader [overlay]="false" type="spinner" message="Cargando información..." />
+} @else if (farm()) {
+
+  <!-- KPI Stats Row -->
+  <div class="stats-grid">
+    <app-stats-card label="Área Total"     [value]="formatNumber(farm()!.total_area) + ' ha'"          color="blue">
+      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </app-stats-card>
+
+    <app-stats-card
+      label="Ganado Actual"
+      [value]="(summary()?.cattle?.count ?? farm()!.current_cattle_count).toString()"
+      [subtitle]="'de ' + farm()!.cattle_capacity + ' cabezas'"
+      color="green"
+    >
+      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+    </app-stats-card>
+
+    <app-stats-card
+      label="Potreros"
+      [value]="(summary()?.paddocks?.total ?? paddocks().length).toString()"
+      [subtitle]="(summary()?.paddocks?.available ?? 0) + ' disponibles'"
+      color="yellow"
+    >
+      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    </app-stats-card>
+
+    <app-stats-card
+      label="Empleados Activos"
+      [value]="(summary()?.employees?.active_count ?? employees().length).toString()"
+      color="purple"
+    >
+      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </app-stats-card>
+  </div>
+
+  <!-- Ocupación global -->
+  <div class="occupancy-bar-card">
+    <app-progress-bar
+      label="Ocupación de capacidad"
+      [value]="farm()!.occupancy_percentage"
+      [max]="100"
+      format="percent"
+      [trackHeight]="10"
+      [warnAt]="75"
+      [dangerAt]="90"
+      [showValue]="true"
+    ></app-progress-bar>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-container">
+    <mat-tab-group animationDuration="200ms">
+
+      <!-- ── Tab: Información General ─────────────────────────────────── -->
+      <mat-tab label="Información General">
+        <div class="tab-content">
+          <div class="info-grid">
+
+            <div class="info-card">
+              <h4 class="info-card-title">Datos Generales</h4>
+              <div class="info-row"><span class="info-label">Código</span>      <span class="info-value mono">{{ farm()!.code }}</span></div>
+              <div class="info-row"><span class="info-label">Tipo</span>         <span class="info-value">{{ farm()!.farm_type_display }}</span></div>
+              <div class="info-row"><span class="info-label">Estado</span>       <app-badge [color]="farm()!.status === 'active' ? 'success' : farm()!.status === 'leased' ? 'warning' : 'danger'">{{ farm()!.status_display }}</app-badge></div>
+              <div class="info-row"><span class="info-label">Ubicación</span>    <span class="info-value">{{ farm()!.location || '—' }}</span></div>
+              <div class="info-row"><span class="info-label">Dirección</span>    <span class="info-value">{{ farm()!.address || '—' }}</span></div>
+            </div>
+
+            <div class="info-card">
+              <h4 class="info-card-title">Áreas</h4>
+              <div class="info-row"><span class="info-label">Total</span>       <span class="info-value">{{ formatNumber(farm()!.total_area) }} ha</span></div>
+              <div class="info-row"><span class="info-label">Útil</span>        <span class="info-value">{{ formatNumber(farm()!.usable_area ?? 0) }} ha</span></div>
+              <div class="info-row"><span class="info-label">Bosque</span>      <span class="info-value">{{ formatNumber(farm()!.forest_area ?? 0) }} ha</span></div>
+              <div class="info-row"><span class="info-label">Agua</span>        <span class="info-value">{{ formatNumber(farm()!.water_area ?? 0) }} ha</span></div>
+              <div class="info-row"><span class="info-label">Pasto</span>       <span class="info-value">{{ formatNumber(farm()!.pasture_area ?? 0) }} ha</span></div>
+            </div>
+
+            <div class="info-card">
+              <h4 class="info-card-title">Capacidad</h4>
+              <div class="info-row"><span class="info-label">Capacidad Total</span>    <span class="info-value">{{ farm()!.cattle_capacity }} cabezas</span></div>
+              <div class="info-row"><span class="info-label">Ganado Actual</span>       <span class="info-value">{{ farm()!.current_cattle_count }} cabezas</span></div>
+              <div class="info-row"><span class="info-label">Disponible</span>          <span class="info-value">{{ farm()!.available_capacity }} cabezas</span></div>
+              <div class="info-row"><span class="info-label">Ocupación</span>           <span class="info-value">{{ formatNumber(farm()!.occupancy_percentage, 1) }}%</span></div>
+              @if (farm()!.carrying_capacity) {
+                <div class="info-row"><span class="info-label">Cap. de Carga</span>    <span class="info-value">{{ farm()!.carrying_capacity }} UGG/ha</span></div>
+              }
+            </div>
+
+            <div class="info-card">
+              <h4 class="info-card-title">Contacto</h4>
+              <div class="info-row"><span class="info-label">Propietario</span> <span class="info-value">{{ farm()!.owner_name || '—' }}</span></div>
+              <div class="info-row"><span class="info-label">Teléfono</span>    <span class="info-value">{{ farm()!.phone || '—' }}</span></div>
+              <div class="info-row"><span class="info-label">Email</span>       <span class="info-value">{{ farm()!.email || '—' }}</span></div>
+              @if (farm()!.latitude) {
+                <div class="info-row"><span class="info-label">Coordenadas</span><span class="info-value mono">{{ farm()!.latitude }}, {{ farm()!.longitude }}</span></div>
+              }
+            </div>
+
+          </div>
+
+          @if (farm()!.notes) {
+            <div class="notes-card">
+              <h4 class="info-card-title">Notas</h4>
+              <p class="notes-text">{{ farm()!.notes }}</p>
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- ── Tab: Potreros ─────────────────────────────────────────────── -->
+      <mat-tab label="Potreros ({{ paddocks().length }})">
+        <div class="tab-content">
+          <div class="tab-header">
+            <h4>Potreros</h4>
+            <button class="btn btn-sm btn-primary" (click)="openPaddockForm()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Nuevo Potrero
+            </button>
+          </div>
+
+          @if (paddocks().length === 0) {
+            <app-empty-state title="Sin potreros" message="Agrega el primer potrero a esta finca." [compact]="true"></app-empty-state>
+          } @else {
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Código</th><th>Nombre</th><th>Tipo</th>
+                    <th>Área (ha)</th><th>Ocupación</th><th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (p of paddocks(); track p.id) {
+                    <tr>
+                      <td class="mono">{{ p.code }}</td>
+                      <td>{{ p.name }}</td>
+                      <td>{{ p.paddock_type }}</td>
+                      <td>{{ formatNumber(p.area) }}</td>
+                      <td>
+                        <div class="inline-progress">
+                          <div class="inline-track">
+                            <div class="inline-fill" [style.width.%]="p.occupancy_percentage" [class.high]="p.occupancy_percentage > 80"></div>
+                          </div>
+                          <span class="progress-label-text">{{ p.current_cattle_count }}/{{ p.capacity }}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <app-badge [color]="paddockStatusColor(p.status)">{{ getPaddockStatusLabel(p.status) }}</app-badge>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- ── Tab: Empleados ────────────────────────────────────────────── -->
+      <mat-tab label="Empleados ({{ employees().length }})">
+        <div class="tab-content">
+          <div class="tab-header">
+            <h4>Personal de la Finca</h4>
+            <button class="btn btn-sm btn-primary" (click)="openAddEmployee()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Agregar Empleado
+            </button>
+          </div>
+
+          @if (employees().length === 0) {
+            <app-empty-state title="Sin empleados" message="Agrega el primer empleado a esta finca." [compact]="true"></app-empty-state>
+          } @else {
+            <div class="table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th><th>Rol</th><th>Cargo</th>
+                    <th>Ingreso</th><th>Antigüedad</th><th>Vive en Finca</th>
+                    <th>Estado</th><th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (emp of employees(); track emp.id) {
+                    <tr [class.row-inactive]="emp.status !== 'active'">
+                      <td class="cell-name">
+                        <div class="employee-avatar">{{ emp.full_name[0] }}</div>
+                        <div>
+                          <span class="employee-name">{{ emp.full_name }}</span>
+                          @if (emp.phone) { <span class="employee-phone">{{ emp.phone }}</span> }
+                        </div>
+                      </td>
+                      <td>{{ getEmployeeRoleLabel(emp.role) }}</td>
+                      <td>{{ emp.job_title || '—' }}</td>
+                      <td>{{ emp.hire_date }}</td>
+                      <td>{{ emp.tenure_years }} año{{ emp.tenure_years !== 1 ? 's' : '' }}</td>
+                      <td>
+                        <app-badge [color]="emp.lives_on_farm ? 'success' : 'gray'" [outline]="true">
+                          {{ emp.lives_on_farm ? 'Sí' : 'No' }}
+                        </app-badge>
+                      </td>
+                      <td>
+                        <app-badge [color]="employeeStatusColor(emp.status)">
+                          {{ emp.status === 'active' ? 'Activo' : 'Retirado' }}
+                        </app-badge>
+                      </td>
+                      <td class="cell-actions">
+                        <app-dropdown-menu [items]="employeeActions(emp)" align="right">
+                          <button trigger class="icon-btn-sm" aria-label="Acciones">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+                          </button>
+                        </app-dropdown-menu>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </div>
+}

@@ -1,0 +1,141 @@
+<app-page-header title="Ventas de Ganado" subtitle="Eventos de venta y decisiones de inversionistas">
+  <button class="btn btn-primary" (click)="showNewForm.set(!showNewForm())">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    {{ showNewForm() ? 'Cancelar' : 'Nueva Venta' }}
+  </button>
+</app-page-header>
+
+<!-- KPIs -->
+<div class="kpi-grid">
+  <app-kpi-card label="Total Ventas"         [value]="stats().total.toString()"              color="blue"></app-kpi-card>
+  <app-kpi-card label="Pendientes"           [value]="stats().pending.toString()"            [color]="stats().pending > 0 ? 'red' : 'green'"></app-kpi-card>
+  <app-kpi-card label="Monto Neto Total"     [value]="formatCurrency(stats().totalNet)"      color="green"></app-kpi-card>
+  <app-kpi-card label="Cabezas Vendidas"     [value]="stats().totalHeads.toString()"         color="yellow"></app-kpi-card>
+</div>
+
+<!-- New Sale Form -->
+@if (showNewForm()) {
+  <div class="new-sale-panel">
+    <div class="panel-title">
+      <h3>Registrar Nueva Venta</h3>
+    </div>
+    <form [formGroup]="newForm" (ngSubmit)="submitNew()" class="sale-form-grid">
+      <div class="field">
+        <label class="field-label">Fecha de Venta *</label>
+        <input type="text" formControlName="sale_date" class="field-input" placeholder="AAAA-MM-DD" />
+        @if (newForm.get('sale_date')?.invalid && newForm.get('sale_date')?.touched) { <span class="field-error">Requerido</span> }
+      </div>
+      <div class="field full-span">
+        <label class="field-label">Descripción *</label>
+        <input type="text" formControlName="description" class="field-input" placeholder="Ej: Venta de 15 novillos a Feria Ganadera..." />
+        @if (newForm.get('description')?.invalid && newForm.get('description')?.touched) { <span class="field-error">Requerido</span> }
+      </div>
+      <div class="field">
+        <label class="field-label">Comprador</label>
+        <input type="text" formControlName="buyer_name" class="field-input" placeholder="Nombre del comprador" />
+      </div>
+      <div class="field">
+        <label class="field-label">Total Cabezas *</label>
+        <input type="number" formControlName="total_heads" class="field-input" min="1" />
+        @if (newForm.get('total_heads')?.invalid && newForm.get('total_heads')?.touched) { <span class="field-error">Mínimo 1</span> }
+      </div>
+      <div class="field">
+        <label class="field-label">Peso Total (kg) *</label>
+        <input type="number" formControlName="total_weight" class="field-input" min="0.01" step="0.01" />
+        @if (newForm.get('total_weight')?.invalid && newForm.get('total_weight')?.touched) { <span class="field-error">Requerido</span> }
+      </div>
+      <div class="field">
+        <label class="field-label">Precio por kg *</label>
+        <input type="number" formControlName="price_per_kg" class="field-input" min="0.01" step="0.01" />
+        @if (newForm.get('price_per_kg')?.invalid && newForm.get('price_per_kg')?.touched) { <span class="field-error">Requerido</span> }
+      </div>
+      <div class="field">
+        <label class="field-label">Monto Bruto (auto)</label>
+        <input type="text" formControlName="gross_amount" class="field-input field-readonly" readonly />
+      </div>
+      <div class="field">
+        <label class="field-label">Costos de Venta</label>
+        <input type="number" formControlName="sale_costs" class="field-input" min="0" step="0.01" />
+      </div>
+      <div class="field full-span">
+        <label class="field-label">Notas</label>
+        <textarea formControlName="notes" class="field-textarea" rows="2" placeholder="Observaciones adicionales..."></textarea>
+      </div>
+      <div class="form-actions full-span">
+        <button type="button" class="btn btn-ghost btn-sm" (click)="showNewForm.set(false)">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-sm" [disabled]="newForm.invalid || savingNew()">
+          @if (savingNew()) { <span class="btn-spinner-sm"></span> Guardando... } @else { Registrar Venta }
+        </button>
+      </div>
+    </form>
+  </div>
+}
+
+<!-- Filter -->
+<div class="filters-card">
+  <div class="filters-row">
+    <div class="filter-item">
+      <label class="filter-label">Estado</label>
+      <select class="native-select" [(ngModel)]="filterFinalized" (ngModelChange)="onFilterChange()">
+        <option value="">Todas</option>
+        <option value="false">Pendientes</option>
+        <option value="true">Finalizadas</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Table -->
+@if (loading()) {
+  <app-loader [overlay]="false" type="spinner" />
+} @else if (sales().length === 0) {
+  <app-empty-state title="Sin ventas registradas" message="Registra el primer evento de venta."></app-empty-state>
+} @else {
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Fecha</th><th>Descripción</th><th>Comprador</th>
+          <th>Cabezas</th><th>kg</th><th>$/kg</th>
+          <th>Monto Neto</th><th>Decisiones</th><th>Estado</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of sales(); track s.id) {
+          <tr>
+            <td class="date-cell">{{ s.sale_date }}</td>
+            <td class="desc-cell">{{ s.description }}</td>
+            <td>{{ s.buyer_name || '—' }}</td>
+            <td class="center">{{ s.total_heads }}</td>
+            <td class="center">{{ s.total_weight }}</td>
+            <td class="center">{{ s.price_per_kg }}</td>
+            <td><app-amount-display [amount]="s.net_amount" type="income" size="sm"></app-amount-display></td>
+            <td class="center">
+              @if (!s.is_finalized) {
+                <app-badge [color]="(s.pending_decisions_count ?? 0) > 0 ? 'warning' : 'success'" size="sm">
+                  {{ s.pending_decisions_count ?? 0 }} pend.
+                </app-badge>
+              } @else {
+                <app-badge color="secondary" size="sm">Finalizado</app-badge>
+              }
+            </td>
+            <td>
+              <app-badge [color]="s.is_finalized ? 'success' : 'warning'">
+                {{ s.is_finalized ? 'Finalizada' : 'Pendiente' }}
+              </app-badge>
+            </td>
+            <td><a [routerLink]="[s.id]" class="btn-link">Ver →</a></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (totalPages() > 1) {
+    <div class="pagination">
+      <button class="btn btn-sm btn-outline" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">← Anterior</button>
+      <span class="page-info">{{ currentPage() }} / {{ totalPages() }}</span>
+      <button class="btn btn-sm btn-outline" [disabled]="currentPage() === totalPages()" (click)="goToPage(currentPage() + 1)">Siguiente →</button>
+    </div>
+  }
+}

@@ -1,0 +1,25 @@
+<div class="auth-layout">
+  <div class="auth-brand">
+    <div class="auth-brand-logo">
+      <ng-content select="[auth-logo]"></ng-content>
+    </div>
+    @if (brandTitle) {
+      <h2 class="auth-brand-title">{{ brandTitle }}</h2>
+    }
+    @if (brandSubtitle) {
+      <p class="auth-brand-subtitle">{{ brandSubtitle }}</p>
+    }
+  </div>
+
+  <div class="auth-card">
+    <div class="auth-card-header">
+      <h1 class="auth-title">{{ title }}</h1>
+      @if (subtitle) {
+        <p class="auth-subtitle">{{ subtitle }}</p>
+      }
+    </div>
+    <div class="auth-card-body">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</div>

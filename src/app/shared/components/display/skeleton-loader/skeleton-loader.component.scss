@@ -1,0 +1,22 @@
+@use '../../../styles/variables' as *;
+
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+
+.skeleton-wrapper {
+  display: block;
+  background: linear-gradient(90deg, $slate-200 25%, $slate-100 50%, $slate-200 75%);
+  background-size: 1200px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: $border-radius-sm;
+
+  &.skeleton-text   { height: 14px; border-radius: 4px; }
+  &.skeleton-circle { border-radius: 50%; width: 40px; height: 40px; }
+  &.skeleton-rect   { height: 80px; border-radius: $border-radius; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-wrapper { animation: none; background: $slate-200; }
+}

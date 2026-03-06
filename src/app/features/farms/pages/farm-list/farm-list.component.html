@@ -1,0 +1,150 @@
+<app-page-header title="Fincas" subtitle="Gestión de propiedades ganaderas">
+  <a routerLink="new" class="btn btn-primary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Nueva Finca
+  </a>
+</app-page-header>
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+  <app-kpi-card label="Total Fincas" [value]="stats().totalFarms.toString()" color="blue">
+    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  </app-kpi-card>
+
+  <app-kpi-card label="Área Total" [value]="formatNumber(stats().totalArea) + ' ha'" color="green">
+    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+  </app-kpi-card>
+
+  <app-kpi-card label="Ganado Total" [value]="stats().totalCattle.toString()" trendDescription="cabezas" color="yellow">
+    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+  </app-kpi-card>
+
+  <app-kpi-card label="Cap. Disponible" [value]="stats().availableCapacity.toString()" trendDescription="cabezas libres" color="purple">
+    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+  </app-kpi-card>
+</div>
+
+<!-- Filters -->
+<div class="filters-card">
+  <div class="filters-row">
+    <div class="search-wrapper">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" class="search-input" placeholder="Buscar por nombre o código..."
+        [(ngModel)]="searchTerm" (ngModelChange)="onSearch()" />
+    </div>
+
+    <div class="filter-select">
+      <select class="native-select" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+        @for (o of farmStatusOptions; track o.value) { <option [value]="o.value">{{ o.label }}</option> }
+      </select>
+    </div>
+
+    <div class="filter-select">
+      <select class="native-select" [(ngModel)]="typeFilter" (ngModelChange)="onFilterChange()">
+        @for (o of farmTypeOptions; track o.value) { <option [value]="o.value">{{ o.label }}</option> }
+      </select>
+    </div>
+
+    @if (hasFilters) {
+      <button class="btn-clear" (click)="clearFilters()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Limpiar
+      </button>
+    }
+  </div>
+
+  @if (totalCount() > 0) {
+    <p class="results-count">{{ totalCount() }} finca{{ totalCount() !== 1 ? 's' : '' }} encontrada{{ totalCount() !== 1 ? 's' : '' }}</p>
+  }
+</div>
+
+<!-- Content -->
+@if (loading()) {
+  <app-loader [overlay]="false" type="spinner" message="Cargando fincas..." />
+} @else if (farms().length === 0) {
+  <app-empty-state
+    [title]="hasFilters ? 'Sin resultados' : 'No hay fincas registradas'"
+    [message]="hasFilters ? 'Prueba ajustando los filtros de búsqueda.' : 'Comienza agregando tu primera finca ganadera.'"
+  >
+    @if (!hasFilters) {
+      <a routerLink="new" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nueva Finca
+      </a>
+    }
+  </app-empty-state>
+} @else {
+  <div class="farms-grid">
+    @for (farm of farms(); track farm.id) {
+      <div class="farm-card">
+
+        <!-- Card Header -->
+        <div class="farm-card-header">
+          <div class="farm-info">
+            <span class="farm-code">{{ farm.code }}</span>
+            <h3 class="farm-name">{{ farm.name }}</h3>
+            <span class="farm-location">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              {{ farm.location || 'Sin ubicación' }}
+            </span>
+          </div>
+          <div class="card-badges">
+            <app-badge [color]="statusBadgeColor(farm.status)">{{ getStatusLabel(farm.status) }}</app-badge>
+          </div>
+        </div>
+
+        <!-- Stats row -->
+        <div class="farm-card-body">
+          <div class="farm-stats">
+            <div class="stat">
+              <span class="stat-value">{{ formatNumber(farm.total_area) }}</span>
+              <span class="stat-label">Hectáreas</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ farm.current_cattle_count }}</span>
+              <span class="stat-label">Cabezas</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ farm.total_paddocks }}</span>
+              <span class="stat-label">Potreros</span>
+            </div>
+            <div class="stat" [class.stat-warn]="farm.occupancy_percentage > 80" [class.stat-danger]="farm.occupancy_percentage > 90">
+              <span class="stat-value">{{ formatNumber(farm.occupancy_percentage, 0) }}%</span>
+              <span class="stat-label">Ocupación</span>
+            </div>
+          </div>
+
+          <!-- Occupancy bar -->
+          <div class="occ-track">
+            <div class="occ-fill"
+              [style.width.%]="farm.occupancy_percentage"
+              [class.warn]="farm.occupancy_percentage > 75"
+              [class.danger]="farm.occupancy_percentage > 90"
+            ></div>
+          </div>
+          <div class="occ-label">
+            {{ farm.available_capacity }} cabezas disponibles
+          </div>
+        </div>
+
+        <!-- Footer actions -->
+        <div class="farm-card-footer">
+          <a [routerLink]="[farm.id]"         class="btn btn-sm btn-secondary">Ver Detalle</a>
+          <a [routerLink]="[farm.id, 'edit']"  class="btn btn-sm btn-outline">Editar</a>
+          <button class="btn btn-sm btn-icon btn-danger-ghost" (click)="confirmDelete(farm)" title="Eliminar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Pagination -->
+  @if (totalPages() > 1) {
+    <div class="pagination">
+      <button class="btn btn-sm btn-outline" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">← Anterior</button>
+      <span class="page-info">Página {{ currentPage() }} de {{ totalPages() }}</span>
+      <button class="btn btn-sm btn-outline" [disabled]="currentPage() === totalPages()" (click)="goToPage(currentPage() + 1)">Siguiente →</button>
+    </div>
+  }
+}

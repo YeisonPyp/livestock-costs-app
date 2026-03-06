@@ -5,7 +5,7 @@ import { MainLayoutComponent } from './layout/main-layout/main-layout.component'
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: '/dashboard',
+    redirectTo: 'auth/login',
     pathMatch: 'full'
   },
   {
@@ -28,6 +28,10 @@ export const routes: Routes = [
       {
         path: 'costs',
         loadChildren: () => import('./features/costs/costs.routes').then(m => m.COSTS_ROUTES)
+      },
+      {
+        path: 'farms',
+        loadChildren: () => import('./features/farms/farms.routes').then(m => m.FARMS_ROUTES)
       }
     ]
   },

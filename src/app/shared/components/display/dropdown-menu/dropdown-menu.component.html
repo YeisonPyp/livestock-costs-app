@@ -1,0 +1,31 @@
+<!-- dropdown-menu.component.html -->
+<div class="dropdown" [class.open]="isOpen" (clickOutside)="close()">
+  <div class="dropdown-trigger" (click)="toggle()">
+    <ng-content select="[trigger]"></ng-content>
+  </div>
+
+  @if (isOpen) {
+    <div class="dropdown-panel" [class]="'align-' + align">
+      @for (item of items; track item.label) {
+        @if (item.divider) {
+          <div class="dropdown-divider"></div>
+        } @else {
+          <button
+            class="dropdown-item"
+            [class]="item.color ? 'item-' + item.color : ''"
+            [disabled]="item.disabled ?? false"
+            (click)="onItemClick(item)"
+          >
+            @if (item.icon) {
+              <span class="item-icon" [innerHTML]="item.icon"></span>
+            }
+            <span class="item-label">{{ item.label }}</span>
+            @if (item.badge) {
+              <span class="item-badge">{{ item.badge }}</span>
+            }
+          </button>
+        }
+      }
+    </div>
+  }
+</div>

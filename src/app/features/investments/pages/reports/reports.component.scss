@@ -1,0 +1,53 @@
+@use '../../../../../shared/styles/variables' as *;
+
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: $space-4; margin-bottom: $space-5; }
+
+.section-card { background: $white; border: 1px solid $border-color; border-radius: $border-radius-md; box-shadow: $shadow-sm; margin-bottom: $space-5; overflow: hidden; }
+.section-header { padding: $space-4 $space-5; border-bottom: 1px solid $border-color; background: $slate-50;
+  h3 { margin: 0; font-size: $font-md; font-weight: $weight-bold; color: $slate-900; }
+}
+
+// Participation list
+.participation-list { display: flex; flex-direction: column; }
+.participation-row {
+  display: grid; grid-template-columns: 220px 1fr auto;
+  gap: $space-5; align-items: center;
+  padding: $space-4 $space-5;
+  border-bottom: 1px solid $border-color;
+  &:last-child { border-bottom: none; }
+  &:hover { background: $slate-50; }
+
+  @include respond-below($bp-lg) { grid-template-columns: 1fr; }
+}
+
+.investor-info { display: flex; flex-direction: column; gap: 2px; }
+.inv-code-link { font-size: $font-xs; font-weight: $weight-bold; color: $primary; text-decoration: none; text-transform: uppercase; letter-spacing: .06em; &:hover { text-decoration: underline; } }
+.inv-name { font-size: $font-sm; color: $slate-700; }
+
+.participation-bar { display: flex; align-items: center; gap: $space-3; }
+.pct-label { font-size: $font-xs; font-weight: $weight-bold; color: $slate-700; white-space: nowrap; min-width: 40px; }
+
+.participation-stats { display: flex; gap: $space-5; flex-wrap: wrap; align-items: center; }
+.stat-item { display: flex; flex-direction: column; gap: 2px; align-items: flex-end;
+  @include respond-below($bp-lg) { align-items: flex-start; }
+}
+.stat-lbl { font-size: $font-xs; color: $slate-400; text-transform: uppercase; letter-spacing: .03em; }
+.stat-val  { font-size: $font-sm; font-weight: $weight-semibold; color: $slate-800; }
+.roi-val   { font-size: $font-sm; font-weight: $weight-bold;
+  &.positive { color: $success; }
+  &.negative { color: $danger; }
+}
+
+// Cattle table
+.table-container { overflow-x: auto; }
+.data-table {
+  width: 100%; border-collapse: collapse;
+  th, td { padding: $space-3 $space-4; text-align: left; font-size: $font-sm; border-bottom: 1px solid $border-color; vertical-align: middle; white-space: nowrap; }
+  th { background: $slate-50; font-weight: $weight-semibold; color: $slate-500; font-size: $font-xs; text-transform: uppercase; letter-spacing: .04em; }
+  tbody tr:hover { background: $slate-50; }
+  tbody tr:last-child td { border-bottom: none; }
+}
+.investor-cell  { display: flex; flex-direction: column; gap: 1px; }
+.inv-code-sm    { font-size: $font-xs; font-weight: $weight-bold; color: $primary; text-transform: uppercase; }
+.center         { text-align: center; }
+.positive       { color: $success; font-weight: $weight-semibold; }

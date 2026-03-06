@@ -17,7 +17,7 @@ export interface Cost {
   id: number;
   category: number;
   category_name?: string; // Incluido por el backend en algunos endpoints
-  date_incurred: string; // Formato: 'YYYY-MM-DD'
+  date: string; // Formato: 'YYYY-MM-DD'
   amount: number;
   description: string;
   notes?: string;
@@ -31,7 +31,7 @@ export interface Cost {
  */
 export interface CreateCostDto {
   category: number;
-  date_incurred: string;
+  date: string;
   amount: number;
   description: string;
   notes?: string;
@@ -42,7 +42,7 @@ export interface CreateCostDto {
  */
 export interface UpdateCostDto {
   category?: number;
-  date_incurred?: string;
+  date?: string;
   amount?: number;
   description?: string;
   notes?: string;

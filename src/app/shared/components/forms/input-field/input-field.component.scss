@@ -1,0 +1,118 @@
+@use '../../../styles/variables' as *;
+
+.field { display: flex; flex-direction: column; gap: $space-2; }
+
+.field-label {
+  font-size: $font-sm;
+  font-weight: $weight-semibold;
+  color: $slate-700;
+  line-height: 1;
+}
+
+.required-mark { color: $danger; margin-left: 2px; }
+
+// ─── Wrapper ──────────────────────────────────────────────────────────────────
+.field-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 $space-3;
+  font-size: $font-sm;
+  font-family: $font-family;
+  color: $slate-900;
+  background: $white;
+  border: 1.5px solid $border-color;
+  border-radius: $border-radius;
+  outline: none;
+  @include transition(border-color, box-shadow, background-color);
+
+  &::placeholder { color: $slate-400; }
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px $primary-muted;
+  }
+
+  &.has-prefix-icon { padding-left: 2.5rem; }
+  &.has-prefix      { padding-left: 3rem; border-left: none; border-radius: 0 $border-radius $border-radius 0; }
+  &.has-suffix      { padding-right: 2.5rem; }
+}
+
+// ─── Icons & affixes ─────────────────────────────────────────────────────────
+.field-icon {
+  position: absolute;
+  @include flex-center;
+  width: 40px; height: 100%;
+  color: $slate-400;
+  pointer-events: none;
+
+  ::ng-deep svg { width: 16px; height: 16px; display: block; }
+
+  &.prefix-icon { left: 0; }
+  &.suffix-icon { right: 0; }
+
+  &.toggle-password {
+    pointer-events: all;
+    background: none; border: none; cursor: pointer;
+    border-radius: 0 $border-radius $border-radius 0;
+    @include transition(color);
+    &:hover { color: $slate-700; }
+  }
+}
+
+.field-prefix,
+.field-suffix {
+  flex-shrink: 0;
+  padding: 0 $space-3;
+  height: 42px;
+  @include flex-center;
+  background: $slate-50;
+  border: 1.5px solid $border-color;
+  font-size: $font-sm;
+  color: $slate-500;
+  white-space: nowrap;
+}
+
+.field-prefix { border-right: none; border-radius: $border-radius 0 0 $border-radius; }
+.field-suffix { border-left: none;  border-radius: 0 $border-radius $border-radius 0; }
+
+// ─── Footer ───────────────────────────────────────────────────────────────────
+.field-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-2;
+  min-height: 18px;
+}
+
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  font-size: $font-xs;
+  color: $danger;
+  svg { flex-shrink:0; width:13px; height:13px; }
+}
+
+.field-hint  { font-size: $font-xs; color: $slate-400; }
+.field-counter {
+  font-size: $font-xs; color: $slate-400; margin-left: auto;
+  &.near-limit { color: $warning-hover; }
+}
+
+// ─── States ───────────────────────────────────────────────────────────────────
+.has-error .field-input {
+  border-color: $danger;
+  &:focus { box-shadow: 0 0 0 3px $danger-muted; }
+}
+
+.is-disabled .field-input {
+  background: $slate-50;
+  color: $slate-400;
+  cursor: not-allowed;
+}

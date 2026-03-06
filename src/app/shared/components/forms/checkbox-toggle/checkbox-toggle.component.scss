@@ -1,0 +1,70 @@
+@use '../../../styles/variables' as *;
+
+.sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+
+.control-wrapper {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: $space-3;
+  cursor: pointer;
+  user-select: none;
+
+  &.is-disabled { opacity: .55; cursor: not-allowed; }
+}
+
+// ─── Checkbox ─────────────────────────────────────────────────────────────────
+.checkbox-box {
+  flex-shrink: 0;
+  width: 18px; height: 18px;
+  border: 2px solid $slate-300;
+  border-radius: 4px;
+  background: $white;
+  @include flex-center;
+  @include transition(background-color, border-color, box-shadow);
+
+  svg { width: 11px; height: 11px; color: $white; }
+
+  &.checked, &.indeterminate {
+    background: $primary; border-color: $primary;
+  }
+
+  .control-wrapper:not(.is-disabled):hover & {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px $primary-muted;
+  }
+}
+
+// ─── Toggle ───────────────────────────────────────────────────────────────────
+.toggle-track {
+  flex-shrink: 0;
+  position: relative;
+  width: 40px; height: 22px;
+  background: $slate-300;
+  border-radius: $border-radius-full;
+  @include transition(background-color);
+
+  &.checked { background: $primary; }
+
+  .control-wrapper:not(.is-disabled):hover & { box-shadow: 0 0 0 3px $primary-muted; }
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 16px; height: 16px;
+  background: $white;
+  border-radius: 50%;
+  box-shadow: $shadow-xs;
+  @include transition(transform);
+
+  .toggle-track.checked & { transform: translateX(18px); }
+}
+
+// ─── Label ────────────────────────────────────────────────────────────────────
+.control-label {
+  display: flex; flex-direction: column; gap: 2px;
+  font-size: $font-sm; font-weight: $weight-medium; color: $slate-800;
+  padding-top: 1px;
+}
+
+.control-description { font-size: $font-xs; color: $slate-400; font-weight: $weight-normal; }

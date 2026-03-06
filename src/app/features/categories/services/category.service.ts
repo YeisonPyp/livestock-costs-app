@@ -15,16 +15,12 @@ export class CategoryService {
     return this.apiService.get<Category[]>('/costs/categories/', params);
   }
 
-  getCategoryById(id: number): Observable<ApiResponse<Category>> {
-    return this.apiService.get<Category>(`/costs/categories/${id}/`);
-  }
-
-  getCategoryTree(): Observable<ApiResponse<CategoryTree[]>> {
-    return this.apiService.get<CategoryTree[]>('/costs/categories/tree/');
-  }
-
   createCategory(category: Partial<Category>): Observable<ApiResponse<Category>> {
     return this.apiService.post<Category>('/costs/categories/', category);
+  }
+
+  getCategoryById(id: number): Observable<ApiResponse<Category>> {
+    return this.apiService.get<Category>(`/costs/categories/${id}/`);
   }
 
   updateCategory(id: number, category: Partial<Category>): Observable<ApiResponse<Category>> {
@@ -33,5 +29,18 @@ export class CategoryService {
 
   deleteCategory(id: number): Observable<ApiResponse<any>> {
     return this.apiService.delete<any>(`/costs/categories/${id}/`);
+  }
+  
+  getCategoryTree(): Observable<ApiResponse<CategoryTree[]>> {
+    return this.apiService.get<CategoryTree[]>('/costs/categories/tree/');
+  }
+
+  getCategoryMovable(): Observable<ApiResponse<Category[]>> {
+    return this.apiService.get<Category[]>('/costs/categories/movable/');
+  }
+
+  getNextCategoryCode(parentId?: number): Observable<ApiResponse<string>> {
+    const params = parentId ? { parent_id: parentId } : {};
+    return this.apiService.get<string>('/costs/categories/next-code/', params);
   }
 }

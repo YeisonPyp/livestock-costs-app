@@ -1,0 +1,100 @@
+<app-page-header title="Inversiones" subtitle="Capital y movimientos por inversionista">
+  <a routerLink="/investments/investors/new" class="btn btn-primary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Nueva Inversión
+  </a>
+</app-page-header>
+
+<!-- KPIs -->
+<div class="kpi-grid">
+  <app-kpi-card label="Total Inversiones" [value]="stats().total.toString()" color="blue">
+    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+  </app-kpi-card>
+  <app-kpi-card label="Activas" [value]="stats().active.toString()" color="green">
+    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+  </app-kpi-card>
+  <app-kpi-card label="Capital Total" [value]="formatCurrency(stats().totalCapital)" color="yellow">
+    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+  </app-kpi-card>
+  <app-kpi-card label="Ganancias Totales" [value]="formatCurrency(stats().totalProfits)" [color]="stats().totalProfits >= 0 ? 'green' : 'red'">
+    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>
+  </app-kpi-card>
+</div>
+
+<!-- Filters -->
+<div class="filters-card">
+  <div class="filters-row">
+    <div class="filter-item">
+      <label class="filter-label">Estado</label>
+      <select class="native-select" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+        @for (o of statusOptions; track o.value) { <option [value]="o.value">{{ o.label }}</option> }
+      </select>
+    </div>
+    <div class="filter-item">
+      <label class="filter-label">Inversionista (ID)</label>
+      <input type="text" class="native-input" placeholder="UUID del inversionista..."
+        [(ngModel)]="investorFilter" (ngModelChange)="onFilterChange()" />
+    </div>
+  </div>
+</div>
+
+<!-- Table -->
+@if (loading()) {
+  <app-loader [overlay]="false" type="spinner" />
+} @else if (investments().length === 0) {
+  <app-empty-state title="Sin inversiones" message="No hay inversiones que coincidan con los filtros."></app-empty-state>
+} @else {
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Inversionista</th>
+          <th>Capital Inicial</th>
+          <th>Capital Actual</th>
+          <th>Aportes</th>
+          <th>Ganancias</th>
+          <th>ROI</th>
+          <th>Ganado</th>
+          <th>Estado</th>
+          <th>Inicio</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (inv of investments(); track inv.id) {
+          <tr>
+            <td>
+              <div class="investor-cell">
+                <span class="investor-code">{{ inv.investor_code ?? '—' }}</span>
+                <span class="investor-name">{{ inv.investor_name ?? '—' }}</span>
+              </div>
+            </td>
+            <td><app-amount-display [amount]="inv.initial_capital" type="neutral" size="sm"></app-amount-display></td>
+            <td><app-amount-display [amount]="inv.current_capital" type="neutral" size="sm"></app-amount-display></td>
+            <td><app-amount-display [amount]="inv.total_contributions" type="income" size="sm"></app-amount-display></td>
+            <td><app-amount-display [amount]="inv.total_profits" [type]="inv.total_profits >= 0 ? 'income' : 'expense'" size="sm"></app-amount-display></td>
+            <td [class]="roiColor(inv.roi ?? 0)">
+              <strong>{{ (inv.roi ?? 0).toFixed(1) }}%</strong>
+            </td>
+            <td class="center">{{ inv.cattle_count ?? 0 }}</td>
+            <td>
+              <app-badge [color]="statusColor(inv.status)">{{ inv.status_display ?? inv.status }}</app-badge>
+            </td>
+            <td class="date-cell">{{ inv.start_date }}</td>
+            <td>
+              <a [routerLink]="[inv.id]" class="btn-link">Ver →</a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (totalPages() > 1) {
+    <div class="pagination">
+      <button class="btn btn-sm btn-outline" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">← Anterior</button>
+      <span class="page-info">{{ currentPage() }} / {{ totalPages() }}</span>
+      <button class="btn btn-sm btn-outline" [disabled]="currentPage() === totalPages()" (click)="goToPage(currentPage() + 1)">Siguiente →</button>
+    </div>
+  }
+}

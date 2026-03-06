@@ -1,0 +1,155 @@
+<app-page-header [title]="'Inversión — ' + (investment()?.investor_code ?? '')">
+  <ng-container breadcrumb>
+    <a routerLink="/investments/investments" class="bc-link">Inversiones</a>
+    <span class="bc-sep">/</span>
+    <span>{{ investment()?.investor_name ?? '—' }}</span>
+  </ng-container>
+  <div class="header-actions">
+    <button class="btn btn-sm btn-success" (click)="openPanel('contribute')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Registrar Aporte
+    </button>
+    <button class="btn btn-sm btn-danger-outline" (click)="openPanel('withdraw')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Registrar Retiro
+    </button>
+  </div>
+</app-page-header>
+
+@if (loading()) {
+  <app-loader [overlay]="false" type="spinner" />
+} @else if (investment()) {
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <app-kpi-card label="Capital Actual"      [value]="formatCurrency(investment()!.current_capital)"      color="blue"></app-kpi-card>
+    <app-kpi-card label="Capital Inicial"     [value]="formatCurrency(investment()!.initial_capital)"      color="purple"></app-kpi-card>
+    <app-kpi-card label="Total Aportes"       [value]="formatCurrency(investment()!.total_contributions)"  color="green"></app-kpi-card>
+    <app-kpi-card label="Total Retiros"       [value]="formatCurrency(investment()!.total_withdrawals)"    color="red"></app-kpi-card>
+    <app-kpi-card label="Ganancias"           [value]="formatCurrency(investment()!.total_profits)"        [color]="(investment()!.total_profits ?? 0) >= 0 ? 'green' : 'red'"></app-kpi-card>
+    <app-kpi-card label="ROI"                 [value]="(investment()!.roi ?? 0).toFixed(1) + '%'"         [color]="(investment()!.roi ?? 0) >= 0 ? 'green' : 'red'"></app-kpi-card>
+  </div>
+
+  <!-- Contribute / Withdraw panel -->
+  @if (activePanel()) {
+    <div class="action-panel" [class.panel-success]="activePanel() === 'contribute'" [class.panel-danger]="activePanel() === 'withdraw'">
+      <div class="panel-header">
+        <h4>{{ activePanel() === 'contribute' ? '💰 Registrar Aporte' : '📤 Registrar Retiro' }}</h4>
+        <button class="btn-close" (click)="closePanel()">✕</button>
+      </div>
+      <form [formGroup]="panelForm" (ngSubmit)="submitPanel()" class="panel-form">
+        <div class="panel-fields">
+          <div class="field">
+            <label class="field-label">Monto *</label>
+            <input type="number" formControlName="amount" class="field-input" placeholder="0.00" min="0.01" step="0.01" />
+            @if (panelForm.get('amount')?.invalid && panelForm.get('amount')?.touched) {
+              <span class="field-error">Ingresa un monto válido mayor a 0</span>
+            }
+          </div>
+          <div class="field">
+            <label class="field-label">Descripción</label>
+            <input type="text" formControlName="description" class="field-input" placeholder="Descripción del movimiento..." />
+          </div>
+        </div>
+        <div class="panel-actions">
+          <button type="button" class="btn btn-ghost btn-sm" (click)="closePanel()">Cancelar</button>
+          <button type="submit" class="btn btn-sm" [class.btn-success]="activePanel() === 'contribute'" [class.btn-danger]="activePanel() === 'withdraw'" [disabled]="panelForm.invalid || panelSaving()">
+            @if (panelSaving()) { <span class="btn-spinner-sm"></span> Procesando... }
+            @else { {{ activePanel() === 'contribute' ? 'Confirmar Aporte' : 'Confirmar Retiro' }} }
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Summary + Notes -->
+  <div class="info-row-cards">
+    <div class="info-block">
+      <h4>Información General</h4>
+      <div class="info-item"><span class="lbl">Inversionista</span>  <span class="val">{{ investment()!.investor_name ?? '—' }} ({{ investment()!.investor_code }})</span></div>
+      <div class="info-item"><span class="lbl">Fecha Inicio</span>   <span class="val">{{ investment()!.start_date }}</span></div>
+      @if (investment()!.end_date) {
+        <div class="info-item"><span class="lbl">Fecha Cierre</span>  <span class="val">{{ investment()!.end_date }}</span></div>
+      }
+      <div class="info-item"><span class="lbl">Estado</span>
+        <app-badge [color]="investment()!.status === 'active' ? 'success' : 'secondary'">{{ investment()!.status_display ?? investment()!.status }}</app-badge>
+      </div>
+      <div class="info-item"><span class="lbl">Cabezas de Ganado</span> <span class="val">{{ investment()!.cattle_count ?? 0 }}</span></div>
+    </div>
+    @if (investment()!.notes) {
+      <div class="info-block">
+        <h4>Notas</h4>
+        <p class="notes-text">{{ investment()!.notes }}</p>
+      </div>
+    }
+  </div>
+
+  <!-- Tabs: Movimientos / Ganado -->
+  <div class="tabs-container">
+    <mat-tab-group animationDuration="200ms">
+
+      <!-- Movimientos -->
+      <mat-tab label="Movimientos ({{ movements().length }})">
+        <div class="tab-content">
+          @if (movements().length === 0) {
+            <app-empty-state title="Sin movimientos" [compact]="true"></app-empty-state>
+          } @else {
+            <table class="data-table">
+              <thead>
+                <tr><th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Monto</th><th>Balance</th></tr>
+              </thead>
+              <tbody>
+                @for (m of movements(); track m.id) {
+                  <tr>
+                    <td class="date-cell">{{ m.effective_date }}</td>
+                    <td><app-badge [color]="movementColor(m.movement_type)" size="sm">{{ movementLabel(m.movement_type) }}</app-badge></td>
+                    <td>{{ m.description }}</td>
+                    <td>
+                      <app-amount-display
+                        [amount]="m.amount"
+                        [type]="movementIsCredit(m.movement_type) ? 'income' : 'expense'"
+                        [showSign]="true"
+                        size="sm"
+                      ></app-amount-display>
+                    </td>
+                    <td><app-amount-display [amount]="m.balance_after" type="neutral" size="sm"></app-amount-display></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- Ganado -->
+      <mat-tab label="Ganado ({{ cattle().length }})">
+        <div class="tab-content">
+          @if (cattle().length === 0) {
+            <app-empty-state title="Sin ganado asignado" [compact]="true"></app-empty-state>
+          } @else {
+            <table class="data-table">
+              <thead>
+                <tr><th>Tipo</th><th>Ref.</th><th>Cantidad</th><th>% Propiedad</th><th>Valor Compra</th><th>Valor Actual</th><th>Ganancia Peso</th><th>Estado</th></tr>
+              </thead>
+              <tbody>
+                @for (c of cattle(); track c.id) {
+                  <tr>
+                    <td>{{ c.ownership_type_display ?? c.ownership_type }}</td>
+                    <td>{{ c.animal_tag ?? c.lot_code ?? '—' }}</td>
+                    <td class="center">{{ c.quantity }}</td>
+                    <td class="center">{{ c.ownership_percentage }}%</td>
+                    <td><app-amount-display [amount]="c.purchase_value" type="neutral" size="sm"></app-amount-display></td>
+                    <td><app-amount-display [amount]="c.current_value ?? 0" type="neutral" size="sm"></app-amount-display></td>
+                    <td [class.positive]="(c.weight_gain ?? 0) > 0">{{ c.weight_gain ? c.weight_gain.toFixed(1) + ' kg' : '—' }}</td>
+                    <td><app-badge [color]="c.status === 'active' ? 'success' : c.status === 'sold' ? 'info' : 'secondary'">{{ c.status }}</app-badge></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </div>
+}

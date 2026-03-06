@@ -1,0 +1,104 @@
+<app-page-header [title]="isEditMode() ? 'Editar Finca' : 'Nueva Finca'">
+  <ng-container breadcrumb>
+    <a routerLink="/farms" class="breadcrumb-link">Fincas</a>
+    <span class="breadcrumb-sep">/</span>
+    <span>{{ isEditMode() ? 'Editar' : 'Nueva' }}</span>
+  </ng-container>
+</app-page-header>
+
+@if (loading()) {
+  <app-loader [overlay]="false" type="spinner" message="Cargando..." />
+} @else {
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-container">
+
+    <!-- ── Información General ───────────────────────────────────────────── -->
+    <app-form-card title="Información General" subtitle="Datos básicos de identificación de la finca">
+      <div class="form-grid">
+        <app-input-field label="Nombre *" formControlName="name"        [control]="f['name']"       placeholder="Ej: Finca La Esperanza"></app-input-field>
+        <app-input-field label="Razón Social" formControlName="legal_name"  placeholder="Nombre legal si aplica"></app-input-field>
+        <app-select-field label="Tipo de Finca *" formControlName="farm_type"  [control]="f['farm_type']" [options]="farmTypeOptions" placeholder="Seleccione tipo"></app-select-field>
+        <app-select-field label="Estado *"         formControlName="status"     [options]="farmStatusOptions"></app-select-field>
+      </div>
+
+      <div class="form-full">
+        <div class="field">
+          <label class="field-label">Descripción</label>
+          <textarea formControlName="description" class="field-textarea" rows="2" placeholder="Descripción general de la finca..."></textarea>
+        </div>
+      </div>
+
+      <div card-footer>
+        <!-- empty footer keeps styling -->
+      </div>
+    </app-form-card>
+
+    <!-- ── Ubicación ─────────────────────────────────────────────────────── -->
+    <app-form-card title="Ubicación" subtitle="Dirección y coordenadas GPS">
+      <div class="form-full">
+        <div class="field">
+          <label class="field-label">Dirección / Vereda</label>
+          <textarea formControlName="address" class="field-textarea" rows="2" placeholder="Ej: Vereda El Topacio, km 5 vía Villavicencio..."></textarea>
+        </div>
+      </div>
+      <div class="form-grid form-grid-3">
+        <app-input-field label="Latitud"        formControlName="latitude"  type="number" placeholder="-4.1234567"></app-input-field>
+        <app-input-field label="Longitud"       formControlName="longitude" type="number" placeholder="-73.1234567"></app-input-field>
+        <app-input-field label="Altitud (msnm)" formControlName="altitude"  type="number" placeholder="450"></app-input-field>
+      </div>
+    </app-form-card>
+
+    <!-- ── Áreas ─────────────────────────────────────────────────────────── -->
+    <app-form-card title="Áreas" subtitle="Distribución del terreno en hectáreas">
+      <div class="form-grid">
+        <app-input-field label="Área Total (ha) *" formControlName="total_area"    type="number" [control]="f['total_area']" suffix="ha" placeholder="0.00"></app-input-field>
+        <app-input-field label="Área Útil (ha)"    formControlName="usable_area"   type="number" suffix="ha" placeholder="0.00"></app-input-field>
+        <app-input-field label="Área de Bosque"    formControlName="forest_area"   type="number" suffix="ha" placeholder="0"></app-input-field>
+        <app-input-field label="Área de Agua"      formControlName="water_area"    type="number" suffix="ha" placeholder="0"></app-input-field>
+        <app-input-field label="Área de Pastos"    formControlName="pasture_area"  type="number" suffix="ha" placeholder="0"></app-input-field>
+        <app-input-field label="Infraestructura"   formControlName="infrastructure_area" type="number" suffix="ha" placeholder="0"></app-input-field>
+      </div>
+    </app-form-card>
+
+    <!-- ── Capacidad ─────────────────────────────────────────────────────── -->
+    <app-form-card title="Capacidad Ganadera">
+      <div class="form-grid">
+        <app-input-field label="Capacidad de Ganado (cabezas)" formControlName="cattle_capacity"   type="number" suffix="cab" placeholder="0"></app-input-field>
+        <app-input-field label="Capacidad de Carga (UGG/ha)"   formControlName="carrying_capacity" type="number" suffix="UGG" placeholder="0.0"></app-input-field>
+      </div>
+    </app-form-card>
+
+    <!-- ── Contacto ──────────────────────────────────────────────────────── -->
+    <app-form-card title="Contacto">
+      <div class="form-grid">
+        <app-input-field label="Teléfono" formControlName="phone" type="tel" placeholder="300 000 0000"
+          prefixIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4C1.49 2.38 2.11 1.38 3.11.93L6.07.11A2 2 0 0 1 8.1 1.42l1.27 3.86a2 2 0 0 1-.45 2l-1.49 1.5a16 16 0 0 0 6 6l1.49-1.5a2 2 0 0 1 2-.45l3.86 1.27A2 2 0 0 1 22 16.92z"/></svg>'
+        ></app-input-field>
+
+        <app-input-field label="Email" formControlName="email" type="email" [control]="f['email']" placeholder="contacto@finca.com"
+          prefixIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
+        ></app-input-field>
+      </div>
+    </app-form-card>
+
+    <!-- ── Notas ─────────────────────────────────────────────────────────── -->
+    <app-form-card title="Notas Adicionales">
+      <div class="field">
+        <textarea formControlName="notes" class="field-textarea" rows="4" placeholder="Información adicional, observaciones, historial..."></textarea>
+      </div>
+    </app-form-card>
+
+    <!-- ── Acciones ──────────────────────────────────────────────────────── -->
+    <div class="form-actions">
+      <a routerLink="/farms" class="btn btn-ghost">Cancelar</a>
+      <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving()">
+        @if (saving()) {
+          <span class="btn-spinner"></span> Guardando...
+        } @else {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          {{ isEditMode() ? 'Actualizar Finca' : 'Guardar Finca' }}
+        }
+      </button>
+    </div>
+
+  </form>
+}

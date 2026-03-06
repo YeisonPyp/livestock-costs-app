@@ -1,0 +1,40 @@
+@use '../../../styles/variables' as *;
+
+.field { display: flex; flex-direction: column; gap: $space-2; }
+
+.field-label {
+  font-size: $font-sm; font-weight: $weight-semibold; color: $slate-700;
+}
+.required-mark { color: $danger; margin-left: 2px; }
+
+.field-wrapper { position: relative; display: flex; align-items: center; }
+
+.currency-symbol {
+  position: absolute; left: $space-3;
+  font-size: $font-sm; font-weight: $weight-semibold;
+  color: $slate-500; pointer-events: none; z-index: 1;
+}
+
+.field-input {
+  width: 100%; height: 42px;
+  padding: 0 $space-3 0 2.25rem;
+  font-size: $font-md; font-weight: $weight-semibold;
+  font-family: $font-family;
+  color: $slate-900;
+  background: $white;
+  border: 1.5px solid $border-color;
+  border-radius: $border-radius;
+  outline: none;
+  text-align: right;
+  @include transition(border-color, box-shadow);
+
+  &::placeholder { color: $slate-300; font-weight: $weight-normal; }
+  &:focus { border-color: $primary; box-shadow: 0 0 0 3px $primary-muted; }
+}
+
+.field-footer { min-height: 18px; }
+.field-error  { font-size: $font-xs; color: $danger; }
+.field-hint   { font-size: $font-xs; color: $slate-400; }
+
+.has-error .field-input { border-color: $danger; &:focus { box-shadow: 0 0 0 3px $danger-muted; } }
+.is-disabled .field-input { background: $slate-50; color: $slate-400; cursor: not-allowed; }

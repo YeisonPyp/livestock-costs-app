@@ -1,0 +1,37 @@
+<!-- checkbox-toggle.component.html -->
+<label class="control-wrapper" [class.is-disabled]="disabled">
+  @if (mode === 'toggle') {
+    <span class="toggle-track" [class.checked]="checked">
+      <span class="toggle-thumb"></span>
+    </span>
+  } @else {
+    <span class="checkbox-box" [class.checked]="checked" [class.indeterminate]="indeterminate">
+      @if (checked) {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      } @else if (indeterminate) {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      }
+    </span>
+  }
+
+  <input
+    type="checkbox"
+    class="sr-only"
+    [checked]="checked"
+    [disabled]="disabled"
+    (change)="onToggle($event)"
+  />
+
+  @if (label) {
+    <span class="control-label">
+      {{ label }}
+      @if (description) {
+        <span class="control-description">{{ description }}</span>
+      }
+    </span>
+  }
+</label>

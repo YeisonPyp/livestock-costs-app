@@ -1,0 +1,436 @@
+<app-page-header
+  title="Ganado"
+  subtitle="Gestión de animales individuales"
+>
+  <a routerLink="new" class="btn btn-primary">
+    <i class="icon-plus"></i>
+    Nuevo Animal
+  </a>
+  <button class="btn btn-secondary" [matMenuTriggerFor]="actionsMenu">
+    <i class="icon-more-vertical"></i>
+    Acciones
+  </button>
+  <mat-menu #actionsMenu="matMenu">
+    <button mat-menu-item (click)="openBulkWeightDialog()">
+      <i class="icon-scale"></i>
+      Pesaje Masivo
+    </button>
+    <button mat-menu-item (click)="openBulkHealthDialog()">
+      <i class="icon-heart"></i>
+      Evento Sanitario Masivo
+    </button>
+    <button mat-menu-item (click)="openBulkLotChangeDialog()">
+      <i class="icon-move"></i>
+      Cambio de Lote Masivo
+    </button>
+  </mat-menu>
+</app-page-header>
+
+<!-- Stats Cards -->
+<div class="stats-grid">
+  <app-stats-card
+    label="Total Animales"
+    [value]="stats().totalAnimals.toString()"
+    color="blue"
+  >
+    <i icon class="icon-cattle"></i>
+  </app-stats-card>
+
+  <app-stats-card
+    label="Peso Total"
+    [value]="formatNumber(stats().totalWeight, 0) + ' kg'"
+    color="green"
+  >
+    <i icon class="icon-scale"></i>
+  </app-stats-card>
+
+  <app-stats-card
+    label="Valor Total"
+    [value]="formatCurrency(stats().totalValue)"
+    color="yellow"
+  >
+    <i icon class="icon-dollar"></i>
+  </app-stats-card>
+
+  <app-stats-card
+    label="Peso Promedio"
+    [value]="formatNumber(stats().avgWeight, 1) + ' kg'"
+    color="purple"
+  >
+    <i icon class="icon-trending-up"></i>
+  </app-stats-card>
+</div>
+
+<!-- Filters -->
+<div class="filters-card">
+  <div class="filters-row">
+    <div class="filter-group">
+      <input
+        type="text"
+        placeholder="Buscar por chapeta o nombre..."
+        [(ngModel)]="filters.search"
+        (ngModelChange)="onSearch()"
+        class="form-input"
+      />
+    </div>
+
+    <div class="filter-group">
+      <select
+        [(ngModel)]="filters.farm"
+        (ngModelChange)="loadAnimals()"
+        class="form-select"
+      >
+        <option value="">Todas las fincas</option>
+        @for (farm of farms(); track farm.id) {
+          <option [value]="farm.id">{{ farm.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <select
+        [(ngModel)]="filters.lot"
+        (ngModelChange)="loadAnimals()"
+        class="form-select"
+      >
+        <option value="">Todos los lotes</option>
+        @for (lot of lots(); track lot.id) {
+          <option [value]="lot.id">{{ lot.code }} - {{ lot.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <select
+        [(ngModel)]="filters.status"
+        (ngModelChange)="loadAnimals()"
+        class="form-select"
+      >
+        <option value="">Todos los estados</option>
+        @for (status of statusOptions; track status.value) {
+          <option [value]="status.value">{{ status.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <select
+        [(ngModel)]="filters.category"
+        (ngModelChange)="loadAnimals()"
+        class="form-select"
+      >
+        <option value="">Todas las categorías</option>
+        @for (cat of categoryOptions; track cat.value) {
+          <option [value]="cat.value">{{ cat.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <select
+        [(ngModel)]="filters.gender"
+        (ngModelChange)="loadAnimals()"
+        class="form-select"
+      >
+        <option value="">Ambos géneros</option>
+        @for (gender of genderOptions; track gender.value) {
+          <option [value]="gender.value">{{ gender.label }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="filters-actions">
+    <button class="btn btn-sm btn-outline" (click)="clearFilters()">
+      <i class="icon-x"></i>
+      Limpiar filtros
+    </button>
+    <div class="view-toggle">
+      <button
+        class="btn btn-sm btn-icon"
+        [class.active]="viewMode === 'grid'"
+        (click)="viewMode = 'grid'"
+      >
+        <i class="icon-grid"></i>
+      </button>
+      <button
+        class="btn btn-sm btn-icon"
+        [class.active]="viewMode === 'table'"
+        (click)="viewMode = 'table'"
+      >
+        <i class="icon-list"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Selection bar -->
+@if (selectedAnimals().length > 0) {
+  <div class="selection-bar">
+    <span>{{ selectedAnimals().length }} animal(es) seleccionado(s)</span>
+    <div class="selection-actions">
+      <button class="btn btn-sm btn-secondary" (click)="openBulkWeightDialog()">
+        Registrar Peso
+      </button>
+      <button
+        class="btn btn-sm btn-secondary"
+        (click)="openBulkLotChangeDialog()"
+      >
+        Cambiar Lote
+      </button>
+      <button class="btn btn-sm btn-outline" (click)="clearSelection()">
+        Cancelar
+      </button>
+    </div>
+  </div>
+}
+
+<!-- Content -->
+@if (loading()) {
+  <app-loader [overlay]="false" type="spinner" message="Cargando animales..." />
+} @else if (animals().length === 0) {
+  <app-empty-state
+    title="No hay animales registrados"
+    message="Comienza agregando tu primer animal"
+  >
+    <a routerLink="new" class="btn btn-primary">
+      <i class="icon-plus"></i>
+      Nuevo Animal
+    </a>
+  </app-empty-state>
+} @else {
+  <!-- Grid View -->
+  @if (viewMode === "grid") {
+    <div class="animals-grid">
+      @for (animal of animals(); track animal.id) {
+        <div class="animal-card" [class.selected]="isSelected(animal.id)">
+          <div class="animal-card-header">
+            <label class="checkbox-container">
+              <input
+                type="checkbox"
+                [checked]="isSelected(animal.id)"
+                (change)="toggleSelection(animal.id)"
+              />
+              <span class="checkmark"></span>
+            </label>
+            <div class="animal-info">
+              <span class="animal-tag">{{ animal.tag_number }}</span>
+              @if (animal.name) {
+                <span class="animal-name">{{ animal.name }}</span>
+              }
+            </div>
+            <span class="status-badge" [class]="'status-' + animal.status">
+              {{ getStatusLabel(animal.status) }}
+            </span>
+          </div>
+
+          <div class="animal-card-body">
+            <div class="animal-details">
+              <div class="detail-row">
+                <span class="detail-label">Raza:</span>
+                <span class="detail-value">{{ animal.breed_name }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Categoría:</span>
+                <span class="detail-value">{{
+                  getCategoryLabel(animal.category)
+                }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Género:</span>
+                <span class="detail-value">
+                  <i
+                    [class]="
+                      animal.gender === 'M' ? 'icon-male' : 'icon-female'
+                    "
+                  ></i>
+                  {{ getGenderLabel(animal.gender) }}
+                </span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Lote:</span>
+                <span class="detail-value">{{
+                  animal.lot_code || "Sin lote"
+                }}</span>
+              </div>
+            </div>
+
+            <div class="animal-stats">
+              <div class="stat">
+                <span class="stat-value">{{
+                  formatNumber(animal.current_weight || 0, 0)
+                }}</span>
+                <span class="stat-label">kg</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value">{{ animal.age_months || "-" }}</span>
+                <span class="stat-label">meses</span>
+              </div>
+              <div class="stat">
+                <span
+                  class="stat-value"
+                  [class.positive]="(animal.daily_gain || 0) > 0"
+                >
+                  {{ formatNumber(animal.daily_gain || 0, 2) }}
+                </span>
+                <span class="stat-label">GDP (kg)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="animal-card-footer">
+            <a [routerLink]="[animal.id]" class="btn btn-sm btn-secondary">
+              Ver Detalle
+            </a>
+            <button
+              class="btn btn-sm btn-icon"
+              (click)="openWeightDialog(animal)"
+            >
+              <i class="icon-scale"></i>
+            </button>
+            <button
+              class="btn btn-sm btn-icon"
+              [matMenuTriggerFor]="animalMenu"
+            >
+              <i class="icon-more-vertical"></i>
+            </button>
+            <mat-menu #animalMenu="matMenu">
+              <a mat-menu-item [routerLink]="[animal.id, 'edit']">
+                <i class="icon-edit"></i> Editar
+              </a>
+              <button mat-menu-item (click)="openHealthDialog(animal)">
+                <i class="icon-heart"></i> Evento Sanitario
+              </button>
+              <button mat-menu-item (click)="openLotChangeDialog(animal)">
+                <i class="icon-move"></i> Cambiar Lote
+              </button>
+              @if (animal.status === "active") {
+                <button mat-menu-item (click)="confirmRecordDeath(animal)">
+                  <i class="icon-x-circle"></i> Registrar Muerte
+                </button>
+              }
+            </mat-menu>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <!-- Table View -->
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>
+              <label class="checkbox-container">
+                <input
+                  type="checkbox"
+                  [checked]="allSelected()"
+                  (change)="toggleSelectAll()"
+                />
+                <span class="checkmark"></span>
+              </label>
+            </th>
+            <th>Chapeta</th>
+            <th>Nombre</th>
+            <th>Raza</th>
+            <th>Categoría</th>
+            <th>Lote</th>
+            <th>Peso (kg)</th>
+            <th>Edad</th>
+            <th>GDP (kg)</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (animal of animals(); track animal.id) {
+            <tr [class.selected]="isSelected(animal.id)">
+              <td>
+                <label class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    [checked]="isSelected(animal.id)"
+                    (change)="toggleSelection(animal.id)"
+                  />
+                  <span class="checkmark"></span>
+                </label>
+              </td>
+              <td>
+                <a [routerLink]="[animal.id]" class="link-primary">
+                  {{ animal.tag_number }}
+                </a>
+              </td>
+              <td>{{ animal.name || "-" }}</td>
+              <td>{{ animal.breed_name }}</td>
+              <td>{{ getCategoryLabel(animal.category) }}</td>
+              <td>{{ animal.lot_code || "-" }}</td>
+              <td>{{ formatNumber(animal.current_weight || 0, 0) }}</td>
+              <td>{{ animal.age_months || "-" }} m</td>
+              <td [class.positive]="(animal.daily_gain || 0) > 0">
+                {{ formatNumber(animal.daily_gain || 0, 2) }}
+              </td>
+              <td>
+                <span class="status-badge" [class]="'status-' + animal.status">
+                  {{ getStatusLabel(animal.status) }}
+                </span>
+              </td>
+              <td>
+                <div class="table-actions">
+                  <a
+                    [routerLink]="[animal.id]"
+                    class="btn btn-sm btn-icon"
+                    title="Ver"
+                  >
+                    <i class="icon-eye"></i>
+                  </a>
+                  <a
+                    [routerLink]="[animal.id, 'edit']"
+                    class="btn btn-sm btn-icon"
+                    title="Editar"
+                  >
+                    <i class="icon-edit"></i>
+                  </a>
+                  <button
+                    class="btn btn-sm btn-icon"
+                    title="Registrar Peso"
+                    (click)="openWeightDialog(animal)"
+                  >
+                    <i class="icon-scale"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- Pagination -->
+  @if (totalPages() > 1) {
+    <div class="pagination">
+      <button
+        class="btn btn-sm"
+        [disabled]="currentPage() === 1"
+        (click)="goToPage(currentPage() - 1)"
+      >
+        Anterior
+      </button>
+
+      <span class="page-info">
+        Página {{ currentPage() }} de {{ totalPages() }} ({{
+          totalCount()
+        }}
+        animales)
+      </span>
+
+      <button
+        class="btn btn-sm"
+        [disabled]="currentPage() === totalPages()"
+        (click)="goToPage(currentPage() + 1)"
+      >
+        Siguiente
+      </button>
+    </div>
+  }
+}

@@ -1,0 +1,41 @@
+@use '../../../styles/variables' as *;
+
+$sizes: ('xs': 24px, 'sm': 32px, 'md': 40px, 'lg': 56px, 'xl': 72px);
+$font-sizes: ('xs': 0.6rem, 'sm': $font-xs, 'md': $font-sm, 'lg': $font-md, 'xl': $font-xl);
+
+.avatar {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+
+  &.avatar-circle .avatar-img, &.avatar-circle .avatar-initials { border-radius: 50%; }
+  &.avatar-rounded .avatar-img, &.avatar-rounded .avatar-initials { border-radius: $border-radius; }
+}
+
+@each $name, $size in $sizes {
+  .avatar-#{$name} {
+    width: $size; height: $size;
+    .avatar-img, .avatar-initials { width: $size; height: $size; font-size: map-get($font-sizes, $name); }
+  }
+}
+
+.avatar-img   { object-fit: cover; display: block; }
+.avatar-initials {
+  @include flex-center;
+  color: $white;
+  font-weight: $weight-bold;
+  letter-spacing: .02em;
+  user-select: none;
+}
+
+.avatar-status {
+  position: absolute; bottom: 0; right: 0;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 2px solid $white;
+
+  &.status-online  { background: $success; }
+  &.status-offline { background: $slate-400; }
+  &.status-busy    { background: $danger; }
+  &.status-away    { background: $warning; }
+}

@@ -178,7 +178,7 @@
       <div class="cost-details">
         <div class="detail-row">
           <span class="detail-label">Fecha del Gasto:</span>
-          <span class="detail-value">{{ formatDate(selectedCost.date_incurred) }}</span>
+          <span class="detail-value">{{ formatDate(selectedCost.date) }}</span>
         </div>
 
         <div class="detail-row">
@@ -242,7 +242,7 @@
         <div class="cost-info">
           <p><strong>Categoría:</strong> {{ getCategoryName(selectedCost.category) }}</p>
           <p><strong>Monto:</strong> {{ formatCurrency(selectedCost.amount) }}</p>
-          <p><strong>Fecha:</strong> {{ formatDate(selectedCost.date_incurred) }}</p>
+          <p><strong>Fecha:</strong> {{ formatDate(selectedCost.date) }}</p>
         </div>
         <p class="warning-subtext">
           Esta acción no se puede deshacer.
