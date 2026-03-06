@@ -49,7 +49,12 @@ export class NavbarComponent implements OnInit {
       label: 'Inversiones',
       route: '/investments',
       icon: 'trending_up'
-    }
+    },
+        {
+      label: 'Ganado',
+      route: '/cattle',
+      icon: 'local_animal_store'
+    },
   ];
 
   constructor(
