@@ -51,4 +51,5 @@ export class LoaderComponent implements OnInit, OnDestroy {
   get loaderClasses(): string {
     return `loader-${this.type} loader-${this.size}`;
   }
+
 }

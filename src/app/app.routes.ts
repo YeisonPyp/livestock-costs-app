@@ -19,7 +19,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'dashboard',
-        loadComponent: () => import('./features/costs/components/dashboard/dashboard.component').then(m => m.DashboardComponent)
+        loadComponent: () => import('./features/costs/pages/dashboard/dashboard.component').then(m => m.DashboardComponent)
       },
       {
         path: 'categories',
@@ -36,10 +36,6 @@ export const routes: Routes = [
       {
         path: 'investments',
         loadChildren: () => import('./features/investments/investments.routes').then(m => m.INVESTMENTS_ROUTES)
-      },
-      {
-        path: 'cattle',
-        loadChildren: () => import('./features/cattle/cattle.routes').then(m => m.CATTLE_ROUTES)
       }
     ]
   },

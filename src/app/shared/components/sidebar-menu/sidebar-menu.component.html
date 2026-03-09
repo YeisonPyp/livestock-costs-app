@@ -1,0 +1,85 @@
+<div class="sidebar" [class.collapsed]="isCollapsed()">
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    <button class="collapse-btn" (click)="toggleSidebar()" type="button" title="Toggle sidebar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+    <span class="sidebar-title">Menu</span>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    @for (item of menuItems(); track item.label) {
+      @if (!item.children || item.children.length === 0) {
+        <!-- Simple menu item (no children) -->
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          class="menu-item"
+          [ngClass]="'color-' + (item.color || 'slate')">
+          @if (item.icon) {
+            <span class="menu-icon" [innerHTML]="getIconSvg(item.icon)" aria-hidden="true"></span>
+          }
+          <span class="menu-label">{{ item.label }}</span>
+          @if (item.badge) {
+            <span class="menu-badge">{{ item.badge }}</span>
+          }
+        </a>
+      } @else {
+        <!-- Menu item with children (expandable) -->
+        <div class="menu-group">
+          <button
+            type="button"
+            class="menu-item menu-toggle"
+            (click)="toggleSubmenu(item.label, $event)"
+            [ngClass]="'color-' + (item.color || 'slate')">
+            @if (item.icon) {
+              <span class="menu-icon" [innerHTML]="getIconSvg(item.icon)" aria-hidden="true"></span>
+            }
+            <span class="menu-label">{{ item.label }}</span>
+            <span 
+              class="menu-chevron" 
+              [innerHTML]="getIconSvg('chevron-down')"
+              [@rotate]="isSubMenuExpanded(item.label) ? 'expanded' : 'collapsed'"
+              aria-hidden="true"></span>
+          </button>
+
+          <!-- Submenu -->
+          <div
+            class="submenu"
+            [@expandCollapse]="isSubMenuExpanded(item.label) ? 'expanded' : 'collapsed'">
+            @for (child of item.children; track child.label) {
+              <a
+                [routerLink]="child.path"
+                routerLinkActive="active"
+                class="submenu-item">
+                @if (child.icon) {
+                  <span class="submenu-icon" [innerHTML]="getIconSvg(child.icon)" aria-hidden="true"></span>
+                }
+                <span class="submenu-label">{{ child.label }}</span>
+                @if (child.badge) {
+                  <span class="submenu-badge">{{ child.badge }}</span>
+                }
+              </a>
+            }
+          </div>
+        </div>
+      }
+    }
+  </nav>
+
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="user-avatar">👤</div>
+      <div class="user-details">
+        <p class="user-name">Usuario</p>
+        <p class="user-role">Admin</p>
+      </div>
+    </div>
+  </div>
+</div>

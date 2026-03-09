@@ -1,5 +1,5 @@
 <!-- dropdown-menu.component.html -->
-<div class="dropdown" [class.open]="isOpen" (clickOutside)="close()">
+<div class="dropdown" [class.open]="isOpen">
   <div class="dropdown-trigger" (click)="toggle()">
     <ng-content select="[trigger]"></ng-content>
   </div>
@@ -10,20 +10,41 @@
         @if (item.divider) {
           <div class="dropdown-divider"></div>
         } @else {
-          <button
-            class="dropdown-item"
-            [class]="item.color ? 'item-' + item.color : ''"
-            [disabled]="item.disabled ?? false"
-            (click)="onItemClick(item)"
-          >
-            @if (item.icon) {
-              <span class="item-icon" [innerHTML]="item.icon"></span>
-            }
-            <span class="item-label">{{ item.label }}</span>
-            @if (item.badge) {
-              <span class="item-badge">{{ item.badge }}</span>
-            }
-          </button>
+          <!-- Si tiene routerLink, usar <a> -->
+          @if (item.routerLink) {
+            <a
+              [routerLink]="item.routerLink"
+              class="dropdown-item"
+              [class]="(item.danger || item.color) ? 'item-' + (item.color || (item.danger ? 'danger' : '')) : ''"
+              [class.disabled]="item.disabled ?? false"
+              (click)="onItemClick(item)"
+            >
+              @if (item.icon) {
+                <span class="item-icon" [innerHTML]="item.icon"></span>
+              }
+              <span class="item-label">{{ item.label }}</span>
+              @if (item.badge) {
+                <span class="item-badge">{{ item.badge }}</span>
+              }
+            </a>
+        
+          } @else {
+            <!-- Si no tiene routerLink, usar <button> -->
+            <button
+              class="dropdown-item"
+              [class]="(item.danger || item.color) ? 'item-' + (item.color || (item.danger ? 'danger' : '')) : ''"
+              [disabled]="item.disabled ?? false"
+              (click)="onItemClick(item)"
+            >
+              @if (item.icon) {
+                <span class="item-icon" [innerHTML]="item.icon"></span>
+              }
+              <span class="item-label">{{ item.label }}</span>
+              @if (item.badge) {
+                <span class="item-badge">{{ item.badge }}</span>
+              }
+            </button>
+          }
         }
       }
     </div>

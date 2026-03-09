@@ -10,9 +10,11 @@ import { CommonModule } from '@angular/common';
 })
 export class KpiCardComponent {
   @Input() label = '';
-  @Input() value = '';
+  @Input() value: number | string = 0;
   @Input() trend?: number;           // positive = up, negative = down
   @Input() trendLabel?: string;      // override auto-generated trend text
   @Input() trendDescription = '';    // e.g. "vs mes anterior"
+  @Input() loading = false;
   @Input() color: 'blue' | 'green' | 'yellow' | 'red' | 'purple' = 'blue';
+  @Input() trendColor: 'blue' | 'green' | 'yellow' | 'red' | 'purple' = 'blue';
 }

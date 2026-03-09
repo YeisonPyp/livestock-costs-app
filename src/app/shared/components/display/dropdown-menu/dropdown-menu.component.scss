@@ -31,14 +31,34 @@
   border-radius: $border-radius;
   font-size: $font-sm; font-family: $font-family;
   color: $slate-700; cursor: pointer; text-align: left;
+  text-decoration: none;
   @include transition(background-color, color);
 
   &:hover:not(:disabled) { background: $slate-100; }
-  &:disabled { opacity: .45; cursor: not-allowed; }
+  &:disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }
 
   &.item-danger  { color: $danger;        &:hover { background: $danger-muted; } }
   &.item-warning { color: $warning-hover; &:hover { background: $warning-muted; } }
   &.item-success { color: $success;       &:hover { background: $success-muted; } }
+}
+
+a.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  width: 100%;
+  padding: $space-2 $space-3;
+  background: none;
+  border: none;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-family: $font-family;
+  color: $slate-700;
+  cursor: pointer;
+  text-align: left;
+  @include transition(background-color, color);
+
+  &:hover:not(.disabled) { background: $slate-100; }
 }
 
 .item-icon {

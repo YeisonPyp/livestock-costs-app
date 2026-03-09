@@ -155,7 +155,7 @@
                       <td>{{ emp.hire_date }}</td>
                       <td>{{ emp.tenure_years }} año{{ emp.tenure_years !== 1 ? 's' : '' }}</td>
                       <td>
-                        <app-badge [color]="emp.lives_on_farm ? 'success' : 'gray'" [outline]="true">
+                        <app-badge [color]="emp.lives_on_farm ? 'success' : 'gray'" >
                           {{ emp.lives_on_farm ? 'Sí' : 'No' }}
                         </app-badge>
                       </td>

@@ -1,137 +1,80 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../../environments/environment';
-import { Cost } from '../models/cost.interface';
+import { ApiService } from '../../../core/services/api.service';
+import { ApiResponse } from '../../../core/models/api-response.interface';
+import {
+  Cost, CostFilters, CostTotals,
+  CategorySummary, MonthlySummary, MonthlyReport, YearToDate,
+} from '../models/cost.model';
 
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-  pagination?: {
-    count: number;
-    current_page: number;
-    total_pages: number;
-    next: string | null;
-    previous: string | null;
-  };
-}
-
-export interface CostFilters {
-  page?: number;
-  page_size?: number;
-  category?: number;
-  date_from?: string;
-  date_to?: string;
-  min_amount?: number;
-  max_amount?: number;
-  search?: string;
-}
-
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class CostService {
-  private apiUrl = `${environment.apiUrl}/costs/costs`;
+  private api  = inject(ApiService);
+  private base = 'costs/costs';
 
-  constructor(private http: HttpClient) {}
-
-  /**
-   * Obtener todos los costos con filtros y paginación
-   */
-  getCosts(filters: CostFilters = {}): Observable<ApiResponse<Cost[]>> {
-    let params = new HttpParams();
-
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        params = params.set(key, value.toString());
-      }
-    });
-
-    return this.http.get<ApiResponse<Cost[]>>(`${this.apiUrl}/`, { params });
+  // ── CRUD ──────────────────────────────────────────────────────────────────
+  getAll(filters: CostFilters = {}): Observable<ApiResponse<Cost[]>> {
+    const params = this.cleanParams(filters);
+    return this.api.get(`${this.base}/`, params);
   }
 
-  /**
-   * Obtener un costo por ID
-   */
-  getCostById(id: number): Observable<ApiResponse<Cost>> {
-    return this.http.get<ApiResponse<Cost>>(`${this.apiUrl}/${id}/`);
+  getById(id: number): Observable<ApiResponse<Cost>> {
+    return this.api.get(`${this.base}/${id}/`);
   }
 
-  /**
-   * Crear un nuevo costo
-   */
-  createCost(cost: Partial<Cost>): Observable<ApiResponse<Cost>> {
-    return this.http.post<ApiResponse<Cost>>(`${this.apiUrl}/`, cost);
+  create(data: Partial<Cost>): Observable<ApiResponse<Cost>> {
+    return this.api.post(`${this.base}/`, data);
   }
 
-  /**
-   * Actualizar un costo existente
-   */
-  updateCost(id: number, cost: Partial<Cost>): Observable<ApiResponse<Cost>> {
-    return this.http.put<ApiResponse<Cost>>(`${this.apiUrl}/${id}/`, cost);
+  update(id: number, data: Partial<Cost>): Observable<ApiResponse<Cost>> {
+    return this.api.put(`${this.base}/${id}/`, data);
   }
 
-  /**
-   * Eliminar un costo
-   */
-  deleteCost(id: number): Observable<ApiResponse<null>> {
-    return this.http.delete<ApiResponse<null>>(`${this.apiUrl}/${id}/`);
+  delete(id: number): Observable<ApiResponse<void>> {
+    return this.api.delete(`${this.base}/${id}/`);
   }
 
-  /**
-   * Obtener costos por categoría
-   */
-  getCostsByCategory(categoryId: number): Observable<ApiResponse<Cost[]>> {
-    return this.getCosts({ category: categoryId });
+  // ── Analytics ─────────────────────────────────────────────────────────────
+  getTotals(filters?: Partial<CostFilters>): Observable<ApiResponse<CostTotals>> {
+    return this.api.get(`${this.base}/totals/`, this.cleanParams(filters ?? {}));
   }
 
-  /**
-   * Obtener costos por rango de fechas
-   */
-  getCostsByDateRange(dateFrom: string, dateTo: string): Observable<ApiResponse<Cost[]>> {
-    return this.getCosts({ date_from: dateFrom, date_to: dateTo });
+  getSummaryByCategory(filters?: Partial<CostFilters>): Observable<ApiResponse<CategorySummary[]>> {
+    return this.api.get(`${this.base}/summary-by-category/`, this.cleanParams(filters ?? {}));
   }
 
-  /**
-   * Obtener resumen de costos (total, promedio, etc.)
-   */
-  getCostsSummary(filters: CostFilters = {}): Observable<ApiResponse<any>> {
-    let params = new HttpParams();
-
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        params = params.set(key, value.toString());
-      }
-    });
-
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/summary/`, { params });
+  getSummaryByMonth(filters?: Partial<CostFilters>): Observable<ApiResponse<MonthlySummary[]>> {
+    return this.api.get(`${this.base}/summary-by-month/`, this.cleanParams(filters ?? {}));
   }
 
-  /**
-   * Obtener total del mes
-   */
   getTotalMonth(year: number, month: number): Observable<ApiResponse<{ total: number; count: number }>> {
-    return this.http.get<ApiResponse<{ total: number; count: number }>>(
-      `${this.apiUrl}/total_month/?year=${year}&month=${month}`
-    );
+    return this.api.get(`${this.base}/total-month/`, { year, month });
   }
 
-  /**
-   * Obtener reporte mensual por categorías
-   */
-  getMonthlyReport(year: number, month: number): Observable<ApiResponse<any[]>> {
-    return this.http.get<ApiResponse<any[]>>(
-      `${this.apiUrl}/monthly_report/?year=${year}&month=${month}`
-    );
+  getMonthlyReport(year: number, month: number): Observable<ApiResponse<MonthlyReport>> {
+    return this.api.get(`${this.base}/monthly-report/`, { year, month });
   }
 
-  /**
-   * Obtener total acumulado del año
-   */
-  getYearToDate(year: number): Observable<ApiResponse<{ total: number; count: number }>> {
-    return this.http.get<ApiResponse<{ total: number; count: number }>>(
-      `${this.apiUrl}/year-to-date/?year=${year}`
+  getYearToDate(year: number): Observable<ApiResponse<YearToDate>> {
+    return this.api.get(`${this.base}/year-to-date/`, { year });
+  }
+
+  // ── Export ────────────────────────────────────────────────────────────────
+  /** Returns a URL to trigger download — open in new tab or via anchor */
+  exportExcelUrl(filters?: Partial<CostFilters>): string {
+    const q = new URLSearchParams(this.cleanParams(filters ?? {})).toString();
+    return `/api/${this.base}/export-excel/${q ? '?' + q : ''}`;
+  }
+
+  exportPdfUrl(filters?: Partial<CostFilters>): string {
+    const q = new URLSearchParams(this.cleanParams(filters ?? {})).toString();
+    return `/api/${this.base}/export-pdf/${q ? '?' + q : ''}`;
+  }
+
+  // ── Helper ────────────────────────────────────────────────────────────────
+  private cleanParams(obj: Record<string, any>): Record<string, any> {
+    return Object.fromEntries(
+      Object.entries(obj).filter(([, v]) => v !== null && v !== undefined && v !== '')
     );
   }
 }

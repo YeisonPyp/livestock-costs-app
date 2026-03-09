@@ -1,0 +1,161 @@
+<app-page-header title="Reportes de Costos" subtitle="Analiza y exporta los gastos por rango de fechas">
+  @if (generated()) {
+    <div class="header-actions">
+      <button class="btn btn-ghost" (click)="exportExcel()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+        Descargar Excel
+      </button>
+      <button class="btn btn-ghost" (click)="exportPdf()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Descargar PDF
+      </button>
+    </div>
+  }
+</app-page-header>
+
+<!-- ── Filters ─────────────────────────────────────────────────────────────── -->
+<div class="filter-card">
+  <div class="filter-body">
+    <div class="filter-group">
+      <label class="filter-label">Fecha Inicio</label>
+      <input type="date" class="filter-input" [(ngModel)]="startDate" [max]="endDate" />
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Fecha Fin</label>
+      <input type="date" class="filter-input" [(ngModel)]="endDate" [min]="startDate" />
+    </div>
+
+    <div class="filter-actions">
+      <button class="btn btn-primary" (click)="generate()" [disabled]="loading()">
+        @if (loading()) { <span class="spinner-sm"></span> } @else {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        }
+        Generar Reporte
+      </button>
+      <button class="btn btn-secondary" (click)="reset()">Mes Actual</button>
+    </div>
+  </div>
+
+  @if (error()) {
+    <app-alert type="danger" [message]="error()" class="mt-3" />
+  }
+</div>
+
+<!-- ── Loading ──────────────────────────────────────────────────────────────── -->
+@if (loading()) {
+  <app-loader [overlay]="false" type="bars" message="Generando reporte..." />
+}
+
+@if (generated() && !loading()) {
+
+  <!-- ── KPIs ─────────────────────────────────────────────────────────────── -->
+  <div class="kpis-row">
+    <app-kpi-card label="Total del Período" [value]="totals()?.total ?? 0" format="currency" color="blue" icon="dollar-sign" />
+    <app-kpi-card label="Registros" [value]="totals()?.count ?? 0" format="number" color="purple" icon="file-text" />
+    <app-kpi-card label="Promedio" [value]="totals()?.average ?? 0" format="currency" color="green" icon="trending-up" />
+    <app-kpi-card label="Mayor Gasto" [value]="totals()?.max ?? 0" format="currency" color="red" icon="zap" />
+  </div>
+
+  <!-- ── Main grid ─────────────────────────────────────────────────────────── -->
+  <div class="report-grid">
+
+    <!-- Category breakdown -->
+    <div class="panel">
+      <div class="panel-header">
+        <h3 class="panel-title">Por Categoría</h3>
+        <span class="panel-count">{{ byCat().length }} categorías</span>
+      </div>
+
+      @if (byCat().length === 0) {
+        <app-empty-state [compact]="true" title="Sin datos" />
+      } @else {
+        <div class="cat-list">
+          @for (cat of byCat(); track cat.category_id; let i = $index) {
+            <div class="cat-row">
+              <div class="cat-rank">{{ i + 1 }}</div>
+              <div class="cat-info">
+                <div class="cat-head">
+                  <span class="cat-name">{{ cat.category_name }}</span>
+                  <span class="cat-pct">{{ cat.percentage.toFixed(1) }}%</span>
+                </div>
+                <app-progress-bar [value]="cat.percentage" [max]="100" height="6" />
+                <span class="cat-count">{{ cat.count }} registros</span>
+              </div>
+              <div class="cat-total">
+                <app-amount-display [amount]="cat.total" type="expense" size="sm" [showSign]="false" />
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Monthly entries -->
+    <div class="panel entries-panel">
+      <div class="panel-header">
+        <h3 class="panel-title">Detalle por Mes</h3>
+        <span class="panel-count">{{ entries().length }} registros</span>
+      </div>
+
+      @if (entries().length === 0) {
+        <app-empty-state [compact]="true" title="Sin registros"
+          message="No hay costos en el período seleccionado." />
+      } @else {
+        @for (group of entriesByMonth(); track group[0]) {
+          <div class="month-group">
+            <div class="month-head">
+              <span class="month-name">{{ monthLabel(group[0]) | titlecase }}</span>
+              <app-amount-display [amount]="monthTotal(group[1])" type="expense" size="sm" [showSign]="false" />
+            </div>
+
+            <table class="entries-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Categoría</th>
+                  <th>Descripción</th>
+                  <th class="text-right">Monto</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (e of group[1]; track e.id) {
+                  <tr>
+                    <td class="date-cell">{{ formatDate(e.date) }}</td>
+                    <td>
+                      <div class="cat-chip">
+                        <span class="cat-dot" [style.background]="catColor(e.category)"></span>
+                        {{ e.category_name ?? catName(e.category) }}
+                      </div>
+                    </td>
+                    <td class="desc-cell">
+                      <span>{{ e.description }}</span>
+                      @if (e.notes) { <span class="note">{{ e.notes }}</span> }
+                    </td>
+                    <td class="text-right">
+                      <app-amount-display [amount]="e.amount" type="expense" size="sm" [showSign]="false" />
+                    </td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" class="total-label-cell">Total {{ monthLabel(group[0]) }}</td>
+                  <td class="text-right">
+                    <app-amount-display [amount]="monthTotal(group[1])" type="expense" size="md" [showSign]="false" />
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        }
+
+        <!-- Grand total -->
+        <div class="grand-total">
+          <span>Total General</span>
+          <app-amount-display [amount]="totals()?.total ?? 0" type="expense" size="lg" [showSign]="false" />
+        </div>
+      }
+    </div>
+
+  </div>
+}

@@ -1,6 +1,7 @@
+// select-field.component.ts
 import { Component, Input, forwardRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, AbstractControl } from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, AbstractControl, FormControl } from '@angular/forms';
 
 export interface SelectOption {
   label: string;
@@ -28,32 +29,39 @@ export class SelectFieldComponent implements ControlValueAccessor {
   @Input() options: SelectOption[] = [];
   @Input() hint = '';
   @Input() required = false;
-  @Input() disabled = false;
   @Input() control?: AbstractControl | null;
+  @Input() hasError = false;                    // ← Input para error externo
+  @Input() errorMessage = '';                   // ← Input para mensaje de error
 
   readonly inputId = `select-${++nextId}`;
   value: string | number = '';
+  disabled = false;
 
   private onChangeFn: (v: string | number) => void = () => {};
-  onTouchedFn: () => void = () => {};
+  private onTouchedFn: () => void = () => {};
 
-  writeValue(v: string | number): void { this.value = v ?? ''; }
-  registerOnChange(fn: (v: string | number) => void): void { this.onChangeFn = fn; }
-  registerOnTouched(fn: () => void): void { this.onTouchedFn = fn; }
-  setDisabledState(d: boolean): void { this.disabled = d; }
+  writeValue(v: string | number): void { 
+    this.value = v ?? ''; 
+  }
+
+  registerOnChange(fn: (v: string | number) => void): void { 
+    this.onChangeFn = fn; 
+  }
+
+  registerOnTouched(fn: () => void): void { 
+    this.onTouchedFn = fn; 
+  }
+
+  setDisabledState(d: boolean): void { 
+    this.disabled = d; 
+  }
 
   onChange(event: Event): void {
     this.value = (event.target as HTMLSelectElement).value;
     this.onChangeFn(this.value);
   }
 
-  get hasError(): boolean {
-    if (!this.control) return false;
-    return this.control.invalid && (this.control.touched || this.control.dirty);
-  }
-
-  get errorMessage(): string {
-    if (this.control?.errors?.['required']) return 'Selecciona una opción.';
-    return 'Campo inválido.';
+  onBlur(): void {
+    this.onTouchedFn();
   }
 }

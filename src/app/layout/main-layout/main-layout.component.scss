@@ -1,0 +1,59 @@
+@use '../../styles/variables' as *;
+
+.main-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: $slate-50;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-left: 280px;
+  transition: margin-left 0.3s ease;
+  background: $slate-50;
+
+  // Adjust margin when sidebar is collapsed
+  :host-context(.sidebar.collapsed) & {
+    margin-left: 80px;
+  }
+}
+
+// ── Responsive ────────────────────────────────────────────────────────
+@media (max-width: $bp-md) {
+  .main-content {
+    margin-left: 70px;
+  }
+}
+
+@media (max-width: $bp-sm) {
+  .main-layout {
+    flex-direction: column;
+  }
+
+  .main-content {
+    margin-left: 0;
+    margin-top: 0;
+    flex: 1;
+  }
+}
+
+// ── Scrollbar customization ───────────────────────────────────────────
+.main-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.main-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.main-content::-webkit-scrollbar-thumb {
+  background: $slate-300;
+  border-radius: 4px;
+
+  &:hover {
+    background: $slate-400;
+  }
+}

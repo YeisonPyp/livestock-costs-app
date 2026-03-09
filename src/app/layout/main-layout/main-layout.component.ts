@@ -1,19 +1,14 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
+import { RouterOutlet } from '@angular/router';
+import { SidebarMenuComponent } from '../../shared/components/sidebar-menu/sidebar-menu.component';
+
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, NavbarComponent],
-  template: `
-    <div class="min-h-screen bg-gray-50">
-      <app-navbar></app-navbar>
-      <main class="container mx-auto px-4 py-8">
-        <router-outlet></router-outlet>
-      </main>
-    </div>
-  `
+  imports: [CommonModule, RouterOutlet, SidebarMenuComponent],
+  templateUrl: './main-layout.component.html',
+  styleUrl: './main-layout.component.scss',
 })
 export class MainLayoutComponent {}

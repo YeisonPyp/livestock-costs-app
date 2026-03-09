@@ -1,0 +1,106 @@
+import { Injectable } from '@angular/core';
+import { signal } from '@angular/core';
+
+export interface MenuItem {
+  label: string;
+  icon?: string;
+  path?: string;
+  children?: MenuItem[];
+  badge?: string | number;
+  color?: string;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class MenuService {
+  menuItems = signal<MenuItem[]>([
+    {
+      label: 'Dashboard',
+      icon: 'bar-chart-2',
+      path: '/dashboard',
+      color: 'blue',
+    },
+    {
+      label: 'Categorías',
+      icon: 'layers',
+      color: 'pink',
+      path: '/categories',
+    },
+    {
+      label: 'Gestión de Costos',
+      icon: 'dollar-sign',
+      color: 'green',
+      children: [
+        {
+          label: 'Registro de Costos',
+          icon: 'list',
+          path: '/costs/costs',
+        },
+        {
+          label: 'Categorías',
+          icon: 'tag',
+          path: '/costs/categories',
+        },
+        {
+          label: 'Reportes',
+          icon: 'file-text',
+          path: '/costs/reports',
+        },
+      ],
+    },
+    {
+      label: 'Fincas',
+      icon: 'home',
+      color: 'yellow',
+      children: [
+        {
+          label: 'Lista de Fincas',
+          icon: 'list',
+          path: '/farms',
+        },
+        {
+          label: 'Nueva Finca',
+          icon: 'plus-circle',
+          path: '/farms/new',
+        },
+      ],
+    },
+    {
+      label: 'Inversiones',
+      icon: 'trending-up',
+      color: 'purple',
+      children: [
+        {
+          label: 'Inversionistas',
+          icon: 'users',
+          path: '/investments/investors',
+        },
+        {
+          label: 'Inversiones',
+          icon: 'briefcase',
+          path: '/investments/investments',
+        },
+        {
+          label: 'Ventas',
+          icon: 'shopping-cart',
+          path: '/investments/sales',
+        },
+        {
+          label: 'Decisiones',
+          icon: 'check-circle',
+          path: '/investments/decisions',
+        },
+        {
+          label: 'Reportes',
+          icon: 'file-text',
+          path: '/investments/reports',
+        },
+      ],
+    },
+  ]);
+
+  getMenuItems() {
+    return this.menuItems();
+  }
+}

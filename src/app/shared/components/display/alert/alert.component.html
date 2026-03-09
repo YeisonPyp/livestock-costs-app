@@ -1,7 +1,14 @@
 <!-- alert.component.html -->
-@if (visible) {
-  <div class="alert" [class]="'alert-' + type" role="alert" [attr.aria-live]="type === 'danger' ? 'assertive' : 'polite'">
-    <span class="alert-icon">
+@if (isVisible) {
+  <div 
+    class="alert" 
+    [class]="'alert-' + type" 
+    role="alert" 
+    [attr.aria-live]="type === 'danger' ? 'assertive' : 'polite'"
+    [@alertAnimation]
+  >
+    <!-- Icon -->
+    <span class="alert-icon" aria-hidden="true">
       @switch (type) {
         @case ('success') {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -27,13 +34,25 @@
       }
     </span>
 
+    <!-- Content -->
     <div class="alert-body">
-      @if (title) { <p class="alert-title">{{ title }}</p> }
-      <div class="alert-message"><ng-content></ng-content></div>
+      @if (title) { 
+        <p class="alert-title">{{ title }}</p> 
+      }
+      <div class="alert-message">
+        {{ message }}
+        <ng-content></ng-content>
+      </div>
     </div>
 
+    <!-- Close Button -->
     @if (dismissible) {
-      <button class="alert-close" (click)="dismiss()" aria-label="Cerrar">
+      <button 
+        type="button"
+        class="alert-close" 
+        (click)="dismiss()" 
+        aria-label="Cerrar alerta"
+      >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
         </svg>

@@ -1,5 +1,39 @@
 <!-- badge.component.html -->
-<span class="badge" [class]="'badge-' + color + (outline ? ' badge-outline' : '') + (size ? ' badge-' + size : '')">
-  @if (dot) { <span class="badge-dot"></span> }
-  <ng-content></ng-content>
+<span 
+  class="badge"
+  [class]="'badge-' + color + ' badge-' + variant + ' badge-' + size"
+  [class.is-disabled]="disabled"
+  [attr.role]="removable ? 'button' : null"
+  [attr.tabindex]="removable ? 0 : null"
+>
+  @if (dot) {
+    <span class="badge-dot"></span>
+  }
+
+  @if (icon) {
+    <span class="badge-icon" [innerHTML]="icon" aria-hidden="true"></span>
+  }
+
+  @if (label) {
+    <span class="badge-label">{{ label }}</span>
+  }
+
+  @if (!label) {
+    <ng-content></ng-content>
+  }
+
+  @if (removable && !disabled) {
+    <button
+      type="button"
+      class="badge-remove"
+      (click)="onRemove()"
+      aria-label="Remover badge"
+      tabindex="-1"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  }
 </span>

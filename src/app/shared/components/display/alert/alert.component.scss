@@ -3,10 +3,10 @@
 @use "sass:list";
 
 $alert-variants: (
-  'info':    ($info,    $info-muted,    rgba($info, .2)),
-  'success': ($success, $success-muted, rgba($success, .2)),
-  'warning': ($warning, $warning-muted, rgba($warning, .2)),
-  'danger':  ($danger,  $danger-muted,  rgba($danger, .2)),
+  'info':    ($info,    $info-muted,    rgba($info, .15)),
+  'success': ($success, $success-muted, rgba($success, .15)),
+  'warning': ($warning, $warning-muted, rgba($warning, .15)),
+  'danger':  ($danger,  $danger-muted,  rgba($danger, .15)),
 );
 
 .alert {

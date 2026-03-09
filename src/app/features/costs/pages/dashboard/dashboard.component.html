@@ -1,0 +1,214 @@
+<div class="dashboard">
+
+  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <div class="dash-header">
+    <div class="dash-header-text">
+      <h1 class="dash-title">Dashboard de Costos</h1>
+      <p class="dash-sub">Monitorea y analiza los gastos de tu operación ganadera</p>
+    </div>
+    <div class="dash-header-actions">
+      <a routerLink="/costs/new" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Registrar Gasto
+      </a>
+    </div>
+  </div>
+
+  <!-- ── Month selector ──────────────────────────────────────────────────── -->
+  <div class="month-bar">
+    <button class="month-nav" (click)="prevMonth()" [disabled]="monthIdx() >= months.length - 1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+
+    <div class="month-pills">
+      @for (m of months.slice(0, 7); track $index) {
+        <button class="month-pill" [class.active]="$index === monthIdx()"
+          (click)="selectMonthIdx($index)">
+          {{ capitalize(m.label) }}
+        </button>
+      }
+    </div>
+
+    <button class="month-nav" (click)="nextMonth()" [disabled]="monthIdx() === 0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+  <!-- ── KPIs ────────────────────────────────────────────────────────────── -->
+  <div class="kpis-grid">
+    <app-kpi-card
+      label="Total del Mes"
+      [value]="(totals()?.total ?? 0)"
+      format="currency"
+      color="blue"
+      icon="dollar-sign"
+      [loading]="loadingKpis()"
+      [trendLabel]="yoyLabel"
+    />
+    <app-kpi-card
+      label="Acumulado {{ activeMonth().year }}"
+      [value]="ytd()?.total ?? 0"
+      format="currency"
+      color="green"
+      icon="trending-up"
+      [loading]="loadingKpis()"
+    />
+    <app-kpi-card
+      label="Registros del Mes"
+      [value]="totals()?.count ?? 0"
+      format="number"
+      color="purple"
+      icon="file-text"
+      [loading]="loadingKpis()"
+    />
+    <app-kpi-card
+      label="Categorías Activas"
+      [value]="activeCatCount()"
+      format="number"
+      color="yellow"
+      icon="tag"
+      [loading]="loadingKpis()"
+    />
+    <app-kpi-card
+      label="Promedio por Registro"
+      [value]="totals()?.average ?? 0"
+      format="currency"
+      color="blue"
+      icon="bar-chart-2"
+      [loading]="loadingKpis()"
+    />
+    <app-kpi-card
+      label="Mayor Gasto Único"
+      [value]="totals()?.max ?? 0"
+      format="currency"
+      color="red"
+      icon="zap"
+      [loading]="loadingKpis()"
+    />
+  </div>
+
+  <!-- ── Main content row ────────────────────────────────────────────────── -->
+  <div class="content-row">
+
+    <!-- Left: category breakdown bars -->
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <h3 class="panel-title">Distribución por Categoría</h3>
+          <p class="panel-sub">{{ capitalize(activeMonth().label) }}</p>
+        </div>
+        <a routerLink="/costs/reports" class="link-sm">Ver reporte completo →</a>
+      </div>
+
+      @if (loading()) {
+        <app-loader [overlay]="false" type="bars" />
+      } @else if (topCategories().length === 0) {
+        <app-empty-state [compact]="true" title="Sin costos en este mes"
+          message="No hay gastos registrados para el período seleccionado." />
+      } @else {
+        <div class="cat-bars">
+          @for (cat of topCategories(); track cat.category_id; let i = $index) {
+            <div class="cat-bar-row">
+              <div class="cat-rank">{{ i + 1 }}</div>
+              <div class="cat-detail">
+                <div class="cat-name-row">
+                  <span class="cat-name">{{ cat.category_name }}</span>
+                  <span class="cat-pct">{{ cat.percentage.toFixed(1) }}%</span>
+                </div>
+                <app-progress-bar [value]="cat.percentage" [max]="100" />
+              </div>
+              <div class="cat-amount">
+                <app-amount-display [amount]="cat.total" type="expense" size="sm" [showSign]="false" />
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (totals()?.total) {
+          <div class="total-row">
+            <span class="total-label">Total del mes</span>
+            <app-amount-display [amount]="totals()!.total" type="expense" size="lg" [showSign]="false" />
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Right: 12-month trend chart -->
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <h3 class="panel-title">Tendencia Mensual</h3>
+          <p class="panel-sub">Últimos 12 meses</p>
+        </div>
+        <a routerLink="/costs" class="link-sm">Ver registros →</a>
+      </div>
+
+      @if (trendMonths().length === 0) {
+        <app-empty-state [compact]="true" title="Sin historial" message="No hay datos de tendencia disponibles." />
+      } @else {
+        <div class="trend-chart">
+          @for (m of trendMonths(); track m.month) {
+            <div class="trend-col" [title]="m.month_label + ': ' + formatCOP(m.total)">
+              <div class="trend-bar-wrap">
+                <div class="trend-bar" [style.height.%]="trendBarHeight(m.total)"
+                  [class.current]="m.year === activeMonth().year && m.month === activeMonth().month">
+                </div>
+              </div>
+              <span class="trend-label">{{ m.month_label?.slice(0, 3) }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+  </div>
+
+  <!-- ── Quick actions ───────────────────────────────────────────────────── -->
+  <div class="quick-actions">
+    <h3 class="section-title">Acciones Rápidas</h3>
+    <div class="action-cards">
+
+      <a routerLink="/costs/new" class="action-card">
+        <div class="action-icon blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <div>
+          <div class="action-title">Registrar Gasto</div>
+          <div class="action-desc">Nuevo registro de costo</div>
+        </div>
+      </a>
+
+      <a routerLink="/costs" class="action-card">
+        <div class="action-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div>
+          <div class="action-title">Ver Todos los Costos</div>
+          <div class="action-desc">Lista completa con filtros</div>
+        </div>
+      </a>
+
+      <a routerLink="/costs/categories" class="action-card">
+        <div class="action-icon green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="3"/><circle cx="15" cy="15" r="3"/><path d="M4 20 L20 4"/></svg>
+        </div>
+        <div>
+          <div class="action-title">Categorías</div>
+          <div class="action-desc">Gestionar estructura</div>
+        </div>
+      </a>
+
+      <a routerLink="/costs/reports" class="action-card">
+        <div class="action-icon yellow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <div>
+          <div class="action-title">Reportes</div>
+          <div class="action-desc">Excel · PDF · Análisis</div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+</div>

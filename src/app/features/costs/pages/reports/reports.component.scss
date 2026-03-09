@@ -1,0 +1,193 @@
+@use '../../../../styles/variables' as *;
+@use 'sass:color';
+
+.mt-3 { margin-top: $space-3; }
+
+// ── Header actions ────────────────────────────────────────────────────────────
+.header-actions { display: flex; gap: $space-2; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: $space-2;
+  padding: 0.5625rem 1rem; border-radius: $border-radius;
+  font-size: $font-sm; font-weight: $weight-semibold;
+  cursor: pointer; border: none; text-decoration: none;
+  transition: all $transition-base; white-space: nowrap;
+
+  svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+  &.btn-primary {
+    background: $primary; color: $white;
+    &:hover:not(:disabled) { background: $primary-hover; transform: translateY(-1px); box-shadow: $shadow-md; }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+  &.btn-secondary {
+    background: $slate-100; color: $slate-700;
+    &:hover { background: $slate-200; }
+  }
+  &.btn-ghost {
+    background: $white; color: $slate-600; border: 1px solid $slate-200;
+    &:hover { background: $slate-50; border-color: $slate-300; }
+  }
+}
+
+.spinner-sm {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: $white;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Filter card ───────────────────────────────────────────────────────────────
+.filter-card {
+  background: $white;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+  padding: $space-5;
+  margin-bottom: $space-6;
+}
+
+.filter-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: $space-4;
+}
+
+.filter-group { display: flex; flex-direction: column; gap: $space-2; }
+
+.filter-label { font-size: $font-sm; font-weight: $weight-semibold; color: $slate-700; }
+
+.filter-input {
+  padding: 0.5625rem 0.875rem;
+  border: 1px solid $slate-200; border-radius: $border-radius;
+  font-size: $font-sm; color: $slate-900; background: $white; outline: none;
+  transition: all $transition-base; min-width: 160px;
+
+  &:focus { border-color: $primary; box-shadow: 0 0 0 3px $primary-muted; }
+}
+
+.filter-actions { display: flex; align-items: flex-end; gap: $space-2; }
+
+// ── KPIs row ──────────────────────────────────────────────────────────────────
+.kpis-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-4;
+  margin-bottom: $space-6;
+
+  @media (max-width: $bp-lg) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: $bp-sm) { grid-template-columns: 1fr; }
+}
+
+// ── Report grid ───────────────────────────────────────────────────────────────
+.report-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: $space-6;
+  align-items: start;
+
+  @media (max-width: $bp-xl) { grid-template-columns: 1fr; }
+}
+
+.panel {
+  background: $white;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: $space-4 $space-5;
+  background: $slate-50; border-bottom: 1px solid $slate-200;
+}
+
+.panel-title { font-size: $font-base; font-weight: $weight-bold; color: $slate-900; margin: 0; }
+.panel-count { font-size: $font-xs; color: $slate-500; font-weight: $weight-medium; }
+
+// ── Category list ─────────────────────────────────────────────────────────────
+.cat-list { padding: $space-4 $space-5; display: flex; flex-direction: column; gap: $space-4; }
+
+.cat-row { display: flex; align-items: center; gap: $space-3; }
+
+.cat-rank {
+  width: 26px; height: 26px; flex-shrink: 0;
+  background: $primary; color: $white;
+  border-radius: 7px; font-size: $font-xs; font-weight: $weight-bold;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.cat-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+
+.cat-head { display: flex; justify-content: space-between; align-items: center; }
+.cat-name { font-size: $font-sm; font-weight: $weight-semibold; color: $slate-800;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cat-pct  { font-size: $font-xs; color: $slate-500; flex-shrink: 0; }
+.cat-count { font-size: $font-xs; color: $slate-400; }
+
+.cat-total { flex-shrink: 0; }
+
+// ── Entries panel ─────────────────────────────────────────────────────────────
+.entries-panel { position: sticky; top: 1rem; }
+
+.month-group { border-bottom: 1px solid $slate-100; }
+.month-group:last-of-type { border-bottom: none; }
+
+.month-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: $space-3 $space-5;
+  background: $slate-50; border-bottom: 1px solid $slate-100;
+}
+
+.month-name { font-size: $font-sm; font-weight: $weight-bold; color: $slate-800; }
+
+.entries-table {
+  width: 100%; border-collapse: collapse; font-size: $font-sm;
+
+  th {
+    padding: 0.625rem 1rem;
+    text-align: left; font-size: $font-xs; font-weight: $weight-semibold;
+    color: $slate-500; text-transform: uppercase; letter-spacing: 0.04em;
+    border-bottom: 1px solid $slate-100;
+  }
+
+  td {
+    padding: 0.75rem 1rem; border-bottom: 1px solid $slate-100;
+    color: $slate-700; vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: $slate-50; }
+
+  tfoot td {
+    background: $slate-50; font-weight: $weight-semibold;
+    border-top: 2px solid $slate-200; border-bottom: none;
+  }
+
+  .text-right { text-align: right; }
+}
+
+.date-cell { font-size: $font-xs; color: $slate-500; white-space: nowrap; }
+
+.cat-chip {
+  display: inline-flex; align-items: center; gap: $space-2;
+  font-size: $font-xs; color: $slate-700;
+}
+
+.cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.desc-cell { display: flex; flex-direction: column; gap: 2px; }
+.note { font-size: $font-xs; color: $slate-400; font-style: italic; }
+
+.total-label-cell { font-size: $font-sm; font-weight: $weight-semibold; color: $slate-700; }
+
+.grand-total {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: $space-5;
+  background: linear-gradient(135deg, $primary, $primary-hover);
+  color: $white;
+  font-size: $font-base; font-weight: $weight-bold;
+}
