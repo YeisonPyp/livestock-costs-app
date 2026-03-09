@@ -1,0 +1,38 @@
+<app-page-header [title]="isEdit ? 'Editar Lote' : 'Nuevo Lote'" backUrl="/cattle/lots" />
+
+@if (loading()) { <app-loader type="spinner" /> } @else {
+<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+  @if (error()) { <app-alert type="danger" [message]="error()" class="mb-5" /> }
+
+  <app-form-card title="Datos del Lote" icon="layers" class="mb-5">
+    <div class="grid-2">
+      <app-input-field label="Nombre" [required]="true" formControlName="name"
+        placeholder="Ej: Lote Levante 01"
+        errorMessage="El nombre es requerido" />
+      <app-input-field label="Código" [required]="true" formControlName="code"
+        placeholder="Ej: L-2024-001"
+        errorMessage="El código es requerido" />
+    </div>
+    <div class="grid-2 mt-4">
+      <app-select-field label="Finca" [required]="true" formControlName="farm"
+        [options]="farms()" placeholder="Selecciona una finca"
+        [hasError]="hasError('farm','required')" errorMessage="La finca es requerida" />
+      <app-input-field label="Fecha de Ingreso" [required]="true" formControlName="entry_date"
+        type="date" [max]="today" errorMessage="La fecha es requerida" />
+    </div>
+    <div class="form-group mt-4">
+      <label class="field-label">Descripción</label>
+      <textarea formControlName="description" class="textarea" rows="3" placeholder="Descripción u observaciones..."></textarea>
+    </div>
+  </app-form-card>
+
+  <div class="form-footer">
+    <a routerLink="/cattle/lots" class="btn btn-secondary">Cancelar</a>
+    <button type="submit" class="btn btn-primary" [disabled]="saving()">
+      @if (saving()) { <span class="spinner-sm"></span> Guardando... } @else {
+        {{ isEdit ? 'Actualizar' : 'Crear' }} Lote
+      }
+    </button>
+  </div>
+</form>
+}

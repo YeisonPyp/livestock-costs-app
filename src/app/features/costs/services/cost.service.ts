@@ -10,7 +10,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class CostService {
   private api  = inject(ApiService);
-  private base = 'costs/costs';
+  private base = '/costs/costs';
 
   // ── CRUD ──────────────────────────────────────────────────────────────────
   getAll(filters: CostFilters = {}): Observable<ApiResponse<Cost[]>> {

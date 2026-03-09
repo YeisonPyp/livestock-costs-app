@@ -1,0 +1,85 @@
+<app-page-header title="Lotes" subtitle="Gestiona los lotes de ganado en tus fincas">
+  <a routerLink="new" class="btn btn-primary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Nuevo Lote
+  </a>
+</app-page-header>
+
+<!-- KPIs -->
+<div class="kpis-row">
+  <app-kpi-card label="Total Lotes"    [value]="kpis().total"   format="number" color="blue"   icon="layers"    [loading]="loading()" />
+  <app-kpi-card label="Lotes Abiertos" [value]="kpis().active"    format="number" color="green"  icon="unlock"    [loading]="loading()" />
+  <app-kpi-card label="Lotes Cerrados" [value]="kpis().closed"  format="number" color="yellow" icon="lock"      [loading]="loading()" />
+  <app-kpi-card label="Total Animales" [value]="kpis().animals" format="number" color="purple" icon="activity"  [loading]="loading()" />
+</div>
+
+<!-- Filters -->
+<div class="filters-bar">
+  <div class="search-wrap">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="search-input" type="text" placeholder="Buscar por nombre o código..." [(ngModel)]="searchTerm" />
+  </div>
+  <div class="status-tabs">
+    <button class="tab" [class.active]="statusFilter === ''"       (click)="statusFilter = ''">Todos</button>
+    <button class="tab" [class.active]="statusFilter === 'active'"   (click)="statusFilter = 'active'">Abiertos</button>
+    <button class="tab" [class.active]="statusFilter === 'closed'" (click)="statusFilter = 'closed'">Cerrados</button>
+  </div>
+</div>
+
+<!-- Grid -->
+@if (loading()) {
+  <app-loader [overlay]="false" type="bars" />
+} @else if (filtered().length === 0) {
+  <app-empty-state icon="layers" title="Sin lotes"
+    [message]="searchTerm || statusFilter ? 'No hay lotes que coincidan con los filtros.' : 'Crea el primer lote para comenzar.'" >
+    @if (!searchTerm && !statusFilter) {
+      <a routerLink="new" class="btn btn-primary">Crear Lote</a>
+    }
+  </app-empty-state>
+} @else {
+  <div class="lots-grid">
+    @for (lot of filtered(); track lot.id) {
+      <div class="lot-card" [class.closed]="lot.status === 'closed'">
+        <div class="lot-card-header">
+          <div class="lot-meta">
+            <span class="lot-code">{{ lot.code }}</span>
+            <app-badge [label]="lot.status === 'active' ? 'Activo' : 'Cerrado'"
+              [color]="lot.status === 'active' ? 'success' : 'default'" />
+          </div>
+          @if (lot.status === 'active') {
+            <button class="icon-btn danger" title="Cerrar lote" (click)="confirmClose(lot)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </button>
+          }
+        </div>
+
+        <a [routerLink]="[lot.id]" class="lot-name">{{ lot.name }}</a>
+        <p class="lot-farm">{{ lot.farm_name }}</p>
+
+        <div class="lot-stats">
+          <div class="stat">
+            <span class="stat-val">{{ lot.current_count ?? lot.initial_count ?? 0 }}</span>
+            <span class="stat-lbl">Animales</span>
+          </div>
+          <div class="stat-sep"></div>
+          <div class="stat">
+            <span class="stat-val">{{ formatDate(lot.entry_date) }}</span>
+            <span class="stat-lbl">Ingreso</span>
+          </div>
+          @if (lot.close_date) {
+            <div class="stat-sep"></div>
+            <div class="stat">
+              <span class="stat-val">{{ formatDate(lot.close_date) }}</span>
+              <span class="stat-lbl">Cierre</span>
+            </div>
+          }
+        </div>
+
+        <div class="lot-actions">
+          <a [routerLink]="[lot.id]" class="btn btn-sm btn-secondary">Ver Detalle</a>
+          <a [routerLink]="[lot.id, 'edit']" class="btn btn-sm btn-ghost">Editar</a>
+        </div>
+      </div>
+    }
+  </div>
+}

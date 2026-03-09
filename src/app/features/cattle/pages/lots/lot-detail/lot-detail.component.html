@@ -1,0 +1,118 @@
+@if (loading()) {
+  <app-loader type="spinner" message="Cargando lote..." />
+} @else {
+  <app-page-header
+    [title]="lot()?.name ?? 'Lote'"
+    [subtitle]="lot()?.code + ' · ' + (lot()?.farm_name ?? '')"
+    backUrl="/cattle/lots">
+    <div class="header-actions">
+      @if (lot()?.status === 'active') {
+        <button class="btn btn-warning" (click)="confirmClose()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Cerrar Lote
+        </button>
+      }
+      <a [routerLink]="['edit']" class="btn btn-secondary">Editar</a>
+    </div>
+  </app-page-header>
+
+  <!-- KPIs -->
+  <div class="kpis-row">
+    <app-kpi-card label="Animales"   [value]="summary()?.animal_count ?? 0"   format="number"   color="blue"   icon="activity" />
+    <app-kpi-card label="Peso Prom." [value]="summary()?.avg_weight ?? 0"     format="number"   color="green"  icon="trending-up" suffix=" kg" />
+    <app-kpi-card label="Peso Total" [value]="summary()?.total_weight ?? 0"   format="number"   color="purple" icon="layers" suffix=" kg" />
+    <app-kpi-card label="GMD Prom."  [value]="summary()?.avg_daily_gain ?? 0" format="number"   color="yellow" icon="zap" suffix=" kg/día" />
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs-bar">
+    <button class="tab" [class.active]="activeTab() === 'summary'" (click)="setTab('summary')">Resumen</button>
+    <button class="tab" [class.active]="activeTab() === 'animals'" (click)="setTab('animals')">Animales</button>
+  </div>
+
+  <!-- Tab: Summary -->
+  @if (activeTab() === 'summary') {
+    <div class="info-grid">
+      <div class="info-card">
+        <h3 class="info-title">Información del Lote</h3>
+        <dl class="info-list">
+          <div class="info-row"><dt>Nombre</dt><dd>{{ lot()?.name }}</dd></div>
+          <div class="info-row"><dt>Código</dt><dd class="mono">{{ lot()?.code }}</dd></div>
+          <div class="info-row"><dt>Finca</dt><dd>{{ lot()?.farm_name }}</dd></div>
+          <div class="info-row"><dt>Estado</dt>
+            <dd><app-badge [label]="lot()?.status === 'active' ? 'Abierto' : 'Cerrado'"
+              [color]="lot()?.status === 'active' ? 'success' : 'default'" /></dd>
+          </div>
+          <div class="info-row"><dt>Fecha Ingreso</dt><dd>{{ formatDate(lot()?.entry_date) }}</dd></div>
+          @if (lot()?.close_date) {
+            <div class="info-row"><dt>Fecha Cierre</dt><dd>{{ formatDate(lot()?.close_date) }}</dd></div>
+          }
+          @if (lot()?.description) {
+            <div class="info-row"><dt>Descripción</dt><dd>{{ lot()?.description }}</dd></div>
+          }
+        </dl>
+      </div>
+
+      <div class="info-card">
+        <h3 class="info-title">Métricas de Producción</h3>
+        <dl class="info-list">
+          <div class="info-row"><dt>Total Animales</dt><dd>{{ summary()?.animal_count ?? '—' }}</dd></div>
+          <div class="info-row"><dt>Peso Promedio</dt><dd>{{ summary()?.avg_weight ? (summary()!.avg_weight! | number:'1.1-1') + ' kg' : '—' }}</dd></div>
+          <div class="info-row"><dt>Peso Total</dt><dd>{{ summary()?.total_weight ? (summary()!.total_weight! | number:'1.0-0') + ' kg' : '—' }}</dd></div>
+          <div class="info-row"><dt>GMD Promedio</dt><dd>{{ summary()?.avg_daily_gain ? (summary()!.avg_daily_gain! | number:'1.2-2') + ' kg/día' : '—' }}</dd></div>
+        </dl>
+      </div>
+    </div>
+  }
+
+  <!-- Tab: Animals -->
+  @if (activeTab() === 'animals') {
+    <div class="animals-section">
+      <div class="animals-toolbar">
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input class="search-input" type="text" placeholder="Buscar por arete o nombre..." [(ngModel)]="searchAnimal" />
+        </div>
+        <a routerLink="/cattle/animals/new" [queryParams]="{lot: lotId}" class="btn btn-primary btn-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar Animal
+        </a>
+      </div>
+
+      @if (loadingAnimals()) {
+        <app-loader [overlay]="false" type="bars" />
+      } @else if (filteredAnimals.length === 0) {
+        <app-empty-state [compact]="true" icon="activity" title="Sin animales" message="No hay animales en este lote." />
+      } @else {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Arete</th>
+              <th>Nombre</th>
+              <th>Raza</th>
+              <th>Sexo</th>
+              <th class="text-right">Peso Actual</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of filteredAnimals; track a.id) {
+              <tr>
+                <td class="mono primary">{{ a.tag_number }}</td>
+                <td>{{ a.name || '—' }}</td>
+                <td>{{ a.breed_name }}</td>
+                <td>{{ a.gender === 'M' ? 'Macho' : 'Hembra' }}</td>
+                <td class="text-right">{{ a.current_weight ? (a.current_weight | number:'1.1-1') + ' kg' : '—' }}</td>
+                <td><app-badge [label]="statusLabels[a.status]" [color]="statusColors[a.status]" /></td>
+                <td class="text-right">
+                  <a [routerLink]="['/cattle/animals', a.id]" class="link-btn">Ver →</a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+}

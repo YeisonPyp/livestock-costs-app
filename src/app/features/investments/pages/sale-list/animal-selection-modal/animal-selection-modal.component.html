@@ -1,0 +1,146 @@
+<div class="modal-container">
+  <div class="modal-header">
+    <h2 class="modal-title">Seleccionar Ganado para Venta</h2>
+    <button class="modal-close" (click)="cancelSelection()" type="button" aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="modal-content">
+    <!-- Selection Summary -->
+    @if (selectedCount() > 0) {
+      <div class="selection-summary">
+        <div class="summary-item">
+          <span class="summary-label">Animales seleccionados:</span>
+          <span class="summary-value">{{ selectedCount() }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Peso total:</span>
+          <span class="summary-value">{{ getSelectedWeight() | number:'1.1-1' }} kg</span>
+        </div>
+      </div>
+    }
+
+    <!-- Filters -->
+    <div class="filters-panel">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label class="filter-label">Buscar</label>
+          <input
+            type="text"
+            class="filter-input"
+            placeholder="Arete, nombre..."
+            [(ngModel)]="searchTerm"
+            (keyup)="loadAnimals()" />
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Estado</label>
+          <select class="filter-select" [(ngModel)]="statusFilter" (change)="loadAnimals()">
+            <option value="">Todos</option>
+            <option value="active">Activo</option>
+            <option value="sold">Vendido</option>
+            <option value="dead">Fallecido</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Sexo</label>
+          <select class="filter-select" [(ngModel)]="genderFilter" (change)="loadAnimals()">
+            <option value="">Todos</option>
+            <option value="M">Macho</option>
+            <option value="F">Hembra</option>
+          </select>
+        </div>
+
+        @if (searchTerm || statusFilter !== 'active' || genderFilter) {
+          <button class="btn-clear" (click)="clearFilters()" type="button">✕ Limpiar</button>
+        }
+      </div>
+    </div>
+
+    <!-- Animals Table -->
+    @if (loading()) {
+      <app-loader [overlay]="false" type="bars"/>
+    } @else if (animals().length === 0) {
+      <app-empty-state
+        icon="activity"
+        title="Sin animales"
+        message="No hay animales disponibles con los filtros aplicados." />
+    } @else {
+      <div class="table-wrapper">
+        <table class="animals-table">
+          <thead>
+            <tr>
+              <th class="checkbox-col">
+                <input
+                  type="checkbox"
+                  [checked]="selectAll"
+                  (change)="toggleAllSelection()"
+                  class="checkbox-input" />
+              </th>
+              <th>Arete</th>
+              <th>Nombre</th>
+              <th>Raza</th>
+              <th>Sexo</th>
+              <th class="text-right">Peso Actual</th>
+              <th>Lote</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (animal of animals(); track animal.id) {
+              <tr [class.selected]="animal.selected">
+                <td class="checkbox-col">
+                  <input
+                    type="checkbox"
+                    [checked]="animal.selected"
+                    (change)="toggleAnimalSelection(animal)"
+                    class="checkbox-input" />
+                </td>
+                <td class="tag-cell">{{ animal.tag_number }}</td>
+                <td class="name-cell">{{ animal.name || '—' }}</td>
+                <td>{{ animal.breed_name }}</td>
+                <td>
+                  <span class="gender-badge" [class]="animal.gender === 'M' ? 'male' : 'female'">
+                    {{ genderLabels[animal.gender] }}
+                  </span>
+                </td>
+                <td class="text-right weight-cell">
+                  {{ animal.current_weight ? (animal.current_weight | number:'1.1-1') + ' kg' : '—' }}
+                </td>
+                <td class="lot-cell">{{ animal.lot_name }}</td>
+                <td>
+                  <app-badge
+                    [label]="statusLabels[animal.status]"
+                    color="success"
+                    size="sm" />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <!-- Modal Footer -->
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn btn-ghost"
+      (click)="cancelSelection()">
+      Cancelar
+    </button>
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="confirmSelection()"
+      [disabled]="selectedCount() === 0">
+      Confirmar Selección ({{ selectedCount() }})
+    </button>
+  </div>
+</div>

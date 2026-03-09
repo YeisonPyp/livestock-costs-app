@@ -1,63 +1,500 @@
 @use '../../../../styles/variables' as *;
 
-.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: $space-4; margin-bottom: $space-5; }
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: $space-4;
+  margin-bottom: $space-5;
+}
 
-// New sale panel
-.new-sale-panel { background: $white; border: 1.5px solid $primary; border-radius: $border-radius-md; margin-bottom: $space-5; overflow: hidden; box-shadow: $shadow-md; }
-.panel-title { padding: $space-3 $space-5; background: $primary-muted; border-bottom: 1px solid $border-color; h3 { margin: 0; font-size: $font-sm; font-weight: $weight-semibold; color: $primary; } }
+// ── New sale panel ────────────────────────────────────────────────────────
+.new-sale-panel {
+  background: $white;
+  border: 1.5px solid $primary;
+  border-radius: $border-radius-md;
+  margin-bottom: $space-5;
+  overflow: hidden;
+  box-shadow: $shadow-md;
+}
 
+.panel-title {
+  padding: $space-3 $space-5;
+  background: $primary-muted;
+  border-bottom: 1px solid $border-color;
+
+  h3 {
+    margin: 0;
+    font-size: $font-base;
+    font-weight: $weight-semibold;
+    color: $primary;
+  }
+}
+
+.alert-margin {
+  margin: $space-4 $space-5 0;
+}
+
+// ── Animals Selection Section ──────────────────────────────────────────────
+.animals-selection-section {
+  padding: $space-5;
+  border-bottom: 2px solid $slate-200;
+  background: $slate-50;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $space-4;
+
+  h4 {
+    font-size: $font-base;
+    font-weight: $weight-bold;
+    color: $slate-900;
+    margin: 0;
+    flex: 1;
+  }
+}
+
+// ── Selection Summary ──────────────────────────────────────────────────────
+.selection-summary {
+  display: flex;
+  gap: $space-4;
+  margin-bottom: $space-4;
+  padding: $space-3 $space-4;
+  background: #f0fdf4;
+  border-radius: $border-radius;
+  border-left: 4px solid $success;
+
+  @media (max-width: $bp-sm) {
+    flex-direction: column;
+    gap: $space-2;
+  }
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  flex: 1;
+}
+
+.summary-label {
+  font-size: $font-sm;
+  font-weight: $weight-semibold;
+  color: $slate-600;
+}
+
+.summary-value {
+  font-size: $font-base;
+  font-weight: $weight-bold;
+  color: $success;
+}
+
+// ── Selected Animals List ──────────────────────────────────────────────────
+.selected-animals-list {
+  margin-bottom: $space-4;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  overflow: hidden;
+}
+
+.animals-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: $white;
+
+  th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: $font-xs;
+    font-weight: $weight-semibold;
+    color: $slate-500;
+    background: $slate-100;
+    border-bottom: 1px solid $slate-200;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    &.text-right {
+      text-align: right;
+    }
+
+    &.actions-col {
+      width: 50px;
+      text-align: center;
+    }
+  }
+
+  td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid $slate-100;
+    color: $slate-700;
+    vertical-align: middle;
+
+    &.tag-cell {
+      font-family: 'Courier New', monospace;
+      font-weight: $weight-bold;
+      color: $primary;
+    }
+
+    &.text-right {
+      text-align: right;
+      font-weight: $weight-semibold;
+    }
+
+    &.actions-cell {
+      text-align: center;
+      width: 50px;
+    }
+  }
+
+  tr {
+    transition: background-color $transition-base;
+
+    &:hover {
+      background: $slate-50;
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+}
+
+.btn-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: $danger-muted;
+  color: $danger;
+  border-radius: $border-radius;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: $danger;
+    color: $white;
+  }
+}
+
+// ── Empty Selection ───────────────────────────────────────────────────────
+.empty-selection {
+  text-align: center;
+  padding: $space-6 $space-4;
+  background: $white;
+  border: 1px dashed $slate-300;
+  border-radius: $border-radius;
+
+  p {
+    margin: 0;
+    font-size: $font-sm;
+    color: $slate-600;
+
+    &.empty-hint {
+      font-size: $font-xs;
+      color: $slate-500;
+      margin-top: $space-2;
+      font-style: italic;
+    }
+  }
+}
+
+// ── Sale Form Grid ────────────────────────────────────────────────────────
 .sale-form-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: $space-4;
   padding: $space-5;
 
-  @include respond-below($bp-lg) { grid-template-columns: repeat(2, 1fr); }
-  @include respond-below($bp-sm) { grid-template-columns: 1fr; }
+  @media (max-width: $bp-lg) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: $bp-sm) {
+    grid-template-columns: 1fr;
+  }
 }
 
-.full-span { grid-column: 1 / -1; }
-.form-actions { display: flex; justify-content: flex-end; gap: $space-3; }
+.full-span {
+  grid-column: 1 / -1;
+}
 
-// Filters
-.filters-card { background: $white; border: 1px solid $border-color; border-radius: $border-radius-md; padding: $space-4 $space-5; margin-bottom: $space-5; box-shadow: $shadow-sm; }
-.filters-row  { display: flex; gap: $space-4; flex-wrap: wrap; }
-.filter-item  { display: flex; flex-direction: column; gap: $space-1; }
-.filter-label { font-size: $font-xs; font-weight: $weight-semibold; color: $slate-500; text-transform: uppercase; letter-spacing: .04em; }
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-3;
 
-.native-select { height: 38px; padding: 0 2rem 0 $space-3; border: 1.5px solid $border-color; border-radius: $border-radius; font-size: $font-sm; font-family: $font-family; background: $white; appearance: none; outline: none; @include transition(border-color); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right $space-2 center; background-size: 14px; &:focus { border-color: $primary; } }
+  @media (max-width: $bp-sm) {
+    flex-direction: column-reverse;
+  }
+}
 
-// Form fields (inline)
-.field        { display: flex; flex-direction: column; gap: $space-1; }
-.field-label  { font-size: $font-xs; font-weight: $weight-semibold; color: $slate-600; }
-.field-input  { height: 38px; padding: 0 $space-3; border: 1.5px solid $border-color; border-radius: $border-radius; font-size: $font-sm; font-family: $font-family; outline: none; @include transition(border-color); &:focus { border-color: $primary; } }
-.field-readonly { background: $slate-50; color: $slate-500; }
-.field-textarea { padding: $space-2 $space-3; border: 1.5px solid $border-color; border-radius: $border-radius; font-size: $font-sm; font-family: $font-family; resize: vertical; outline: none; @include transition(border-color); &:focus { border-color: $primary; } }
-.field-error  { font-size: $font-xs; color: $danger; }
+// ── Form Fields ───────────────────────────────────────────────────────────
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
 
-// Table
-.table-card { background: $white; border: 1px solid $border-color; border-radius: $border-radius-md; box-shadow: $shadow-sm; overflow-x: auto; }
+.field-label {
+  font-size: $font-xs;
+  font-weight: $weight-semibold;
+  color: $slate-600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.field-input,
+.field-textarea {
+  height: 38px;
+  padding: 0 $space-3;
+  border: 1.5px solid $border-color;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-family: $font-family;
+  background: $white;
+  outline: none;
+  transition: all $transition-base;
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px $primary-muted;
+  }
+
+  &:disabled,
+  &.field-readonly {
+    background: $slate-50;
+    color: $slate-500;
+    cursor: not-allowed;
+  }
+}
+
+.field-textarea {
+  height: auto;
+  min-height: 80px;
+  padding: $space-2 $space-3;
+  resize: vertical;
+}
+
+.field-error {
+  font-size: $font-xs;
+  color: $danger;
+  font-weight: $weight-semibold;
+}
+
+// ── Filters ───────────────────────────────────────────────────────────────
+.filters-card {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  padding: $space-4 $space-5;
+  margin-bottom: $space-5;
+  box-shadow: $shadow-sm;
+}
+
+.filters-row {
+  display: flex;
+  gap: $space-4;
+  flex-wrap: wrap;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.filter-label {
+  font-size: $font-xs;
+  font-weight: $weight-semibold;
+  color: $slate-500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.native-select {
+  height: 38px;
+  padding: 0 2rem 0 $space-3;
+  border: 1.5px solid $border-color;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-family: $font-family;
+  background: $white;
+  appearance: none;
+  outline: none;
+  transition: all $transition-base;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right $space-2 center;
+  background-size: 14px;
+
+  &:focus {
+    border-color: $primary;
+  }
+}
+
+// ── Table ─────────────────────────────────────────────────────────────────
+.table-card {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+  overflow-x: auto;
+}
+
 .data-table {
-  width: 100%; border-collapse: collapse;
-  th, td { padding: $space-3 $space-4; text-align: left; font-size: $font-sm; border-bottom: 1px solid $border-color; vertical-align: middle; white-space: nowrap; }
-  th { background: $slate-50; font-weight: $weight-semibold; color: $slate-500; font-size: $font-xs; text-transform: uppercase; letter-spacing: .04em; }
-  tbody tr:hover { background: $slate-50; }
-  tbody tr:last-child td { border-bottom: none; }
-}
-.date-cell { color: $slate-500; }
-.desc-cell  { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.center     { text-align: center; }
+  width: 100%;
+  border-collapse: collapse;
 
-.btn-link { font-size: $font-xs; font-weight: $weight-semibold; color: $primary; text-decoration: none; &:hover { text-decoration: underline; } }
-.pagination { display: flex; justify-content: center; align-items: center; gap: $space-4; margin-top: $space-5; }
-.page-info  { font-size: $font-sm; color: $slate-500; }
+  th,
+  td {
+    padding: $space-3 $space-4;
+    text-align: left;
+    font-size: $font-sm;
+    border-bottom: 1px solid $border-color;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
 
-.btn { display: inline-flex; align-items: center; gap: $space-2; border: 1.5px solid transparent; border-radius: $border-radius; font-size: $font-sm; font-weight: $weight-medium; cursor: pointer; text-decoration: none; @include transition(background-color, border-color, color); svg { width: 15px; height: 15px; }
-  &.btn-primary { padding: $space-2 $space-4; background: $primary; color: $white; &:hover { background: $primary-hover; } }
-  &.btn-sm { padding: $space-1 $space-3; font-size: $font-xs; }
-  &.btn-outline { background: $white; border-color: $border-color; color: $slate-600; &:hover { border-color: $primary; color: $primary; } }
-  &.btn-ghost   { background: transparent; color: $slate-600; &:hover { background: $slate-100; } }
-  &:disabled { opacity: .6; cursor: not-allowed; }
+  th {
+    background: $slate-50;
+    font-weight: $weight-semibold;
+    color: $slate-500;
+    font-size: $font-xs;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  tbody tr:hover {
+    background: $slate-50;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
 }
-.btn-spinner-sm { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.4); border-top-color: $white; border-radius: 50%; animation: spin .7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+
+.date-cell {
+  color: $slate-500;
+}
+
+.desc-cell {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.center {
+  text-align: center;
+}
+
+// ── Pagination & Links ────────────────────────────────────────────────────
+.btn-link {
+  font-size: $font-xs;
+  font-weight: $weight-semibold;
+  color: $primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: $space-4;
+  margin-top: $space-5;
+}
+
+.page-info {
+  font-size: $font-sm;
+  color: $slate-500;
+}
+
+// ── Buttons ───────────────────────────────────────────────────────────────
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  border: 1.5px solid transparent;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all $transition-base;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  &.btn-primary {
+    padding: $space-2 $space-4;
+    background: $primary;
+    color: $white;
+
+    &:hover:not(:disabled) {
+      background: darken($primary, 5%);
+      transform: translateY(-1px);
+      box-shadow: $shadow-md;
+    }
+  }
+
+  &.btn-sm {
+    padding: $space-1 $space-3;
+    font-size: $font-xs;
+  }
+
+  &.btn-outline {
+    background: $white;
+    border-color: $border-color;
+    color: $slate-600;
+
+    &:hover {
+      border-color: $primary;
+      color: $primary;
+    }
+  }
+
+  &.btn-ghost {
+    background: transparent;
+    color: $slate-600;
+
+    &:hover {
+      background: $slate-100;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btn-spinner-sm {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: $white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

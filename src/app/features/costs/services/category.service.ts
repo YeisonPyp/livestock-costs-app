@@ -7,7 +7,7 @@ import { Category, CategoryTree } from '../models/cost.model';
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
   private api = inject(ApiService);
-  private base = 'costs/categories';
+  private base = '/costs/categories';
 
   getAll(params?: Record<string, any>): Observable<ApiResponse<Category[]>> {
     return this.api.get(`${this.base}/`, params);

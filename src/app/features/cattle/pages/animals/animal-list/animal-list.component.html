@@ -1,0 +1,152 @@
+<app-page-header title="Animales" subtitle="Inventario completo de tu hato ganadero">
+  <div class="header-actions">
+    <a routerLink="bulk-file" class="btn btn-ghost">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Carga Masiva
+    </a>
+    <a routerLink="new" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Nuevo Animal
+    </a>
+  </div>
+</app-page-header>
+
+<!-- KPIs -->
+<div class="kpis-row">
+  <app-kpi-card label="Total Animales" [value]="kpis().total"     format="number" color="blue"   icon="activity"    [loading]="loading()" />
+  <app-kpi-card label="Machos"         [value]="kpis().male"      format="number" color="purple" icon="user"        [loading]="loading()" />
+  <app-kpi-card label="Hembras"        [value]="kpis().female"    format="number" color="green"  icon="user"        [loading]="loading()" />
+  <app-kpi-card label="Peso Promedio"  [value]="kpis().avgWeight" format="number" color="yellow" icon="trending-up" [loading]="loading()" suffix=" kg" />
+</div>
+
+<!-- Bulk action bar -->
+@if (selectedIds().size > 0) {
+  <div class="bulk-bar">
+    <span class="bulk-count">{{ selectedIds().size }} animales seleccionados</span>
+    <button class="btn btn-sm btn-secondary" (click)="openBulkLotChange()">Cambiar de Lote</button>
+    <button class="btn btn-sm btn-ghost" (click)="selectedIds.set(new Set()); selectAll = false">Deseleccionar</button>
+  </div>
+}
+
+<!-- Filters -->
+<div class="filters-card">
+  <div class="filters-row">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="search-input" type="text" placeholder="Buscar por arete o nombre..."
+        [value]="searchTerm" (input)="searchTerm = $any($event.target).value; search$.next(searchTerm)" />
+    </div>
+
+    <select class="filter-select" [(ngModel)]="statusFilter" (change)="onFilter()">
+      <option value="">Todos los estados</option>
+      <option value="active">Activo</option>
+      <option value="sold">Vendido</option>
+      <option value="dead">Fallecido</option>
+      <option value="transferred">Trasladado</option>
+    </select>
+
+    <select class="filter-select" [(ngModel)]="sexFilter" (change)="onFilter()">
+      <option value="">Todos los sexos</option>
+      <option value="M">Macho</option>
+      <option value="F">Hembra</option>
+    </select>
+
+    <select class="filter-select" [(ngModel)]="breedFilter" (change)="onFilter()">
+      <option value="">Todas las razas</option>
+      @for (b of breeds(); track b.id) {
+        <option [value]="b.id">{{ b.name }}</option>
+      }
+    </select>
+
+    <select class="filter-select" [(ngModel)]="lotFilter" (change)="onFilter()">
+      <option value="">Todos los lotes</option>
+      @for (l of lots(); track l.id) {
+        <option [value]="l.id">{{ l.name }}</option>
+      }
+    </select>
+
+    @if (hasActiveFilters) {
+      <button class="btn-clear" (click)="clearFilters()">✕ Limpiar</button>
+    }
+  </div>
+</div>
+
+<!-- Table -->
+<div class="table-card">
+  @if (loading()) {
+    <app-loader [overlay]="false" type="skeleton" [rows]="10" />
+  } @else if (animals().length === 0) {
+    <app-empty-state icon="activity" title="Sin animales"
+      [message]="hasActiveFilters ? 'No hay animales con los filtros aplicados.' : 'Registra el primer animal.'" >
+      @if (!hasActiveFilters) { <a routerLink="new" class="btn btn-primary">Registrar Animal</a> }
+    </app-empty-state>
+  } @else {
+    <div class="table-meta">
+      <span class="results-count">
+        {{ animals().length }} de {{ pagination()?.count ?? animals().length }} animales
+      </span>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th class="check-col"><input type="checkbox" [checked]="selectAll" (change)="toggleAll()" /></th>
+          <th class="sortable" (click)="sortBy('tag')">Arete {{ sortIcon('tag') }}</th>
+          <th>Nombre</th>
+          <th>Raza</th>
+          <th>Sexo</th>
+          <th>Lote</th>
+          <th class="sortable text-right" (click)="sortBy('current_weight')">Peso {{ sortIcon('current_weight') }}</th>
+          <th class="sortable" (click)="sortBy('entry_date')">Ingreso {{ sortIcon('entry_date') }}</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (a of animals(); track a.id) {
+          <tr [class.selected]="selectedIds().has(a.id)">
+            <td class="check-col"><input type="checkbox" [checked]="selectedIds().has(a.id)" (change)="toggleSelect(a.id)" /></td>
+            <td>
+              <a [routerLink]="[a.id]" class="tag-link">{{ a.tag }}</a>
+            </td>
+            <td>{{ a.name || '—' }}</td>
+            <td>{{ a.breed_name }}</td>
+            <td>
+              <span class="sex-badge" [class.male]="a.sex === 'M'" [class.female]="a.sex === 'F'">
+                {{ sexLabels[a.sex] }}
+              </span>
+            </td>
+            <td class="lot-cell">{{ a.current_lot_name }}</td>
+            <td class="text-right weight-cell">
+              {{ a.current_weight != null ? (a.current_weight | number:'1.1-1') + ' kg' : '—' }}
+            </td>
+            <td class="date-cell">{{ formatDate(a.entry_date) }}</td>
+            <td><app-badge [label]="statusLabels[a.status]" [color]="statusColors[a.status]" /></td>
+            <td class="text-right">
+              <app-dropdown-menu [items]="[
+                { label: 'Ver Detalle', icon: 'eye',    routerLink: [a.id] },
+                { label: 'Editar',     icon: 'edit',   routerLink: [a.id, 'edit'] },
+                { label: 'Pesar',      icon: 'activity', routerLink: [a.id, 'weight'] },
+              ]" />
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    @if (pagination() && pagination().total_pages > 1) {
+      <div class="pagination">
+        <button class="page-btn" [disabled]="currentPage === 1" (click)="load(currentPage - 1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        @for (p of [].constructor(pagination().total_pages); track $index) {
+          <button class="page-btn" [class.active]="$index + 1 === currentPage" (click)="load($index + 1)">{{ $index + 1 }}</button>
+        }
+        <button class="page-btn" [disabled]="currentPage === pagination().total_pages" (click)="load(currentPage + 1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    }
+  }
+</div>

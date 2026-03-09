@@ -1,0 +1,130 @@
+<app-page-header 
+  [title]="isEdit ? 'Editar Animal' : 'Registrar Animal'" 
+  backUrl="/cattle/animals" />
+
+@if (loading()) { 
+  <app-loader type="spinner" /> 
+} @else {
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+    @if (error()) { 
+      <app-alert type="danger" [message]="error()" class="mb-5" /> 
+    }
+
+    <!-- Identification -->
+    <app-form-card title="Identificación" icon="tag" class="mb-5">
+      <div class="grid-3">
+        <app-input-field 
+          label="Arete / Código" 
+          [required]="true" 
+          formControlName="tag"
+          placeholder="Ej: A-00142"
+          [control]="form.get('tag')" />
+        
+        <app-input-field 
+          label="Nombre" 
+          formControlName="name" 
+          placeholder="Nombre opcional" 
+          class="col-2"
+          [control]="form.get('name')" />
+      </div>
+
+      <div class="grid-3 mt-4">
+        <app-select-field 
+          label="Raza" 
+          [required]="true" 
+          formControlName="breed"
+          [options]="breedOptions"
+          placeholder="Selecciona raza"
+          [control]="form.get('breed')" />
+
+        <app-select-field 
+          label="Color" 
+          [required]="true" 
+          formControlName="color"
+          [options]="colorOptions"
+          placeholder="Selecciona color"
+          [control]="form.get('color')" />
+
+        <!-- Gender Toggle -->
+        <div class="field-group">
+          <label class="field-label">
+            Sexo 
+            <span class="req">*</span>
+          </label>
+          <div class="sex-toggle">
+            <label class="sex-opt" [class.active]="form.value.gender === 'M'">
+              <input type="radio" formControlName="gender" value="M" />
+              ♂ Macho
+            </label>
+            <label class="sex-opt" [class.active]="form.value.gender === 'F'">
+              <input type="radio" formControlName="gender" value="F" />
+              ♀ Hembra
+            </label>
+          </div>
+        </div>
+      </div>
+    </app-form-card>
+
+    <!-- Entry data -->
+    <app-form-card title="Ingreso" icon="log-in" class="mb-5">
+      <div class="grid-3">
+        <app-input-field 
+          label="Fecha de Ingreso" 
+          [required]="true" 
+          formControlName="entry_date"
+          type="date" 
+          [max]="today"
+          [control]="form.get('entry_date')" />
+
+        <app-input-field 
+          label="Peso de Ingreso (kg)" 
+          formControlName="entry_weight"
+          type="number" 
+          placeholder="Ej: 350"
+          [control]="form.get('entry_weight')" />
+
+        <app-input-field 
+          label="Fecha de Nacimiento" 
+          formControlName="birth_date" 
+          type="date" 
+          [max]="today"
+          [control]="form.get('birth_date')" />
+      </div>
+
+      <div class="mt-4">
+        <app-select-field 
+          label="Lote" 
+          [required]="true" 
+          formControlName="lot"
+          [options]="lotOptions"
+          placeholder="Selecciona lote"
+          hint="Solo se muestran lotes abiertos"
+          [control]="form.get('lot')" />
+      </div>
+    </app-form-card>
+
+    <!-- Notes -->
+    <app-form-card title="Notas" icon="message-square" class="mb-5">
+      <div class="form-group">
+        <textarea 
+          formControlName="notes" 
+          class="textarea" 
+          rows="3"
+          placeholder="Observaciones, historial previo, procedencia..."></textarea>
+      </div>
+    </app-form-card>
+
+    <!-- Form Footer -->
+    <div class="form-footer">
+      <a routerLink="/cattle/animals" class="btn btn-secondary">Cancelar</a>
+      <button type="submit" class="btn btn-primary" [disabled]="saving()">
+        @if (saving()) { 
+          <span class="spinner-sm"></span> 
+          Guardando... 
+        } @else {
+          {{ isEdit ? 'Actualizar' : 'Registrar' }} Animal
+        }
+      </button>
+    </div>
+  </form>
+}

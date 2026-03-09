@@ -1,0 +1,44 @@
+@use '../../../../../styles/variables' as *;
+
+.mb-5 { margin-bottom: $space-6; }
+.mt-4 { margin-top: $space-4; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: $space-4; @media (max-width: $bp-sm) { grid-template-columns: 1fr; } }
+
+.form-group { display: flex; flex-direction: column; gap: $space-2; }
+.field-label { font-size: $font-sm; font-weight: $weight-semibold; color: $slate-700; }
+
+.textarea {
+  width: 100%; padding: 0.625rem 0.875rem;
+  border: 1px solid $slate-200; border-radius: $border-radius;
+  font-size: $font-sm; font-family: inherit; color: $slate-900;
+  background: $white; outline: none; resize: vertical; min-height: 80px;
+  transition: all $transition-base;
+  &::placeholder { color: $slate-400; }
+  &:focus { border-color: $primary; box-shadow: 0 0 0 3px $primary-muted; }
+}
+
+.form-footer {
+  display: flex; justify-content: flex-end; gap: $space-3;
+  @media (max-width: $bp-sm) { flex-direction: column-reverse; }
+}
+
+.btn {
+  display: inline-flex; align-items: center; gap: $space-2;
+  padding: 0.5625rem 1.25rem; border-radius: $border-radius;
+  font-size: $font-sm; font-weight: $weight-semibold;
+  cursor: pointer; border: none; text-decoration: none; transition: all $transition-base;
+
+  &.btn-primary { background: $primary; color: $white;
+    &:hover:not(:disabled) { background: $primary-hover; transform: translateY(-1px); box-shadow: $shadow-md; }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+  &.btn-secondary { background: $slate-100; color: $slate-700; &:hover { background: $slate-200; } }
+}
+
+.spinner-sm {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,.4); border-top-color: $white;
+  border-radius: 50%; animation: spin .6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

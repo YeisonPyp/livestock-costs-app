@@ -1,0 +1,152 @@
+@use '../../../../../styles/variables' as *;
+@use 'sass:color';
+
+.header-actions { display: flex; gap: $space-2; flex-wrap: wrap; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: $space-2;
+  padding: 0.5625rem 1rem; border-radius: $border-radius;
+  font-size: $font-sm; font-weight: $weight-semibold;
+  cursor: pointer; border: none; text-decoration: none; transition: all $transition-base;
+
+  svg { width: 15px; height: 15px; }
+  &.btn-primary { background: $primary; color: $white; &:hover { background: $primary-hover; } }
+  &.btn-secondary { background: $slate-100; color: $slate-700; &:hover { background: $slate-200; } }
+  &.btn-ghost { background: $white; color: $slate-600; border: 1px solid $slate-200; &:hover { background: $slate-50; } }
+  &.btn-danger-outline { background: transparent; color: $danger; border: 1px solid $danger-muted; &:hover { background: $danger-muted; } }
+  &.btn-sm { padding: .375rem .75rem; font-size: $font-xs; }
+}
+
+// ── Quick weight form ─────────────────────────────────────────────────────────
+.weight-form-card {
+  background: $white; border-radius: $border-radius-md; box-shadow: $shadow-sm;
+  padding: $space-5; margin-bottom: $space-5; border: 1px solid $primary-muted;
+}
+.weight-form-title { font-size: $font-base; font-weight: $weight-bold; color: $slate-900; margin: 0 0 $space-4; }
+.mb-3 { margin-bottom: $space-3; }
+
+.weight-form-row {
+  display: flex; align-items: flex-end; gap: $space-4; flex-wrap: wrap;
+}
+
+.field-group { display: flex; flex-direction: column; gap: $space-2; }
+.field-label { font-size: $font-xs; font-weight: $weight-semibold; color: $slate-600; }
+.flex-1 { flex: 1; min-width: 180px; }
+
+.field-input {
+  padding: .5625rem .875rem; border: 1px solid $slate-200; border-radius: $border-radius;
+  font-size: $font-sm; background: $white; outline: none; transition: all $transition-base;
+  &:focus { border-color: $primary; box-shadow: 0 0 0 3px $primary-muted; }
+}
+
+.weight-form-actions { display: flex; gap: $space-2; align-items: flex-end; }
+
+// ── KPIs ──────────────────────────────────────────────────────────────────────
+.kpis-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: $space-4; margin-bottom: $space-4;
+  @media (max-width: $bp-lg) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: $bp-sm) { grid-template-columns: 1fr; }
+}
+
+// ── Status banner ─────────────────────────────────────────────────────────────
+.status-banner {
+  display: flex; align-items: center; gap: $space-4;
+  padding: $space-3 $space-5; border-radius: $border-radius;
+  background: $slate-50; margin-bottom: $space-5;
+  border-left: 4px solid $slate-300;
+
+  &.active       { background: #f0fdf4; border-color: $success; }
+  &.sold         { background: #eff6ff; border-color: $primary; }
+  &.dead         { background: #fef2f2; border-color: $danger; }
+  &.transferred  { background: #fffbeb; border-color: $warning; }
+}
+
+.status-info { font-size: $font-sm; color: $slate-600; }
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+.tabs-bar { display: flex; border-bottom: 2px solid $slate-200; margin-bottom: $space-5; }
+
+.tab {
+  padding: .75rem 1.5rem; border: none; background: transparent;
+  font-size: $font-sm; font-weight: $weight-medium; color: $slate-500;
+  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all $transition-base;
+  &:hover { color: $slate-800; }
+  &.active { color: $primary; border-bottom-color: $primary; font-weight: $weight-bold; }
+}
+
+// ── Info grid ─────────────────────────────────────────────────────────────────
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: $space-5;
+  @media (max-width: $bp-md) { grid-template-columns: 1fr; } }
+
+.info-card {
+  background: $white; border-radius: $border-radius-md; box-shadow: $shadow-sm; padding: $space-5;
+  &.notes-card { grid-column: 1 / -1; }
+}
+
+.card-title { font-size: $font-base; font-weight: $weight-bold; color: $slate-900;
+  margin: 0 0 $space-4; padding-bottom: $space-3; border-bottom: 1px solid $slate-100; }
+
+.dl { display: flex; flex-direction: column; gap: $space-3; margin: 0; padding: 0; }
+
+.dl-row { display: flex; align-items: center; gap: $space-3;
+  dt { font-size: $font-sm; font-weight: $weight-semibold; color: $slate-500; min-width: 110px; flex-shrink: 0; }
+  dd { font-size: $font-sm; color: $slate-800; margin: 0; }
+}
+
+.mono { font-family: 'Courier New', monospace; font-weight: $weight-bold; color: $primary; }
+
+.color-cell { display: flex; align-items: center; gap: $space-2; }
+.color-dot  { width: 12px; height: 12px; border-radius: 50%; border: 1px solid $slate-200; }
+
+.notes-text { font-size: $font-sm; color: $slate-700; line-height: 1.6; margin: 0; }
+
+// ── Panel (weights + health) ──────────────────────────────────────────────────
+.panel { background: $white; border-radius: $border-radius-md; box-shadow: $shadow-sm; overflow: hidden; }
+.panel-toolbar { padding: $space-3 $space-5; border-bottom: 1px solid $slate-100; display: flex; justify-content: flex-end; }
+
+.data-table {
+  width: 100%; border-collapse: collapse;
+
+  th { padding: .75rem 1rem; text-align: left; font-size: $font-xs; font-weight: $weight-semibold;
+    color: $slate-500; text-transform: uppercase; letter-spacing: .05em;
+    background: $slate-50; border-bottom: 1px solid $slate-200; }
+  td { padding: .875rem 1rem; border-bottom: 1px solid $slate-100; color: $slate-700; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: $slate-50; }
+  .text-right { text-align: right; }
+}
+
+.weight-val { font-weight: $weight-bold; color: $slate-900; }
+
+.diff {
+  font-size: $font-xs; font-weight: $weight-semibold; padding: 2px 8px; border-radius: 10px;
+  &.positive { background: #d1fae5; color: #065f46; }
+  &.negative { background: #fee2e2; color: #991b1b; }
+}
+
+.notes-td { font-size: $font-xs; color: $slate-400; }
+
+// ── Health list ───────────────────────────────────────────────────────────────
+.health-list { display: flex; flex-direction: column; gap: 0; }
+
+.health-item {
+  display: flex; align-items: flex-start; gap: $space-4;
+  padding: $space-4 $space-5; border-bottom: 1px solid $slate-100;
+  &:last-child { border-bottom: none; }
+  &:hover { background: $slate-50; }
+}
+
+.health-icon-wrap { flex-shrink: 0; padding-top: 2px; }
+
+.health-body { flex: 1; }
+
+.health-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.health-desc { font-size: $font-sm; font-weight: $weight-semibold; color: $slate-900; }
+.health-date { font-size: $font-xs; color: $slate-400; }
+
+.health-meta { font-size: $font-xs; color: $slate-500; margin-bottom: 4px; }
+
+.health-withdrawal {
+  display: inline-block; font-size: $font-xs; font-weight: $weight-semibold;
+  color: #92400e; background: #fef3c7; padding: 2px 10px; border-radius: 8px; margin-top: 4px;
+}
