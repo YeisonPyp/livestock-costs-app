@@ -31,7 +31,7 @@ export class CategoryListComponent implements OnInit {
 
   tree         = signal<CategoryTree[]>([]);
   flatList     = signal<Category[]>([]);
-  loading      = signal(true);
+  loading      = signal(false);
   viewMode     = signal<'tree' | 'list'>('tree');
   searchTerm   = '';
   expandedIds  = new Set<number>();

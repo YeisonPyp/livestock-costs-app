@@ -25,7 +25,7 @@ export class MenuService {
       label: 'Categorías',
       icon: 'layers',
       color: 'pink',
-      path: '/categories',
+      path: '/costs/categories',
     },
     {
       label: 'Gestión de Costos',

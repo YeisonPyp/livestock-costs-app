@@ -22,10 +22,6 @@ export const routes: Routes = [
         loadComponent: () => import('./features/costs/pages/dashboard/dashboard.component').then(m => m.DashboardComponent)
       },
       {
-        path: 'categories',
-        loadChildren: () => import('./features/categories/categories.routes').then(m => m.CATEGORIES_ROUTES)
-      },
-      {
         path: 'costs',
         loadChildren: () => import('./features/costs/costs.routes').then(m => m.COSTS_ROUTES)
       },
