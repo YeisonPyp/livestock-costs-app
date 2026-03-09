@@ -2,19 +2,6 @@
   <div class="navbar-container">
     <!-- Logo & Brand -->
     <div class="navbar-brand">
-      <button 
-        class="mobile-menu-btn" 
-        (click)="toggleMobileMenu()"
-        [attr.aria-expanded]="mobileMenuOpen"
-        aria-label="Toggle menu"
-      >
-        <svg class="menu-icon" [class.open]="mobileMenuOpen" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path class="line line-1" d="M4 6h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <path class="line line-2" d="M4 12h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <path class="line line-3" d="M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </button>
-
       <div class="brand-content">
         <div class="logo">
             <img src="assets/logo.png" alt="Logo Sistema de Costos Ganaderos">
@@ -24,38 +11,6 @@
           <p class="brand-subtitle">Gestión de Costos</p>
         </div>
       </div>
-    </div>
-
-    <!-- Desktop Navigation -->
-    <div class="nav-links desktop-nav">
-      @for (item of navItems; track item.route) {
-        <a 
-          [routerLink]="item.route" 
-          routerLinkActive="active"
-          class="nav-link"
-        >
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            @switch (item.icon) {
-              @case ('dashboard') {
-                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" fill="currentColor"/>
-              }
-              @case ('category') {
-                <path d="M12 2l-5.5 9h11L12 2zm0 3.84L13.93 9h-3.87L12 5.84zM17.5 13c-2.49 0-4.5 2.01-4.5 4.5s2.01 4.5 4.5 4.5 4.5-2.01 4.5-4.5-2.01-4.5-4.5-4.5zm0 7c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5zM3 21.5h8v-8H3v8zm2-6h4v4H5v-4z" fill="currentColor"/>
-              }
-              @case ('payments') {
-                <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z" fill="currentColor"/>
-              }
-              @case ('bar_chart') {
-                <path d="M3 17h3v4H3v-4zm5-6h3v10H8V11zm5-4h3v14h-3V7zm5 2h3v12h-3V9z" fill="currentColor"/>
-              }
-            }
-          </svg>
-          <span class="nav-text">{{ item.label }}</span>
-          @if (item.badge) {
-            <span class="nav-badge">{{ item.badge }}</span>
-          }
-        </a>
-      }
     </div>
 
     <!-- User Menu -->
@@ -135,32 +90,6 @@
 
   <!-- Mobile Navigation -->
   <div class="mobile-nav" [class.open]="mobileMenuOpen">
-    <div class="mobile-nav-content">
-      @for (item of navItems; track item.route) {
-        <a 
-          [routerLink]="item.route" 
-          routerLinkActive="active"
-          class="mobile-nav-link"
-        >
-          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            @switch (item.icon) {
-              @case ('dashboard') {
-                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" fill="currentColor"/>
-              }
-              @case ('category') {
-                <path d="M12 2l-5.5 9h11L12 2zm0 3.84L13.93 9h-3.87L12 5.84zM17.5 13c-2.49 0-4.5 2.01-4.5 4.5s2.01 4.5 4.5 4.5 4.5-2.01 4.5-4.5-2.01-4.5-4.5-4.5zm0 7c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5zM3 21.5h8v-8H3v8zm2-6h4v4H5v-4z" fill="currentColor"/>
-              }
-              @case ('payments') {
-                <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z" fill="currentColor"/>
-              }
-            }
-          </svg>
-          <span>{{ item.label }}</span>
-          @if (item.badge) {
-            <span class="nav-badge">{{ item.badge }}</span>
-          }
-        </a>
-      }
-    </div>
+    
   </div>
 </nav>

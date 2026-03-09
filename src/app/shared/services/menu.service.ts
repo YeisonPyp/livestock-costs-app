@@ -38,11 +38,6 @@ export class MenuService {
           path: '/costs/costs',
         },
         {
-          label: 'Categorías',
-          icon: 'tag',
-          path: '/costs/categories',
-        },
-        {
           label: 'Reportes',
           icon: 'file-text',
           path: '/costs/reports',
@@ -65,6 +60,33 @@ export class MenuService {
           path: '/farms/new',
         },
       ],
+    },
+    {
+      label: 'Ganado',
+      icon: 'plus-circle',
+      color: 'purple',
+      children: [
+        {
+          label: 'Lotes',
+          icon: 'users',
+          path: '/cattle/lots',
+        },
+        {
+          label: 'Animales',
+          icon: 'briefcase',
+          path: '/cattle/animals',
+        },
+        {
+          label: 'Salud',
+          icon: 'shopping-cart',
+          path: '/cattle/health',
+        },
+        {
+          label: 'Reportes',
+          icon: 'file-text',
+          path: '/cattle/reports',
+        },
+      ]
     },
     {
       label: 'Inversiones',

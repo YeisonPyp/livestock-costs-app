@@ -1,12 +1,21 @@
 @use '../../styles/variables' as *;
 
-.main-layout {
+.app-layout {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   overflow: hidden;
   background: $slate-50;
 }
 
+// ── Layout Container (Navbar + Sidebar + Content) ──────────────────────
+.layout-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+// ── Main Content Area ────────────────────────────────────────────────────
 .main-content {
   flex: 1;
   overflow-y: auto;
@@ -14,6 +23,7 @@
   margin-left: 280px;
   transition: margin-left 0.3s ease;
   background: $slate-50;
+  padding: $space-4;
 
   // Adjust margin when sidebar is collapsed
   :host-context(.sidebar.collapsed) & {
@@ -21,7 +31,7 @@
   }
 }
 
-// ── Responsive ────────────────────────────────────────────────────────
+// ── Responsive ────────────────────────────────────────────────────────────
 @media (max-width: $bp-md) {
   .main-content {
     margin-left: 70px;
@@ -29,7 +39,7 @@
 }
 
 @media (max-width: $bp-sm) {
-  .main-layout {
+  .layout-container {
     flex-direction: column;
   }
 
@@ -37,6 +47,7 @@
     margin-left: 0;
     margin-top: 0;
     flex: 1;
+    padding: $space-3;
   }
 }
 

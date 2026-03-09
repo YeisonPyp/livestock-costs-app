@@ -24,39 +24,6 @@ export class NavbarComponent implements OnInit {
   scrolled = false;
   currentRoute = '';
 
-  navItems: NavItem[] = [
-    {
-      label: 'Dashboard',
-      route: '/dashboard',
-      icon: 'dashboard'
-    },
-    {
-      label: 'Categorías',
-      route: '/categories',
-      icon: 'category'
-    },
-    {
-      label: 'Costos',
-      route: '/costs',
-      icon: 'payments'
-    },
-    {
-      label: 'Fincas',
-      route: '/farms',
-      icon: 'agriculture'
-    },
-    {
-      label: 'Inversiones',
-      route: '/investments',
-      icon: 'trending_up'
-    },
-        {
-      label: 'Ganado',
-      route: '/cattle',
-      icon: 'local_animal_store'
-    },
-  ];
-
   constructor(
     public authService: AuthService,
     private router: Router

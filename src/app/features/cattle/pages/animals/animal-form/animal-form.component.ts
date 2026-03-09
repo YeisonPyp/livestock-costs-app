@@ -156,7 +156,7 @@ export class AnimalFormComponent implements OnInit {
     };
 
     const req = this.isEdit
-      ? this.svc.updateAnimal(this.editId!, payload)
+      ? this.svc.updateAnimal(this.editId!, payload??)
       : this.svc.createAnimal(payload);
 
     req.subscribe({
