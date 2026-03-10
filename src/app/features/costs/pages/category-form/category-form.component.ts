@@ -1,178 +1,143 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute, RouterLink } from '@angular/router';
-import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
-
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
-import { FormCardComponent }   from '../../../../shared/components/forms/form-card/form-card.component';
-import { InputFieldComponent } from '../../../../shared/components/forms/input-field/input-field.component';
-import { SelectFieldComponent } from '../../../../shared/components/forms/select-field/select-field.component';
-import { CheckboxToggleComponent } from '../../../../shared/components/forms/checkbox-toggle/checkbox-toggle.component';
-import { AlertComponent }      from '../../../../shared/components/display/alert/alert.component';
-import { LoaderComponent }     from '../../../../shared/components/loader/loader.component';
-
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Category } from '../../models/cost.model'
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CategoryService } from '../../services/category.service';
-import { Category } from '../../models/cost.model';
 
 @Component({
   selector: 'app-category-form',
   standalone: true,
-  imports: [
-    CommonModule, ReactiveFormsModule, RouterLink,
-    PageHeaderComponent, FormCardComponent, InputFieldComponent,
-    SelectFieldComponent, CheckboxToggleComponent, AlertComponent, LoaderComponent,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, ButtonComponent],
   templateUrl: './category-form.component.html',
-  styleUrl:    './category-form.component.scss',
+  styleUrls: ['./category-form.component.scss']
 })
 export class CategoryFormComponent implements OnInit {
-  private svc      = inject(CategoryService);
-  private fb       = inject(FormBuilder);
-  private router   = inject(Router);
-  private route    = inject(ActivatedRoute);
-  private snack    = inject(MatSnackBar);
+  @Input() category: Category | null = null;
+  @Input() categories: Category[] = [];
+  @Input() isSubmitting = false;
+  
+  @Output() save = new EventEmitter<Partial<Category>>();
+  @Output() cancel = new EventEmitter<void>();
 
-  // ── State ──────────────────────────────────────────────────────────────────
-  categories  = signal<Category[]>([]);
-  loading     = signal(true);
-  saving      = signal(false);
-  error       = signal('');
+  categoryForm: FormGroup;
+  isEditMode = false;
 
-  editId: number | null  = null;
-  parentId: number | null = null;
-  get isEdit(): boolean { return this.editId !== null; }
-
-  // ── Form ───────────────────────────────────────────────────────────────────
-  form = this.fb.group({
-    code:        ['', [Validators.required, Validators.maxLength(20)]],
-    name:        ['', [Validators.required, Validators.maxLength(100)]],
-    description: ['', [Validators.maxLength(255)]],
-    parent:      [null as number | null],
-    level:       [1,  [Validators.required, Validators.min(1)]],
-    is_movement: [false],
-    is_active:   [true],
-    color:       ['#94a3b8'],
-  });
+  constructor(private fb: FormBuilder, private categoryService: CategoryService) {
+    this.categoryForm = this.fb.group({
+      code: ['', [Validators.required, Validators.maxLength(20)]],
+      name: ['', [Validators.required, Validators.maxLength(100)]],
+      description: ['', [Validators.maxLength(255)]],
+      parent: [null],
+      level: [1, [Validators.required, Validators.min(1)]],
+      is_movement: [false]
+    });
+  }
 
   ngOnInit(): void {
-    this.loadCategories();
-
-    // Edit mode: /categories/:id/edit
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id && id !== 'new') this.editId = +id;
-
-    // Pre-set parent from query param: /categories/new?parent=3
-    const pId = this.route.snapshot.queryParamMap.get('parent');
-    if (pId) this.parentId = +pId;
-
-    // Listen parent changes → auto-fill level
-    this.form.get('parent')!.valueChanges.subscribe(parentId => {
-      this.onParentChange(parentId);
-    });
-  }
-
-  private loadCategories(): void {
-    this.svc.getAll().subscribe({
-      next: (r) => {
-        if (r.success) this.categories.set(r.data);
-        this.onCategoriesLoaded();
-      },
-      error: () => this.onCategoriesLoaded(),
-    });
-  }
-
-  private onCategoriesLoaded(): void {
-    this.loading.set(false);
-
-    if (this.editId) {
-      this.loadForEdit();
+    if (this.category) {
+      this.isEditMode = true;
+      this.categoryForm.patchValue({
+        code: this.category.code,
+        name: this.category.name,
+        description: this.category.description || '',
+        parent: this.category.parent,
+        level: this.category.level,
+        is_movement: this.category.is_movement
+      });
     } else {
-      // Set parent from query param
-      if (this.parentId) {
-        this.form.patchValue({ parent: this.parentId });
-      }
-      // Auto-fill next code
-      this.fetchNextCode(this.parentId ?? undefined);
+      this.loadNextCategoryCode();
     }
+
+    this.setupParentChangeListener();
   }
 
-  private loadForEdit(): void {
-    this.loading.set(true);
-    this.svc.getById(this.editId!).subscribe({
-      next: (r) => {
-        if (r.success) {
-          this.form.patchValue({
-            code:        r.data.code,
-            name:        r.data.name,
-            description: r.data.description ?? '',
-            parent:      r.data.parent ?? null,
-            level:       r.data.level,
-            is_movement: r.data.is_movement,
-            is_active:   r.data.is_active,
-            color:       r.data.color ?? '#94a3b8',
-          });
+  private loadNextCategoryCode(): void {
+    this.categoryService.getNextCode().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.categoryForm.patchValue({ code: response.data });
         }
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
+      }
     });
   }
 
-  private fetchNextCode(parentId?: number): void {
-    this.svc.getNextCode(parentId).subscribe({
-      next: (r) => { if (r.success && !this.form.value.code) this.form.patchValue({ code: r.data }); },
+  private setupParentChangeListener(): void {
+    this.categoryForm.get('parent')?.valueChanges.subscribe(parentId => {
+      this.updateLevelFromParent(parentId);
     });
   }
 
-  private onParentChange(parentId: number | null): void {
+  private updateLevelFromParent(parentId: number | null): void {
     if (parentId) {
-      const parent = this.categories().find(c => c.id === +parentId);
-      if (parent) this.form.patchValue({ level: parent.level + 1 }, { emitEvent: false });
-      this.fetchNextCode(+parentId);
+      const parentCategory = this.categories.find(c => c.id === Number(parentId));
+      if (parentCategory) {
+        this.categoryForm.patchValue(
+          { level: parentCategory.level + 1 },
+          { emitEvent: false }
+        );
+      }
     } else {
-      this.form.patchValue({ level: 1 }, { emitEvent: false });
-      this.fetchNextCode();
+      this.categoryForm.patchValue({ level: 1 }, { emitEvent: false });
     }
   }
 
-  // ── Submit ─────────────────────────────────────────────────────────────────
   onSubmit(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.categoryForm.invalid) {
+      this.categoryForm.markAllAsTouched();
+      return;
+    }
 
-    this.saving.set(true);
-    this.error.set('');
-
-    const payload: Partial<Category> = {
-      ...(this.form.value as any),
-      parent: this.form.value.parent ?? null,
+    const formValue = this.categoryForm.value;
+    const categoryData: Partial<Category> = {
+      code: formValue.code,
+      name: formValue.name,
+      description: formValue.description || '',
+      parent: formValue.parent ? Number(formValue.parent) : null,
+      level: formValue.level,
+      is_movement: formValue.is_movement
     };
 
-    const request = this.isEdit
-      ? this.svc.update(this.editId!, payload)
-      : this.svc.create(payload);
-
-    request.subscribe({
-      next: (r) => {
-        this.snack.open(r.message || (this.isEdit ? 'Categoría actualizada' : 'Categoría creada'), 'Cerrar', { duration: 3000 });
-        this.router.navigate(['/costs/categories']);
-      },
-      error: (err) => {
-        this.error.set(err?.error?.message || 'Error al guardar la categoría');
-        this.saving.set(false);
-      },
-    });
+    this.save.emit(categoryData);
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
-  get parentOptions(): { value: number; label: string }[] {
-    return this.categories()
-      .filter(c => !this.editId || c.id !== this.editId)
-      .map(c => ({ value: c.id, label: `${'  '.repeat(c.level)}${c.code} – ${c.name}` }));
+  onCancel(): void {
+    this.cancel.emit();
   }
 
-  hasError(field: string, err: string): boolean {
-    const c = this.form.get(field);
-    return !!(c?.hasError(err) && c.touched);
+  get availableParentCategories(): Category[] {
+    if (!this.isEditMode) {
+      return this.categories;
+    }
+    return this.categories.filter(c => c.id !== this.category?.id);
+  }
+
+  get code() {
+    return this.categoryForm.get('code');
+  }
+
+  get name() {
+    return this.categoryForm.get('name');
+  }
+
+  get description() {
+    return this.categoryForm.get('description');
+  }
+
+  get parent() {
+    return this.categoryForm.get('parent');
+  }
+
+  get level() {
+    return this.categoryForm.get('level');
+  }
+
+  get is_movement() {
+    return this.categoryForm.get('is_movement');
+  }
+
+  hasError(field: string, error: string): boolean {
+    const control = this.categoryForm.get(field);
+    return !!(control && control.hasError(error) && control.touched);
   }
 }

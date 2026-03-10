@@ -91,7 +91,7 @@
 <!-- Table -->
 <div class="table-card">
   @if (loading()) {
-    <app-loader [overlay]="false" type="bars" />
+    <app-loader [overlay]="true" type="bars" />
   } @else if (costs().length === 0) {
     <app-empty-state
       title="Sin registros"

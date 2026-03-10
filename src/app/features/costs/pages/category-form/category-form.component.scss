@@ -1,151 +1,167 @@
-@use '../../../../styles/variables' as *;
-@use 'sass:color';
+@use "sass:color";
+// Variables
+$primary-color: #2563eb;
+$error-color: #ef4444;
+$text-primary: #0f172a;
+$text-secondary: #64748b;
+$text-muted: #94a3b8;
+$border-color: #e2e8f0;
+$background-light: #f8fafc;
 
-.mb-4  { margin-bottom: $space-4; }
-.mb-6  { margin-bottom: $space-6; }
-.mt-4  { margin-top: $space-4; }
-.col-span-2 { grid-column: span 2; }
-
-.form-grid-3 {
-  display: grid;
-  grid-template-columns: 160px 1fr 1fr;
-  gap: $space-5;
-
-  @media (max-width: $bp-md) { grid-template-columns: 1fr; .col-span-2 { grid-column: span 1; } }
+// Mixins
+@mixin smooth-transition($properties...) {
+  transition-property: #{$properties};
+  transition-duration: 0.2s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.form-grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $space-5;
-
-  @media (max-width: $bp-md) { grid-template-columns: 1fr; }
-}
-
-.field-row {
-  display: grid;
-  grid-template-columns: 1fr 140px;
-  gap: $space-3;
-  align-items: start;
-}
-
-// ── Color picker ───────────────────────────────────────────────────────────────
-.color-field { display: flex; flex-direction: column; gap: $space-2; }
-
-.field-label {
-  font-size: $font-sm;
-  font-weight: $weight-semibold;
-  color: $slate-700;
-}
-
-.color-input-wrap {
+.category-form {
   display: flex;
-  align-items: center;
-  gap: $space-2;
-  padding: 0.375rem 0.75rem;
-  border: 1px solid $slate-200;
-  border-radius: $border-radius;
-  background: $white;
-  height: 42px;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.color-picker {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  background: none;
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
 }
 
-.color-hex {
-  font-family: 'Courier New', monospace;
-  font-size: $font-xs;
-  color: $slate-500;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-// ── Textarea ──────────────────────────────────────────────────────────────────
-.form-group { display: flex; flex-direction: column; gap: $space-2; }
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $text-primary;
 
-.hint-text { font-weight: $weight-normal; color: $slate-400; font-size: $font-xs; }
+  .required {
+    color: $error-color;
+    margin-left: 0.125rem;
+  }
+}
 
-.textarea {
+.form-input,
+.form-select,
+.form-textarea {
   width: 100%;
   padding: 0.625rem 0.875rem;
-  border: 1px solid $slate-200;
-  border-radius: $border-radius;
-  font-size: $font-sm;
-  font-family: inherit;
-  color: $slate-900;
-  background: $white;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  color: $text-primary;
+  background: #ffffff;
   outline: none;
+  @include smooth-transition(border-color, box-shadow);
+
+  &::placeholder {
+    color: $text-muted;
+  }
+
+  &:focus {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+  }
+
+  &.error {
+    border-color: $error-color;
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba($error-color, 0.1);
+    }
+  }
+
+  &:disabled,
+  &[readonly] {
+    background: $background-light;
+    cursor: not-allowed;
+  }
+}
+
+.form-textarea {
   resize: vertical;
   min-height: 80px;
-  transition: all $transition-base;
-
-  &::placeholder { color: $slate-400; }
-  &:focus { border-color: $primary; box-shadow: 0 0 0 3px $primary-muted; }
-  &.error { border-color: $danger; }
+  font-family: inherit;
 }
 
-.error-msg { font-size: $font-xs; color: $danger; }
-.char-count { font-size: $font-xs; color: $slate-400; text-align: right; margin-top: -$space-1; }
-
-// ── Toggles grid ──────────────────────────────────────────────────────────────
-.toggles-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $space-4;
-
-  @media (max-width: $bp-sm) { grid-template-columns: 1fr; }
+.form-hint {
+  font-size: 0.8125rem;
+  color: $text-secondary;
+  margin: 0;
 }
 
-// ── Form footer ───────────────────────────────────────────────────────────────
-.form-footer {
+.error-message {
+  font-size: 0.8125rem;
+  color: $error-color;
   display: flex;
-  justify-content: flex-end;
-  gap: $space-3;
-  padding-top: $space-4;
-
-  @media (max-width: $bp-sm) { flex-direction: column-reverse; }
-}
-
-.btn {
-  display: inline-flex;
   align-items: center;
-  gap: $space-2;
-  padding: 0.5625rem 1.25rem;
-  border-radius: $border-radius;
-  font-size: $font-sm;
-  font-weight: $weight-semibold;
+  gap: 0.375rem;
+}
+
+// Checkbox
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
   cursor: pointer;
-  border: none;
-  text-decoration: none;
-  transition: all $transition-base;
+  padding: 1rem;
+  background: $background-light;
+  border-radius: 8px;
+  @include smooth-transition(background-color);
 
-  svg { width: 16px; height: 16px; }
-
-  &.btn-primary {
-    background: $primary;
-    color: $white;
-    &:hover:not(:disabled) { background: $primary-hover; transform: translateY(-1px); box-shadow: $shadow-md; }
-    &:disabled { opacity: 0.6; cursor: not-allowed; }
-  }
-  &.btn-secondary {
-    background: $slate-100;
-    color: $slate-700;
-    &:hover { background: $slate-200; }
+  &:hover {
+    background: color.adjust($background-light, $lightness: -2%);
   }
 }
 
-.spinner-sm {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255,255,255,.4);
-  border-top-color: $white;
-  border-radius: 50%;
-  animation: spin .6s linear infinite;
+.checkbox-input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: $primary-color;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+.checkbox-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.checkbox-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.checkbox-description {
+  font-size: 0.8125rem;
+  color: $text-secondary;
+  line-height: 1.4;
+}
+
+// Form Actions
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+
+  @media (max-width: 640px) {
+    flex-direction: column-reverse;
+    
+    app-button {
+      width: 100%;
+    }
+  }
+}

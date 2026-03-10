@@ -21,6 +21,7 @@ export const SALE_DECISION_TYPES = [
   { value: 'reinvest',   label: 'Reinvertir' },
   { value: 'withdraw',   label: 'Retirar'    },
   { value: 'partial',    label: 'Parcial'    },
+  { value: 'comun',    label: 'Comun'    },
 ];
 
 export const OWNERSHIP_TYPES = [

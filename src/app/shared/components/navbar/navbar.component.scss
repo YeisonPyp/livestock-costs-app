@@ -1,10 +1,10 @@
 // Variables
-$primary-color: #10b981;
-$primary-dark: #1bb169;
+$primary-color: #000000;
+$primary-dark: #030a07;
 $primary-light: #e0f7f1;
 $danger-color: #ef4444;
 $danger-hover: #dc2626;
-$text-primary: #0f172a;
+$text-primary: #a8a8aa;
 $text-secondary: #64748b;
 $text-light: #94a3b8;
 $white: #ffffff;
@@ -318,7 +318,7 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   @include flex-center;
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, #f59e0b, #f97316);
+  background: linear-gradient(135deg, #3d55f6, #2b2724);
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -406,7 +406,7 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   @include flex-center;
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #f59e0b, #f97316);
+  background: linear-gradient(135deg, #3d55f6, #2b2724);
   border-radius: 12px;
   flex-shrink: 0;
 
