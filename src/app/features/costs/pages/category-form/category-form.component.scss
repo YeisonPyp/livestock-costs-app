@@ -1,167 +1,187 @@
-@use "sass:color";
-// Variables
-$primary-color: #2563eb;
-$error-color: #ef4444;
-$text-primary: #0f172a;
-$text-secondary: #64748b;
-$text-muted: #94a3b8;
-$border-color: #e2e8f0;
-$background-light: #f8fafc;
+@use '../../../../styles/variables' as *;
 
-// Mixins
-@mixin smooth-transition($properties...) {
-  transition-property: #{$properties};
-  transition-duration: 0.2s;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-}
+// ── Layout ────────────────────────────────────────────────────────────────────
 
 .category-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: $space-5;
 }
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.25rem;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-5;
 
-  @media (max-width: 640px) {
+  @media (max-width: $bp-md) {
     grid-template-columns: 1fr;
   }
 }
 
+// ── Grupos de campo ───────────────────────────────────────────────────────────
+
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: $space-2;
 }
 
 .form-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: $text-primary;
-
-  .required {
-    color: $error-color;
-    margin-left: 0.125rem;
-  }
+  font-size: $font-sm;
+  font-weight: $weight-semibold;
+  color: $slate-700;
 }
+
+.required {
+  color: $danger;
+  margin-left: 2px;
+}
+
+// ── Inputs ────────────────────────────────────────────────────────────────────
 
 .form-input,
 .form-select,
 .form-textarea {
   width: 100%;
-  padding: 0.625rem 0.875rem;
-  border: 1px solid $border-color;
-  border-radius: 8px;
-  font-size: 0.9375rem;
-  color: $text-primary;
-  background: #ffffff;
+  padding: 0.5625rem 0.875rem;
+  border: 1px solid $slate-200;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-family: inherit;
+  color: $slate-900;
+  background: $white;
   outline: none;
-  @include smooth-transition(border-color, box-shadow);
+  transition: all $transition-base;
 
-  &::placeholder {
-    color: $text-muted;
-  }
+  &::placeholder { color: $slate-400; }
 
   &:focus {
-    border-color: $primary-color;
-    box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+    border-color: $primary;
+    box-shadow: 0 0 0 3px $primary-muted;
   }
 
   &.error {
-    border-color: $error-color;
+    border-color: $danger;
 
-    &:focus {
-      box-shadow: 0 0 0 3px rgba($error-color, 0.1);
-    }
+    &:focus { box-shadow: 0 0 0 3px rgba($danger, 0.15); }
   }
+}
 
-  &:disabled,
-  &[readonly] {
-    background: $background-light;
-    cursor: not-allowed;
-  }
+// Input readonly (nivel calculado)
+.form-input--readonly {
+  background: $slate-50;
+  color: $slate-500;
+  cursor: default;
+  pointer-events: none;
+}
+
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.5rem;
+  cursor: pointer;
 }
 
 .form-textarea {
   resize: vertical;
   min-height: 80px;
-  font-family: inherit;
 }
 
+// ── Input con spinner de carga ────────────────────────────────────────────────
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .form-input {
+    padding-right: 2.25rem; // espacio para el spinner
+  }
+}
+
+.input-spinner {
+  position: absolute;
+  right: 0.75rem;
+  width: 14px;
+  height: 14px;
+  border: 2px solid $slate-200;
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ── Hints y errores ───────────────────────────────────────────────────────────
+
 .form-hint {
-  font-size: 0.8125rem;
-  color: $text-secondary;
+  font-size: $font-xs;
+  color: $slate-400;
   margin: 0;
 }
 
 .error-message {
-  font-size: 0.8125rem;
-  color: $error-color;
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
+  font-size: $font-xs;
+  color: $danger;
 }
 
-// Checkbox
+// ── Checkbox ──────────────────────────────────────────────────────────────────
+
 .checkbox-label {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: $space-3;
   cursor: pointer;
-  padding: 1rem;
-  background: $background-light;
-  border-radius: 8px;
-  @include smooth-transition(background-color);
+  padding: $space-3 $space-4;
+  border: 1px solid $slate-200;
+  border-radius: $border-radius;
+  transition: background $transition-base;
 
-  &:hover {
-    background: color.adjust($background-light, $lightness: -2%);
-  }
+  &:hover { background: $slate-50; }
 }
 
 .checkbox-input {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  accent-color: $primary-color;
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  accent-color: $primary;
   flex-shrink: 0;
-  margin-top: 0.125rem;
+  cursor: pointer;
 }
 
 .checkbox-text {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  flex: 1;
+  gap: $space-1;
 }
 
 .checkbox-title {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: $text-primary;
+  font-size: $font-sm;
+  font-weight: $weight-semibold;
+  color: $slate-700;
 }
 
 .checkbox-description {
-  font-size: 0.8125rem;
-  color: $text-secondary;
-  line-height: 1.4;
+  font-size: $font-xs;
+  color: $slate-500;
 }
 
-// Form Actions
+// ── Acciones del formulario ───────────────────────────────────────────────────
+
 .form-actions {
   display: flex;
-  align-items: center;
   justify-content: flex-end;
-  gap: 0.75rem;
-  padding-top: 0.5rem;
+  gap: $space-3;
+  padding-top: $space-4;
+  border-top: 1px solid $slate-100;
 
-  @media (max-width: 640px) {
+  @media (max-width: $bp-sm) {
     flex-direction: column-reverse;
-    
-    app-button {
-      width: 100%;
-    }
   }
 }

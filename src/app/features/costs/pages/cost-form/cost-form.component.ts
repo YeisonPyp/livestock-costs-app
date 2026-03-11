@@ -116,7 +116,7 @@ export class CostFormComponent implements OnInit {
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
-  get categoryOptions(): { value: number; label: string }[] {
+  get categoryOptions(): { value: string; label: string }[] {
     return this.movableCategories().map(c => ({
       value: c.id,
       label: `${c.code} – ${c.name}`,

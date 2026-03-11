@@ -112,11 +112,11 @@ export class ReportsComponent implements OnInit {
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
-  catName(id: number): string {
+  catName(id: string): string {
     return this.categories().find(c => c.id === id)?.name ?? '—';
   }
 
-  catColor(id: number): string {
+  catColor(id: string): string {
     return this.categories().find(c => c.id === id)?.color ?? '#94a3b8';
   }
 

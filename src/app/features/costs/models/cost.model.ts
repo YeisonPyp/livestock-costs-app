@@ -2,7 +2,7 @@
 
 // ── Category ──────────────────────────────────────────────────────────────────
 export interface Category {
-  id: number;
+  id: string;
   code: string;
   name: string;
   description?: string;
@@ -11,6 +11,7 @@ export interface Category {
   level: number;
   is_movement: boolean;     // can record costs
   is_active: boolean;
+  display_name?: string;
   order?: number;
   icon?: string;
   color?: string;

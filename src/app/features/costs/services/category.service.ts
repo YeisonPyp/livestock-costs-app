@@ -13,7 +13,7 @@ export class CategoryService {
     return this.api.get(`${this.base}/`, params);
   }
 
-  getById(id: number): Observable<ApiResponse<Category>> {
+  getById(id: string): Observable<ApiResponse<Category>> {
     return this.api.get(`${this.base}/${id}/`);
   }
 
@@ -21,11 +21,11 @@ export class CategoryService {
     return this.api.post(`${this.base}/`, data);
   }
 
-  update(id: number, data: Partial<Category>): Observable<ApiResponse<Category>> {
+  update(id: string, data: Partial<Category>): Observable<ApiResponse<Category>> {
     return this.api.put(`${this.base}/${id}/`, data);
   }
 
-  delete(id: number): Observable<ApiResponse<void>> {
+  delete(id: string): Observable<ApiResponse<void>> {
     return this.api.delete(`${this.base}/${id}/`);
   }
 
@@ -39,8 +39,12 @@ export class CategoryService {
     return this.api.get(`${this.base}/movable/`);
   }
 
+  getParents(): Observable<ApiResponse<Category[]>> {
+    return this.api.get(`${this.base}/parents/`);
+  }
+
   /** Next available code given an optional parent */
-  getNextCode(parentId?: number): Observable<ApiResponse<string>> {
+  getNextCode(parentId?: string): Observable<ApiResponse<{ next_code: string }>> {
     const params = parentId ? { parent_id: parentId } : {};
     return this.api.get(`${this.base}/next-code/`, params);
   }

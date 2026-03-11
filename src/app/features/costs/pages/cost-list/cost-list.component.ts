@@ -172,12 +172,12 @@ export class CostListComponent implements OnInit {
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
-  catName(id: number): string {
+  catName(id: string): string {
     const c = this.categories().find(x => x.id === id);
     return c ? c.name : '—';
   }
 
-  catColor(id: number): string {
+  catColor(id: string): string {
     return this.categories().find(x => x.id === id)?.color ?? '#94a3b8';
   }
 

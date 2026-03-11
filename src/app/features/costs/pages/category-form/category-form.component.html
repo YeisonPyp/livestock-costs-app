@@ -1,43 +1,40 @@
 <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()" class="category-form">
+
   <div class="form-grid">
 
-        <!-- Categoría Padre -->
+    <!-- Categoría Padre -->
     <div class="form-group">
-      <label for="parent" class="form-label">
-        Categoría Padre
-      </label>
-      <select
-        id="parent"
+      <app-select-field
+        label="Categoría Padre"
         formControlName="parent"
-        class="form-select"
-      >
-        <option [value]="null">-- Sin categoría padre --</option>
-        @for (cat of availableParentCategories; track cat.id) {
-          <option [value]="cat.id">{{ cat.code }} - {{ cat.name }}</option>
-        }
-      </select>
-      <p class="form-hint">Si seleccionas una categoría padre, el nivel se ajustará automáticamente</p>
+        [options]="categoryOptions"
+        placeholder="Selecciona una categoría de gasto"
+        hint=" El código y nivel se ajustan automáticamente al seleccionar un padre"
+        errorMessage="La categoría es requerida"
+      />
     </div>
-    
-    <!-- Código -->
+
+    <!-- Código (autogenerado) -->
     <div class="form-group">
       <label for="code" class="form-label">
         Código <span class="required">*</span>
       </label>
-      <input
-        type="text"
-        id="code"
-        formControlName="code"
-        class="form-input"
-        [class.error]="hasError('code', 'required') || hasError('code', 'maxlength')"
-        placeholder="Ej: 1.2.3"
-      />
-      @if (hasError('code', 'required')) {
-        <span class="error-message">El código es requerido</span>
-      }
-      @if (hasError('code', 'maxlength')) {
-        <span class="error-message">Máximo 20 caracteres</span>
-      }
+      <div class="input-wrapper">
+        <input
+          type="text"
+          id="code"
+          formControlName="code"
+          class="form-input"
+          readonly
+          [class.error]="hasError('code', 'required') || hasError('code', 'maxlength')"
+          placeholder="Ej: 1.2.3"
+        />
+        
+        @if (isLoadingCode) {
+          <span class="input-spinner" aria-label="Cargando código..."></span>
+        }
+      </div>
+      <p class="form-hint">Calculado automáticamente según la categoría padre</p>
     </div>
 
     <!-- Nombre -->
@@ -61,35 +58,25 @@
       }
     </div>
 
-    <!-- Nivel -->
+    <!-- Nivel (readonly, calculado automáticamente) -->
     <div class="form-group">
-      <label for="level" class="form-label">
-        Nivel <span class="required">*</span>
-      </label>
+      <label for="level" class="form-label">Nivel</label>
       <input
         type="number"
         id="level"
         formControlName="level"
-        class="form-input"
-        [class.error]="hasError('level', 'required') || hasError('level', 'min')"
-        min="1"
+        class="form-input form-input--readonly"
         readonly
+        tabindex="-1"
       />
-      @if (hasError('level', 'required')) {
-        <span class="error-message">El nivel es requerido</span>
-      }
-      @if (hasError('level', 'min')) {
-        <span class="error-message">El nivel debe ser al menos 1</span>
-      }
-      <p class="form-hint">El nivel se calcula automáticamente según la categoría padre</p>
+      <p class="form-hint">Calculado automáticamente según la categoría padre</p>
     </div>
+
   </div>
 
   <!-- Descripción -->
   <div class="form-group">
-    <label for="description" class="form-label">
-      Descripción
-    </label>
+    <label for="description" class="form-label">Descripción</label>
     <textarea
       id="description"
       formControlName="description"
@@ -113,12 +100,14 @@
       />
       <span class="checkbox-text">
         <span class="checkbox-title">Permite Movimiento</span>
-        <span class="checkbox-description">Marca esta opción si la categoría puede tener registros de costos directamente</span>
+        <span class="checkbox-description">
+          Marca esta opción si la categoría puede tener registros de costos directamente
+        </span>
       </span>
     </label>
   </div>
 
-  <!-- Form Actions -->
+  <!-- Acciones -->
   <div class="form-actions">
     <app-button
       type="button"
@@ -128,14 +117,16 @@
     >
       Cancelar
     </app-button>
+
     <app-button
       type="submit"
       variant="primary"
       icon="save"
       [loading]="isSubmitting"
-      [disabled]="categoryForm.invalid"
+      [disabled]="categoryForm.invalid || isSubmitting"
     >
       {{ isEditMode ? 'Actualizar' : 'Guardar' }} Categoría
     </app-button>
   </div>
+
 </form>
