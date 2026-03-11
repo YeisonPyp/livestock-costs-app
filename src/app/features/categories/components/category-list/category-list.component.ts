@@ -217,3 +217,4 @@ export class CategoryListComponent implements OnInit {
     return parent ? `${parent.code} - ${parent.name}` : 'N/A';
   }
 }
+

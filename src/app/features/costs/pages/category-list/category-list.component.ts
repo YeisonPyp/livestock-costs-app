@@ -13,12 +13,22 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
 
 import { CategoryService } from '../../services/category.service';
 import { CategoryTree, Category } from '../../models/cost.model';
+import { TableComponent, TableColumn, TableConfig, PaginationParams } from '../../../../shared/components/table/table.component';
+
+
+interface CategoryListState {
+  categories: Category[];
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}
 
 @Component({
   selector: 'app-category-list',
   standalone: true,
   imports: [
-    CommonModule, RouterLink, FormsModule,
+    CommonModule, RouterLink, FormsModule, TableComponent,
     PageHeaderComponent, LoaderComponent, EmptyStateComponent, BadgeComponent,
   ],
   templateUrl: './category-list.component.html',
@@ -36,7 +46,18 @@ export class CategoryListComponent implements OnInit {
   searchTerm   = '';
   expandedIds  = new Set<number>();
 
-  ngOnInit(): void { this.loadTree(); this.loadList(); }
+  state = signal<CategoryListState>({
+    categories: [],
+    totalItems: 0,
+    totalPages: 1,
+    currentPage: 1,
+    pageSize: 10,
+  });
+
+  ngOnInit(): void { 
+    this.loadTree(); 
+    this.loadList(); 
+  }
 
   private loadTree(): void {
     this.svc.getTree().subscribe({
@@ -52,23 +73,28 @@ export class CategoryListComponent implements OnInit {
     });
   }
 
-  private loadList(): void {
-    this.svc.getAll().subscribe({
-      next: (r) => { if (r.success) this.flatList.set(r.data); },
-    });
+  reload(): void { 
+    this.loading.set(true); 
+    this.loadTree(); 
+    this.loadList(); 
   }
-
-  reload(): void { this.loading.set(true); this.loadTree(); this.loadList(); }
 
   toggle(id: number): void {
     if (this.expandedIds.has(id)) this.expandedIds.delete(id);
     else this.expandedIds.add(id);
   }
 
-  isExpanded(id: number): boolean { return this.expandedIds.has(id); }
+  isExpanded(id: number): boolean { 
+    return this.expandedIds.has(id); 
+  }
 
-  expandAll(): void  { this.flatList().forEach(c => this.expandedIds.add(c.id)); }
-  collapseAll(): void { this.expandedIds.clear(); }
+  expandAll(): void  { 
+    this.flatList().forEach(c => this.expandedIds.add(c.id)); 
+  }
+
+  collapseAll(): void { 
+    this.expandedIds.clear(); 
+  }
 
   get filteredList(): Category[] {
     if (!this.searchTerm.trim()) return this.flatList();
@@ -95,8 +121,13 @@ export class CategoryListComponent implements OnInit {
 
   private deleteCategory(id: number): void {
     this.svc.delete(id).subscribe({
-      next: () => { this.snackBar.open('Categoría eliminada', 'Cerrar', { duration: 3000 }); this.reload(); },
-      error: (err) => { this.snackBar.open(err?.error?.message || 'No se puede eliminar', 'Cerrar', { duration: 4000 }); },
+      next: () => { 
+        this.snackBar.open('Categoría eliminada', 'Cerrar', { duration: 3000 }); 
+        this.reload(); 
+      },
+      error: (err) => { 
+        this.snackBar.open(err?.error?.message || 'No se puede eliminar', 'Cerrar', { duration: 4000 }); 
+      },
     });
   }
 
@@ -106,5 +137,122 @@ export class CategoryListComponent implements OnInit {
 
   levelColor(level: number): 'blue' | 'purple' | 'yellow' | 'secondary' {
     return (['blue', 'purple', 'yellow', 'secondary'] as const)[level] ?? 'secondary';
+  }
+
+  tableConfig: TableConfig = {
+    searchable: false,  // Desactivamos búsqueda local, la manejamos vía servidor
+    paginated: true,
+    pageSize: 10,
+    serverPagination: true,
+    striped: true,
+    hover: true,
+    bordered: false,
+    compact: false,
+  };
+
+  columns: TableColumn[] = [
+    {
+      key: 'code',
+      label: 'Código',
+      sortable: true,
+      width: '120px'
+    },
+    {
+      key: 'name',
+      label: 'Nombre',
+      sortable: true
+    },
+    {
+      key: 'level',
+      label: 'Nivel',
+      type: 'badge',
+      sortable: true,
+      badgeColor: () => 'success',
+      format: (value) => this.levelLabel(value)
+    },
+    {
+      key: 'parent_name',
+      label: 'Categoría Padre',
+      sortable: false,
+      format: (v) => v || '—'
+    },
+    {
+      key: 'is_movement',
+      label: '¿Registra costos?',
+      align: 'center',
+      sortable: false,
+      format: (v) => v ? '✓' : '—'
+    },
+    {
+      key: 'is_active',
+      label: 'Estado',
+      type: 'badge',
+      sortable: true,
+      badgeColor: (v) => v ? 'success' : 'default',
+      format: (v) => v ? 'Activa' : 'Inactiva'
+    }
+  ];
+
+  /**
+   * Cargar lista desde el servidor con paginación y filtros
+   */
+  private loadList(params?: PaginationParams): void {
+    this.loading.set(true);
+
+    const queryParams: any = {
+      page: params?.page || this.state().currentPage,
+      page_size: params?.page_size || this.state().pageSize,
+    };
+
+    if (params?.search) {
+      queryParams.search = params.search;
+    }
+
+    if (params?.sort_by) {
+      queryParams.sort_by = params.sort_by;
+      queryParams.sort_direction = params.sort_direction;
+    }
+
+    this.svc.getAll(queryParams).subscribe({
+      next: (response) => {
+        if (response.success) {
+          const newState = this.state();
+          newState.categories = response.data || [];
+          newState.totalItems = response.pagination?.count || 0;
+          newState.totalPages = response.pagination?.total_pages || 1;
+          newState.currentPage = response.pagination?.current_page || 1;
+          this.state.set({ ...newState });
+        }
+        this.loading.set(false);
+      },
+      error: (error) => {
+        console.error('Error loading categories:', error);
+        this.snackBar.open('Error al cargar categorías', 'Cerrar', { duration: 4000 });
+        this.loading.set(false);
+      },
+    });
+  }
+
+  /**
+   * Manejo de cambios en paginación/ordenamiento desde TableComponent
+   */
+  onPaginationParamsChange(params: PaginationParams): void {
+    this.loadList(params);
+  }
+
+  /**
+   * Manejo de click en fila para navegar a editar
+   */
+  onRowClick(row: Category): void {
+    // Navegar a la página de edición
+    // this.router.navigate([row.id, 'edit']);
+    console.log('Row clicked:', row);
+  }
+
+  /**
+   * Manejo de cambio de página (opcional, ya manejado por onPaginationParamsChange)
+   */
+  onPageChange(page: number): void {
+    console.log('Page changed to:', page);
   }
 }

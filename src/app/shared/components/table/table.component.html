@@ -184,11 +184,11 @@
   </div>
 
   <!-- Footer / Pagination -->
-  @if (config.paginated && !loading && filteredData.length > 0) {
+  @if (config.paginated && !loading && displayedTotal > 0) {
     <div class="table-footer">
       <div class="footer-info">
         <span class="results-text">
-          Mostrando <strong>{{ showingFrom }}</strong> a <strong>{{ showingTo }}</strong> de <strong>{{ filteredData.length }}</strong> resultados
+          Mostrando <strong>{{ showingFrom }}</strong> a <strong>{{ showingTo }}</strong> de <strong>{{ displayedTotal }}</strong> resultados
         </span>
       </div>
 

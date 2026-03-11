@@ -1,6 +1,17 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { 
+  Component, 
+  Input, 
+  Output, 
+  EventEmitter, 
+  OnInit, 
+  OnChanges, 
+  SimpleChanges,
+  OnDestroy 
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 export interface TableColumn {
   key: string;
@@ -22,6 +33,7 @@ export interface TableConfig {
   hover?: boolean;
   bordered?: boolean;
   compact?: boolean;
+  serverPagination?: boolean; // Nueva opción para paginación del servidor
 }
 
 export type SortDirection = 'asc' | 'desc' | null;
@@ -31,6 +43,14 @@ export interface SortState {
   direction: SortDirection;
 }
 
+export interface PaginationParams {
+  page?: number;
+  page_size?: number;
+  search?: string;
+  sort_by?: string;
+  sort_direction?: SortDirection;
+}
+
 @Component({
   selector: 'app-table',
   standalone: true,
@@ -38,7 +58,7 @@ export interface SortState {
   templateUrl: './table.component.html',
   styleUrls: ['./table.component.scss']
 })
-export class TableComponent implements OnInit, OnChanges {
+export class TableComponent implements OnInit, OnChanges, OnDestroy {
   @Input() columns: TableColumn[] = [];
   @Input() data: any[] = [];
   @Input() loading = false;
@@ -51,15 +71,20 @@ export class TableComponent implements OnInit, OnChanges {
     striped: true,
     hover: true,
     bordered: false,
-    compact: false
+    compact: false,
+    serverPagination: false
   };
   @Input() emptyMessage = 'No hay datos disponibles';
   @Input() loadingMessage = 'Cargando datos...';
-  
+  @Input() totalItems = 0; // Para paginación del servidor
+  @Input() totalPages = 1; // Para paginación del servidor
+
   @Output() rowClick = new EventEmitter<any>();
   @Output() sort = new EventEmitter<SortState>();
   @Output() selectionChange = new EventEmitter<any[]>();
   @Output() pageChange = new EventEmitter<number>();
+  @Output() paginationParamsChange = new EventEmitter<PaginationParams>(); // Para servidor
+  @Output() searchChange = new EventEmitter<string>(); // Para servidor
 
   // State
   searchTerm = '';
@@ -71,17 +96,44 @@ export class TableComponent implements OnInit, OnChanges {
   // Computed
   filteredData: any[] = [];
   paginatedData: any[] = [];
-  totalPages = 1;
   
+  // Para manejar búsqueda con debounce en servidor
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
+
   ngOnInit(): void {
     this.applyDefaultConfig();
-    this.updateFilteredData();
+    this.setupSearchDebounce();
+    this.updateData();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['data'] || changes['config']) {
-      this.updateFilteredData();
+      this.updateData();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private setupSearchDebounce(): void {
+    this.searchSubject
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(term => {
+        if (this.config.serverPagination) {
+          this.currentPage = 1;
+          this.emitPaginationParams();
+          this.searchChange.emit(term);
+        } else {
+          this.onSearch();
+        }
+      });
   }
 
   applyDefaultConfig(): void {
@@ -94,8 +146,20 @@ export class TableComponent implements OnInit, OnChanges {
       hover: true,
       bordered: false,
       compact: false,
+      serverPagination: false,
       ...this.config
     };
+  }
+
+  private updateData(): void {
+    if (this.config.serverPagination) {
+      // Con paginación del servidor, simplemente usa los datos recibidos
+      this.paginatedData = [...this.data];
+      this.filteredData = [...this.data];
+    } else {
+      // Con paginación del cliente, aplica filtros localmente
+      this.updateFilteredData();
+    }
   }
 
   updateFilteredData(): void {
@@ -116,8 +180,8 @@ export class TableComponent implements OnInit, OnChanges {
     this.updatePagination();
   }
 
-  updatePagination(): void {
-    if (!this.config.paginated) {
+  private updatePagination(): void {
+    if (!this.config.paginated || this.config.serverPagination) {
       this.paginatedData = this.filteredData;
       return;
     }
@@ -138,8 +202,12 @@ export class TableComponent implements OnInit, OnChanges {
   }
 
   onSearch(): void {
-    this.currentPage = 1;
-    this.updateFilteredData();
+    if (this.config.serverPagination) {
+      this.searchSubject.next(this.searchTerm);
+    } else {
+      this.currentPage = 1;
+      this.updateFilteredData();
+    }
   }
 
   onSortColumn(column: TableColumn): void {
@@ -159,11 +227,17 @@ export class TableComponent implements OnInit, OnChanges {
       this.sortState.direction = 'asc';
     }
 
-    this.applySorting();
+    if (this.config.serverPagination) {
+      this.currentPage = 1;
+      this.emitPaginationParams();
+    } else {
+      this.applySorting();
+    }
+
     this.sort.emit(this.sortState);
   }
 
-  applySorting(): void {
+  private applySorting(): void {
     if (!this.sortState.direction || !this.sortState.column) {
       this.updateFilteredData();
       return;
@@ -215,7 +289,7 @@ export class TableComponent implements OnInit, OnChanges {
     this.selectionChange.emit(Array.from(this.selectedRows));
   }
 
-  updateAllSelectedState(): void {
+  private updateAllSelectedState(): void {
     this.allSelected = this.paginatedData.length > 0 && 
                        this.paginatedData.every(row => this.selectedRows.has(row));
   }
@@ -227,7 +301,13 @@ export class TableComponent implements OnInit, OnChanges {
   goToPage(page: number): void {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
-    this.updatePagination();
+
+    if (this.config.serverPagination) {
+      this.emitPaginationParams();
+    } else {
+      this.updatePagination();
+    }
+
     this.pageChange.emit(page);
   }
 
@@ -237,6 +317,24 @@ export class TableComponent implements OnInit, OnChanges {
 
   previousPage(): void {
     this.goToPage(this.currentPage - 1);
+  }
+
+  private emitPaginationParams(): void {
+    const params: PaginationParams = {
+      page: this.currentPage,
+      page_size: this.config.pageSize || 10,
+    };
+
+    if (this.searchTerm) {
+      params.search = this.searchTerm;
+    }
+
+    if (this.sortState.direction && this.sortState.column) {
+      params.sort_by = this.sortState.column;
+      params.sort_direction = this.sortState.direction;
+    }
+
+    this.paginationParamsChange.emit(params);
   }
 
   formatCellValue(column: TableColumn, value: any): string {
@@ -299,13 +397,27 @@ export class TableComponent implements OnInit, OnChanges {
   }
 
   get showingFrom(): number {
+    if (this.config.serverPagination) {
+      if (this.totalItems === 0) return 0;
+      return ((this.currentPage - 1) * (this.config.pageSize || 10)) + 1;
+    }
+
     if (this.filteredData.length === 0) return 0;
     return ((this.currentPage - 1) * (this.config.pageSize || 10)) + 1;
   }
 
   get showingTo(): number {
+    if (this.config.serverPagination) {
+      const to = this.currentPage * (this.config.pageSize || 10);
+      return Math.min(to, this.totalItems);
+    }
+
     const to = this.currentPage * (this.config.pageSize || 10);
     return Math.min(to, this.filteredData.length);
+  }
+
+  get displayedTotal(): number {
+    return this.config.serverPagination ? this.totalItems : this.filteredData.length;
   }
 
   clearSearch(): void {

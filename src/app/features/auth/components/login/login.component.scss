@@ -1,5 +1,5 @@
 // Variables
-$primary-color: #2563eb;
+$primary-color: #000000;
 $primary-dark: #1d4ed8;
 $primary-light: #3b82f6;
 $success-color: #10b981;
@@ -24,7 +24,7 @@ $background-light: #f8fafc;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3d55f6 0%, #2b2724 100%);
   padding: 1.5rem;
   position: relative;
   overflow: hidden;
@@ -40,7 +40,7 @@ $background-light: #f8fafc;
   .circle {
     position: absolute;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(2px);
     animation: float 20s infinite ease-in-out;
 
@@ -73,7 +73,7 @@ $background-light: #f8fafc;
 // Login Card
 .login-card {
   width: 100%;
-  max-width: 440px;
+  max-width: 450px;
   background: #ffffff;
   border-radius: 20px;
   padding: 3rem 2.5rem;
@@ -99,26 +99,20 @@ $background-light: #f8fafc;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 100px;
-  height: 100px;
-  background: linear-gradient(135deg, $background-light, $success-color);
+  width: 125px;
+  height: 125px;
+  background: linear-gradient(135deg, $background-light, $primary-color);
   border-radius: 16px;
   margin-bottom: 1.25rem;
   box-shadow: 0 8px 16px rgba($background-light, 0.3);
   animation: pulse 2s infinite ease-in-out;
-  padding: 0.75rem;
+  padding: 0.3rem;
   overflow: hidden;
 
   img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-  }
-
-  .logo-icon {
-    width: 32px;
-    height: 32px;
-    color: #ffffff;
   }
 }
 

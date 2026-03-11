@@ -31,7 +31,7 @@ export class CategoryService {
 
   /** Full hierarchy tree */
   getTree(): Observable<ApiResponse<CategoryTree[]>> {
-    return this.api.get(`${this.base}/tree/`);
+    return this.api.get(`${this.base}/tree/?active_only=false`);
   }
 
   /** Only leaf categories where costs can be recorded (is_movement=true) */

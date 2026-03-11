@@ -28,6 +28,12 @@ export class MenuService {
       path: '/costs/categories',
     },
     {
+      label: 'Categorías 2',
+      icon: 'layers',
+      color: 'pink',
+      path: '/categories',
+    },
+    {
       label: 'Gestión de Costos',
       icon: 'dollar-sign',
       color: 'green',
