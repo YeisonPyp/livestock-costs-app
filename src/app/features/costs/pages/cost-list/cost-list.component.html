@@ -88,85 +88,26 @@
   </div>
 </div>
 
-<!-- Table -->
-<div class="table-card">
-  @if (loading()) {
-    <app-loader [overlay]="true" type="bars" />
-  } @else if (costs().length === 0) {
-    <app-empty-state
-      title="Sin registros"
-      [message]="hasActiveFilters() ? 'No hay costos que coincidan con los filtros aplicados.' : 'Aún no hay costos registrados. Crea el primero.'"
-      icon="receipt"
-    >
-      @if (!hasActiveFilters()) {
-        <a routerLink="new" class="btn btn-primary">Registrar Costo</a>
-      }
-    </app-empty-state>
-  } @else {
-    <div class="table-header">
-      <span class="results-count">
-        {{ paginationStart }}–{{ paginationEnd }} de {{ pagination()?.count ?? costs().length }} registros
-      </span>
-    </div>
+<app-table
+  [columns]="columns"
+  [data]="costs()"
+  [config]="tableConfig"
+  [loading]="loading()"
+  [hasActions]="true"
+  [totalItems]="pagination()?.count || 0"
+  [totalPages]="pagination()?.total_pages || 1"
+  (paginationParamsChange)="onPaginationParamsChange($event)"
+>
 
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th class="sortable" (click)="sortBy('date')">Fecha {{ sortIcon('date') }}</th>
-          <th>Categoría</th>
-          <th>Descripción</th>
-          <th class="sortable text-right" (click)="sortBy('amount')">Monto {{ sortIcon('amount') }}</th>
-          <th class="text-center">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (cost of costs(); track cost.id) {
-          <tr>
-            <td class="date-cell">{{ formatDate(cost.date) }}</td>
-            <td>
-              <div class="cat-chip">
-                <span class="cat-dot" [style.background]=""></span>
-                <span class="cat-label">{{ cost.category_name }}</span>
-              </div>
-            </td>
-            <td>
-              <div class="desc-cell">
-                <span class="desc-text">{{ cost.description }}</span>
-                @if (cost.notes) {
-                  <span class="notes-text">{{ cost.notes }}</span>
-                }
-              </div>
-            </td>
-            <td class="text-right">
-              <app-amount-display [amount]="cost.amount" type="expense" size="md" [showSign]="false" />
-            </td>
-            <td class="text-center">
-              <app-dropdown-menu [items]="[
-                { label: 'Editar', icon: 'edit', routerLink: [cost.id, 'edit'] },
-                { label: 'Eliminar', icon: 'trash', action: 'delete', danger: true }
-              ]" (action)="$event === 'delete' && confirmDelete(cost)" />
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
+  <!-- Columna personalizada para acciones -->
+  <ng-template #actions let-row>
+    <app-dropdown-menu
+      [items]="[
+        { label: 'Editar', icon: 'edit', routerLink: [row.id, 'edit'] },
+        { label: 'Eliminar', icon: 'trash', action: 'delete', danger: true }
+      ]"
+      (action)="$event === 'delete' && confirmDelete(row)"
+    />
+  </ng-template>
 
-    <!-- Pagination -->
-    @if (pagination() && pagination().total_pages > 1) {
-      <div class="pagination">
-        <button class="page-btn" [disabled]="currentPage === 1" (click)="loadCosts(currentPage - 1)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-
-        @for (p of [].constructor(pagination().total_pages); track $index) {
-          <button class="page-btn" [class.active]="$index + 1 === currentPage"
-            (click)="loadCosts($index + 1)">{{ $index + 1 }}</button>
-        }
-
-        <button class="page-btn" [disabled]="currentPage === pagination().total_pages" (click)="loadCosts(currentPage + 1)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </div>
-    }
-  }
-</div>
+</app-table>

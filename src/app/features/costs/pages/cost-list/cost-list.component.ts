@@ -18,14 +18,22 @@ import { DropdownMenuComponent }   from '../../../../shared/components/display/d
 import { CostService }     from '../../services/cost.service';
 import { CategoryService } from '../../services/category.service';
 import { Cost, Category, CostTotals, CostFilters } from '../../models/cost.model';
+import {
+  TableComponent,
+  TableColumn,
+  TableConfig,
+  PaginationParams
+} from '../../../../shared/components/table/table.component';
 
 @Component({
   selector: 'app-cost-list',
   standalone: true,
   imports: [
     CommonModule, RouterLink, FormsModule,
-    PageHeaderComponent, KpiCardComponent, BadgeComponent, AmountDisplayComponent,
-    LoaderComponent, EmptyStateComponent, DropdownMenuComponent,
+    PageHeaderComponent, KpiCardComponent, BadgeComponent,
+    AmountDisplayComponent, LoaderComponent,
+    EmptyStateComponent, DropdownMenuComponent,
+    TableComponent
   ],
   templateUrl: './cost-list.component.html',
   styleUrl:    './cost-list.component.scss',
@@ -193,5 +201,60 @@ export class CostListComponent implements OnInit {
   get paginationEnd(): number {
     const p = this.pagination();
     return p ? Math.min(p.current_page * this.pageSize, p.count) : 0;
+  }
+  tableConfig: TableConfig = {
+    searchable: false, // ya tienes buscador arriba
+    paginated: true,
+    serverPagination: true,
+    pageSize: 20,
+    striped: true,
+    hover: true
+  };
+
+  columns: TableColumn[] = [
+    {
+      key: 'date',
+      label: 'Fecha',
+      sortable: true,
+      type: 'date'
+    },
+    {
+      key: 'category_name',
+      label: 'Categoría'
+    },
+    {
+      key: 'description',
+      label: 'Descripción'
+    },
+    {
+      key: 'amount',
+      label: 'Monto',
+      sortable: true,
+      type: 'currency',
+      align: 'right'
+    }
+  ];
+
+  onPaginationParamsChange(params: PaginationParams): void {
+
+    this.currentPage = params.page || 1;
+
+    const filters: CostFilters = {
+      page: params.page,
+      page_size: params.page_size,
+    };
+
+    if (params.search) {
+      filters.search = params.search;
+    }
+
+    if (params.sort_by) {
+      filters.ordering =
+        params.sort_direction === 'desc'
+          ? `-${params.sort_by}`
+          : params.sort_by;
+    }
+
+    this.loadCosts(filters.page);
   }
 }
