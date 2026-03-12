@@ -41,6 +41,10 @@ export class FarmService {
     return this.api.get(`${this.endpoint}all-summary`);
   }
 
+  getListSimple(): Observable<ApiResponse<Farm[]>> {
+    return this.api.get(`${this.endpoint}simple`);
+  }
+
   // ==================== PADDOCKS ====================
 
   getPaddocks(farmId: string): Observable<ApiResponse<Paddock[]>> {

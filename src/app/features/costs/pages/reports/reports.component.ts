@@ -130,6 +130,6 @@ export class ReportsComponent implements OnInit {
   }
 
   monthTotal(entries: Cost[]): number {
-    return entries.reduce((s, e) => s + e.amount, 0);
+    return entries.reduce((s, e) => s + Number(e.amount), 0);
   }
 }

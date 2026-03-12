@@ -1,7 +1,7 @@
 <app-page-header
   [title]="isEdit ? 'Editar Costo' : 'Registrar Costo'"
   [subtitle]="isEdit ? 'Modifica los datos del registro' : 'Agrega un nuevo registro de gasto'"
-  backUrl="/costs">
+  backUrl="/costs/costs">
 </app-page-header>
 
 @if (loading()) {
@@ -20,6 +20,8 @@
         <!-- Main fields -->
         <app-form-card title="Datos del Gasto" icon="receipt" class="mb-5">
 
+          <div class="grid-2 mt-4">
+
           <app-select-field
             label="Categoría"
             [required]="true"
@@ -31,6 +33,17 @@
             errorMessage="La categoría es requerida"
           />
 
+          <app-select-field
+            label="Finca"
+            [required]="true"
+            formControlName="farm"
+            [options]="farmOptions"
+            placeholder="Selecciona una finca"
+            hint="Solo se muestran fincas habilitadas para registrar costos"
+            [hasError]="hasError('farm','required')"
+            errorMessage="La finca es requerida"
+          />
+          </div>
           <div class="grid-2 mt-4">
 
             <app-input-field
@@ -92,7 +105,7 @@
 
         <!-- Actions -->
         <div class="form-footer">
-          <a routerLink="/costs" class="btn btn-secondary">Cancelar</a>
+          <a routerLink="/costs/costs" class="btn btn-secondary">Cancelar</a>
           <button type="submit" class="btn btn-primary" [disabled]="saving()">
             @if (saving()) {
               <span class="spinner-sm"></span>
@@ -121,13 +134,31 @@
           </div>
           <div class="preview-row">
             <span class="preview-label">Fecha</span>
-            <span class="preview-value">{{ form.value.date || '—' }}</span>
+            <span class="preview-value">
+              {{ form.value.date | date:'mediumDate' }}
+            </span>
           </div>
           @if (form.value.category) {
             <div class="preview-row">
               <span class="preview-label">Categoría</span>
               <span class="preview-value">
-                {{ categoryOptions}}
+                {{ selectedCategoryLabel }}
+              </span>
+            </div>
+          }
+          @if (form.value.farm) {
+            <div class="preview-row">
+              <span class="preview-label">Granja</span>
+              <span class="preview-value">
+                {{ selectedFarmLabel }}
+              </span>
+            </div>
+          }
+          @if (form.value.description) {
+            <div class="preview-row">
+              <span class="preview-label">Descrippcion</span>
+              <span class="preview-value">
+                {{ form.value.description }}
               </span>
             </div>
           }

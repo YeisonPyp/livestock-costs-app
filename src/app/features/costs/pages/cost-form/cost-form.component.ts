@@ -14,7 +14,9 @@ import { AmountDisplayComponent }  from '../../../../shared/components/bills/amo
 
 import { CostService }     from '../../services/cost.service';
 import { CategoryService } from '../../services/category.service';
+import { FarmService } from '../../../farms/services/farm.service';
 import { Cost, Category }  from '../../models/cost.model';
+import { FarmsSimple } from '../../../farms/models/farm.model';
 
 @Component({
   selector: 'app-cost-form',
@@ -30,6 +32,7 @@ import { Cost, Category }  from '../../models/cost.model';
 export class CostFormComponent implements OnInit {
   private costSvc  = inject(CostService);
   private catSvc   = inject(CategoryService);
+  private farmSvc  = inject(FarmService);
   private fb       = inject(FormBuilder);
   private router   = inject(Router);
   private route    = inject(ActivatedRoute);
@@ -37,35 +40,50 @@ export class CostFormComponent implements OnInit {
 
   // ── State ──────────────────────────────────────────────────────────────────
   movableCategories = signal<Category[]>([]);
+  listFarms = signal<FarmsSimple[]>([]);
   loading  = signal(true);
   saving   = signal(false);
   error    = signal('');
 
-  editId: number | null = null;
+  editId: string | null = null;
   get isEdit(): boolean { return this.editId !== null; }
 
   today = new Date().toISOString().split('T')[0];
 
   // ── Form ───────────────────────────────────────────────────────────────────
-  form = this.fb.group({
-    category:    [null as number | null, [Validators.required]],
-    date:        [this.today, [Validators.required]],
-    amount:      [null as number | null, [Validators.required, Validators.min(0.01)]],
+  form = this.fb.nonNullable.group({
+    category: ['', Validators.required],
+    farm: ['', Validators.required],
+    date: [this.today, Validators.required],
+    amount: [0, [Validators.required, Validators.min(0.01)]],
     description: ['', [Validators.required, Validators.maxLength(500)]],
-    notes:       ['', [Validators.maxLength(1000)]],
+    notes: ['', [Validators.maxLength(1000)]],
   });
 
   ngOnInit(): void {
+
+    this.loading.set(true);
+
     this.catSvc.getMovable().subscribe({
-      next: (r) => { if (r.success) this.movableCategories.set(r.data); this.afterCatsLoaded(); },
+      next: (r) => {
+        if (r.success) this.movableCategories.set(r.data);
+        this.afterCatsLoaded();
+      },
       error: () => this.afterCatsLoaded(),
     });
+
+    this.farmSvc.getListSimple().subscribe({
+      next: (r) => {
+        if (r.success) this.listFarms.set(r.data);
+      },
+    });
+
   }
 
   private afterCatsLoaded(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
-      this.editId = +id;
+      this.editId = id
       this.loadForEdit();
     } else {
       this.loading.set(false);
@@ -76,14 +94,20 @@ export class CostFormComponent implements OnInit {
     this.costSvc.getById(this.editId!).subscribe({
       next: (r) => {
         if (r.success) {
+
+          const cost = r.data;
+
           this.form.patchValue({
-            category:    r.data.category,
-            date:        r.data.date,
-            amount:      r.data.amount,
-            description: r.data.description,
-            notes:       r.data.notes ?? '',
+            category: cost.category,
+            farm: cost.farm,
+            date: cost.date,
+            amount: Number(cost.amount),
+            description: cost.description,
+            notes: cost.notes ?? ''
           });
+
         }
+
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
@@ -92,12 +116,25 @@ export class CostFormComponent implements OnInit {
 
   // ── Submit ─────────────────────────────────────────────────────────────────
   onSubmit(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
     this.saving.set(true);
     this.error.set('');
 
-    const payload: Partial<Cost> = this.form.value as any;
+    const v = this.form.getRawValue();
+
+    const payload: Partial<Cost> = {
+      category: v.category,
+      farm: v.farm,
+      date: v.date,
+      description: v.description,
+      notes: v.notes,
+      amount: Number(v.amount).toFixed(2)
+    };
 
     const req = this.isEdit
       ? this.costSvc.update(this.editId!, payload)
@@ -105,14 +142,42 @@ export class CostFormComponent implements OnInit {
 
     req.subscribe({
       next: (r) => {
-        this.snack.open(r.message || (this.isEdit ? 'Costo actualizado' : 'Costo registrado'), 'Cerrar', { duration: 3000 });
-        this.router.navigate(['/costs']);
+
+        this.snack.open(
+          r.message || (this.isEdit ? 'Costo actualizado' : 'Costo registrado'),
+          'Cerrar',
+          { duration: 3000 }
+        );
+
+        this.router.navigate(['/costs/costs']);
+
       },
       error: (err) => {
-        this.error.set(err?.error?.message || 'Error al guardar');
+
+        this.error.set(
+          err?.error?.message ||
+          err?.error?.detail ||
+          'Error al guardar el costo'
+        );
+
         this.saving.set(false);
       },
     });
+
+  }
+
+  get selectedCategoryLabel(): string {
+    const id = this.form.value.category;
+    return this.categoryOptions
+      .find(c => c.value === id)?.label ?? '—';
+
+  }
+
+  get selectedFarmLabel(): string {
+    const id = this.form.value.farm;
+    return this.farmOptions
+      .find(c => c.value === id)?.label ?? '—';
+
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -123,8 +188,16 @@ export class CostFormComponent implements OnInit {
     }));
   }
 
+  get farmOptions(): { value: string; label: string }[] {
+    return this.listFarms().map(c => ({
+      value: c.id,
+      label: `${c.code} – ${c.name}`,
+    }));
+  }
+
   get previewAmount(): number {
-    return Number(this.form.value.amount) || 0;
+    const v = this.form.value.amount;
+    return v ? Number(v) : 0;
   }
 
   hasError(field: string, err: string): boolean {

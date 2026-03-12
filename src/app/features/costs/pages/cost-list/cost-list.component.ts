@@ -30,8 +30,7 @@ import {
   standalone: true,
   imports: [
     CommonModule, RouterLink, FormsModule,
-    PageHeaderComponent, KpiCardComponent, BadgeComponent,
-    AmountDisplayComponent, LoaderComponent,
+    PageHeaderComponent, KpiCardComponent, BadgeComponent, LoaderComponent,
     EmptyStateComponent, DropdownMenuComponent,
     TableComponent
   ],
@@ -157,7 +156,7 @@ export class CostListComponent implements OnInit {
     }).afterClosed().subscribe(ok => { if (ok) this.deleteCost(cost.id); });
   }
 
-  private deleteCost(id: number): void {
+  private deleteCost(id: string): void {
     this.costSvc.delete(id).subscribe({
       next: () => {
         this.snack.open('Registro eliminado', 'Cerrar', { duration: 3000 });
@@ -206,7 +205,7 @@ export class CostListComponent implements OnInit {
     searchable: false, // ya tienes buscador arriba
     paginated: true,
     serverPagination: true,
-    pageSize: 20,
+    pageSize: 10,
     striped: true,
     hover: true
   };

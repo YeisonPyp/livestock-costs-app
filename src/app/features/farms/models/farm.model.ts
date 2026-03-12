@@ -38,6 +38,12 @@ export interface Farm {
   updated_at: string;
 }
 
+export interface FarmsSimple {
+  id: string;
+  code: string;
+  name: string;
+}
+
 export interface FarmSummary {
   farm: {
     id: string;

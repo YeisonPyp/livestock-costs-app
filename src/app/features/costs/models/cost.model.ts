@@ -1,8 +1,9 @@
 // src/app/modules/costs/models/cost.model.ts
+export type UUID = string;
 
 // ── Category ──────────────────────────────────────────────────────────────────
 export interface Category {
-  id: string;
+  id: UUID;
   code: string;
   name: string;
   description?: string;
@@ -26,13 +27,14 @@ export interface CategoryTree extends Category {
 
 // ── Cost ─────────────────────────────────────────────────────────────────────
 export interface Cost {
-  id: number;
-  category: number;
+  id: UUID;
+  category: UUID;
   category_name?: string;
   category_code?: string;
   category_color?: string;
+  farm: UUID;
   date: string;            // YYYY-MM-DD
-  amount: number;
+  amount: string;
   description: string;
   notes?: string;
   created_by?: string;

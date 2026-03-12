@@ -18,7 +18,7 @@ export class CostService {
     return this.api.get(`${this.base}/`, params);
   }
 
-  getById(id: number): Observable<ApiResponse<Cost>> {
+  getById(id: string): Observable<ApiResponse<Cost>> {
     return this.api.get(`${this.base}/${id}/`);
   }
 
@@ -26,11 +26,11 @@ export class CostService {
     return this.api.post(`${this.base}/`, data);
   }
 
-  update(id: number, data: Partial<Cost>): Observable<ApiResponse<Cost>> {
+  update(id: string, data: Partial<Cost>): Observable<ApiResponse<Cost>> {
     return this.api.put(`${this.base}/${id}/`, data);
   }
 
-  delete(id: number): Observable<ApiResponse<void>> {
+  delete(id: string): Observable<ApiResponse<void>> {
     return this.api.delete(`${this.base}/${id}/`);
   }
 
