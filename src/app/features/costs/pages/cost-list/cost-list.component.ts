@@ -247,8 +247,25 @@ export class CostListComponent implements OnInit {
   }
 
   // ── Export ──────────────────────────────────────────────────────────────────
-  exportExcel(): void { window.open(this.costSvc.exportExcelUrl(this.activeFilters()), '_blank'); }
-  exportPdf():   void { window.open(this.costSvc.exportPdfUrl(this.activeFilters()),   '_blank'); }
+  private download(url: string) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  exportExcel(): void {
+    const url = this.costSvc.exportExcelUrl(this.activeFilters());
+    this.download(url);
+  }
+
+  exportPdf(): void {
+    const url = this.costSvc.exportPdfUrl(this.activeFilters());
+    this.download(url);
+  }
 
   private activeFilters(): Partial<CostFilters> {
     const f: Partial<CostFilters> = {};

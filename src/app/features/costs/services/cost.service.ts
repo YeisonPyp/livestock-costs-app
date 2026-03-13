@@ -12,6 +12,8 @@ import {
 export class CostService {
   private api  = inject(ApiService);
   private base = '/costs/costs';
+  private API_URL = 'http://localhost:8000';
+  
 
   // ── CRUD ──────────────────────────────────────────────────────────────────
   getAll(filters: CostFilters = {}): Observable<ApiResponse<Cost[]>> {
@@ -69,7 +71,7 @@ export class CostService {
 
   exportPdfUrl(filters?: Partial<CostFilters>): string {
     const q = new URLSearchParams(this.cleanParams(filters ?? {})).toString();
-    return `/api/${this.base}/export-pdf/${q ? '?' + q : ''}`;
+    return `${this.API_URL}/api/v1${this.base}/export-pdf/${q ? '?' + q : ''}`;
   }
 
   // ── Helper ────────────────────────────────────────────────────────────────

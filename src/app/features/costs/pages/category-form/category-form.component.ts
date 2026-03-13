@@ -44,7 +44,7 @@ export class CategoryFormComponent implements OnInit, OnChanges, OnDestroy {
   ngOnInit(): void {
     this.buildForm();
     this.initFormData();
-    // this.setupParentChangeListener();
+    this.setupParentChangeListener();
     this.categoryService.getParents().subscribe({
       next: (r) => {
         if (r.success) this.parentsCategories.set(r.data);
@@ -111,14 +111,13 @@ export class CategoryFormComponent implements OnInit, OnChanges, OnDestroy {
       is_movement: false,
     });
 
-    if (this.isEditMode) {
-      if (this.parentId) {
-        this.updateLevelFromParent(this.parentId);
-        this.fetchNextCode(this.parentId);
-      } else {
-        this.fetchNextCode();
-      }
+    if (this.parentId) {
+      this.updateLevelFromParent(this.parentId);
+      this.fetchNextCode(this.parentId);
+    } else {
+      this.fetchNextCode();
     }
+  
   }
 
   // ─── Listeners ───────────────────────────────────────────────────────────────
