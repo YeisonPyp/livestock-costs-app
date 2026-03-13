@@ -1,113 +1,161 @@
-<app-page-header title="Registro de Costos" subtitle="Controla y analiza todos los gastos de tu operación ganadera">
+<!-- ── Page header ──────────────────────────────────────────────────────────── -->
+<app-page-header title="Costos" subtitle="Gestión de costos y gastos operacionales">
   <div class="header-actions">
-    <!-- Export buttons -->
-    <div class="export-group">
-      <button class="btn btn-ghost" (click)="exportExcel()" title="Descargar Excel">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        Excel
-      </button>
-      <button class="btn btn-ghost" (click)="exportPdf()" title="Descargar PDF">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        PDF
-      </button>
-    </div>
-    <a routerLink="new" class="btn btn-primary">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Nuevo Costo
+    <button class="btn btn-outline-sm" (click)="exportExcel()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      Excel
+    </button>
+    <button class="btn btn-outline-sm" (click)="exportPdf()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      PDF
+    </button>
+    <a routerLink="/costs/costs/new" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nuevo costo
     </a>
   </div>
 </app-page-header>
 
-<!-- KPIs -->
-<div class="kpis-row">
-  <app-kpi-card
-    label="Total del período"
-    [value]="totals()?.total ?? 0"
-    format="currency"
-    color="blue"
-    icon="dollar-sign"
-    [loading]="loadingKpis()"
-  />
-  <app-kpi-card
-    label="Registros"
-    [value]="totals()?.count ?? 0"
-    format="number"
-    color="purple"
-    icon="activity"
-    [loading]="loadingKpis()"
-  />
-  <app-kpi-card
-    label="Promedio por registro"
-    [value]="totals()?.average ?? 0"
-    format="currency"
-    color="green"
-    icon="trending-up"
-    [loading]="loadingKpis()"
-  />
-  <app-kpi-card
-    label="Mayor gasto"
-    [value]="totals()?.max ?? 0"
-    format="currency"
-    color="yellow"
-    icon="zap"
-    [loading]="loadingKpis()"
-  />
-</div>
+<!-- ── KPIs ─────────────────────────────────────────────────────────────────── -->
+@if (loadingKpis()) {
+  <app-loader message="Calculando totales..." />
+} @else if (totals()) {
+  <div class="kpi-grid">
+    <app-kpi-card
+      label="Total mes"
+      [value]="totals()?.total ?? 0"
+      type="currency"
+      icon="trending-up"
+    />
+    <app-kpi-card
+      label="Total año"
+      [value]="totals()?.average  ?? 0"
+      type="currency"
+      icon="calendar"
+    />
+    <app-kpi-card
+      label="Registros"
+      [value]="pagination()?.count ?? 0"
+      type="number"
+      icon="list"
+    />
+  </div>
+}
 
-<!-- Filters -->
+<!-- ── Filters ───────────────────────────────────────────────────────────────── -->
 <div class="filters-card">
   <div class="filters-row">
-    <!-- Search -->
-    <div class="search-wrap">
-      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input class="search-input" type="text" placeholder="Buscar por descripción o referencia..."
-        [value]="searchTerm" (input)="onSearchChange($any($event.target).value)" />
+
+    <!-- Búsqueda -->
+    <div class="filter-search">
+      <svg class="filter-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        type="text"
+        class="filter-input"
+        placeholder="Buscar descripción..."
+        [value]="searchTerm"
+        (input)="onSearchChange($any($event.target).value)"
+      />
     </div>
 
-    <!-- Category -->
+    <!-- Categoría -->
     <select class="filter-select" [(ngModel)]="categoryFilter" (change)="onFilterChange()">
       <option value="">Todas las categorías</option>
       @for (cat of categories(); track cat.id) {
-        <option [value]="cat.id">{{ cat.code }} – {{ cat.name }}</option>
+        <option [value]="cat.id">{{ cat.name }}</option>
       }
     </select>
 
-    <!-- Date range -->
-    <div class="date-range">
-      <input type="date" class="filter-input" [(ngModel)]="startDate" (change)="onFilterChange()" placeholder="Desde" />
-      <span class="date-sep">→</span>
-      <input type="date" class="filter-input" [(ngModel)]="endDate"   (change)="onFilterChange()" placeholder="Hasta" />
-    </div>
+    <!-- Rango de fechas -->
+    <input type="date" class="filter-input filter-input--date" [(ngModel)]="startDate" (change)="onFilterChange()" />
+    <input type="date" class="filter-input filter-input--date" [(ngModel)]="endDate"   (change)="onFilterChange()" />
 
+    <!-- Limpiar -->
     @if (hasActiveFilters()) {
-      <button class="btn-clear" (click)="clearFilters()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <button class="btn btn-ghost-sm" (click)="clearFilters()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
         Limpiar
       </button>
     }
   </div>
 </div>
 
+<!-- ── Tabla ─────────────────────────────────────────────────────────────────── -->
 <app-table
   [columns]="columns"
   [data]="costs()"
-  [config]="tableConfig"
   [loading]="loading()"
   [hasActions]="true"
-  [totalItems]="pagination()?.count || 0"
-  [totalPages]="pagination()?.total_pages || 1"
+  [actionsTemplate]="costActions"
+  [config]="tableConfig"
+  [totalItems]="pagination()?.count ?? 0"
+  [serverTotalPages]="pagination()?.total_pages ?? 1"
+  emptyMessage="No se encontraron costos con los filtros aplicados"
   (paginationParamsChange)="onPaginationParamsChange($event)"
+  (rowClick)="viewCost($event)"
 >
-
-  <!-- Columna personalizada para acciones -->
-  <ng-template #actions let-row>
-    <app-dropdown-menu
-      [items]="[
-        { label: 'Editar', icon: 'edit', routerLink: [row.id, 'edit'] },
-        { label: 'Eliminar', icon: 'trash', action: 'delete', danger: true }
-      ]"
-      (action)="$event === 'delete' && confirmDelete(row)"
-    />
-  </ng-template>
-
 </app-table>
+
+<!--
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │  TEMPLATE DE ACCIONES                                                       │
+  │  • let-row  →  recibe el objeto Cost de esa fila                            │
+  │  • cada botón llama al método del componente con la fila completa           │
+  └─────────────────────────────────────────────────────────────────────────────┘
+-->
+<ng-template #costActions let-row>
+
+  <!-- Ver detalle -->
+  <button
+    class="action-btn action-btn--view"
+    title="Ver detalle"
+    (click)="viewCost(row)"
+  >
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  </button>
+
+  <!-- Editar -->
+  <button
+    class="action-btn action-btn--edit"
+    title="Editar"
+    (click)="editCost(row)"
+  >
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+    </svg>
+  </button>
+
+  <!-- Eliminar -->
+  <button
+    class="action-btn action-btn--delete"
+    title="Eliminar"
+    (click)="confirmDelete(row)"
+  >
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="3 6 5 6 21 6"/>
+      <path d="M19 6l-1 14H6L5 6"/>
+      <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+    </svg>
+  </button>
+
+</ng-template>

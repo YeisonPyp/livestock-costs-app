@@ -1,21 +1,7 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  OnInit,
-  OnChanges,
-  SimpleChanges,
-  OnDestroy,
-  signal,
-} from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit,
+  OnChanges, SimpleChanges, OnDestroy, signal,} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  FormBuilder,
-  FormGroup,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
@@ -27,30 +13,19 @@ import { SelectFieldComponent } from '../../../../shared/components/forms/select
 @Component({
   selector: 'app-category-form',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    ButtonComponent,
-    SelectFieldComponent,
-  ],
+  imports: [ CommonModule, ReactiveFormsModule, ButtonComponent, SelectFieldComponent, ],
   templateUrl: './category-form.component.html',
   styleUrls: ['./category-form.component.scss'],
 })
 export class CategoryFormComponent implements OnInit, OnChanges, OnDestroy {
   /** Pasar una categoría existente activa el modo edición automáticamente */
   @Input() category: Category | null = null;
-
-  /** Lista completa de categorías para el selector de padre */
   @Input() categories: Category[] = [];
-
   /** Controla el estado de carga del botón submit */
   @Input() isSubmitting = false;
-
   @Input() parentId: string | null = null;
-
   /** Emite los datos del formulario listos para crear o actualizar */
   @Output() save = new EventEmitter<Partial<Category>>();
-
   /** Emite cuando el usuario cancela */
   @Output() cancel = new EventEmitter<void>();
 
@@ -69,7 +44,7 @@ export class CategoryFormComponent implements OnInit, OnChanges, OnDestroy {
   ngOnInit(): void {
     this.buildForm();
     this.initFormData();
-    this.setupParentChangeListener();
+    // this.setupParentChangeListener();
     this.categoryService.getParents().subscribe({
       next: (r) => {
         if (r.success) this.parentsCategories.set(r.data);
@@ -110,44 +85,41 @@ export class CategoryFormComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
-private initFormData(): void {
+  private initFormData(): void {
+    // ───────── EDIT MODE ─────────
+    if (this.category) {
+      this.isEditMode = true;
+      this.categoryForm.patchValue({
+        code: this.category.code,
+        name: this.category.name,
+        description: this.category.description ?? '',
+        parent: this.category.parent ?? null,
+        level: this.category.level,
+        is_movement: this.category.is_movement,
+      });
+      return;
+    }
 
-  // ───────── EDIT MODE ─────────
-  if (this.category) {
-
-    this.isEditMode = true;
-
-    this.categoryForm.patchValue({
-      code: this.category.code,
-      name: this.category.name,
-      description: this.category.description ?? '',
-      parent: this.category.parent ?? null,
-      level: this.category.level,
-      is_movement: this.category.is_movement
+    // ───────── CREATE MODE ─────────
+    this.isEditMode = false;
+    this.categoryForm.reset({
+      code: '',
+      name: '',
+      description: '',
+      parent: this.parentId ?? null,
+      level: 1,
+      is_movement: false,
     });
 
-    return;
+    if (this.isEditMode) {
+      if (this.parentId) {
+        this.updateLevelFromParent(this.parentId);
+        this.fetchNextCode(this.parentId);
+      } else {
+        this.fetchNextCode();
+      }
+    }
   }
-
-  // ───────── CREATE MODE ─────────
-  this.isEditMode = false;
-
-  this.categoryForm.reset({
-    code: '',
-    name: '',
-    description: '',
-    parent: this.parentId ?? null,
-    level: 1,
-    is_movement: false
-  });
-
-  if (this.parentId) {
-    this.updateLevelFromParent(this.parentId);
-    this.fetchNextCode(this.parentId);
-  } else {
-    this.fetchNextCode();
-  }
-}
 
   // ─── Listeners ───────────────────────────────────────────────────────────────
 
@@ -164,42 +136,32 @@ private initFormData(): void {
           this.level?.setValue(1, { emitEvent: false });
           return;
         }
-
         const parent = this.parentsCategories().find((c) => c.id === parentId);
-
         if (!parent) return;
-
         // calcular nivel
         const newLevel = parent.level + 1;
-
         this.level?.setValue(newLevel, { emitEvent: false });
-
         // obtener código
-        this.fetchNextCode(parentId);
+        if (!this.isEditMode) {this.fetchNextCode(parentId)};
       });
   }
 
   // ─── Lógica de nivel ─────────────────────────────────────────────────────────
 
   private updateLevelFromParent(parentId: string | null): void {
+    if (!parentId) {
+      this.categoryForm.get('level')!.setValue(1, { emitEvent: false });
+      return;
+    }
 
-  if (!parentId) {
-    this.categoryForm.get('level')!.setValue(1, { emitEvent: false });
-    return;
+    const parent = this.parentsCategories().find((c) => c.id === parentId);
+    const newLevel = parent ? parent.level + 1 : 1;
+    this.categoryForm.get('level')!.setValue(newLevel, { emitEvent: false });
   }
-
-  const parent = this.parentsCategories().find(c => c.id === parentId);
-
-  const newLevel = parent ? parent.level + 1 : 1;
-
-  this.categoryForm.get('level')!.setValue(newLevel, { emitEvent: false });
-
-}
 
   // ─── Código automático ───────────────────────────────────────────────────────
 
   private fetchNextCode(parentId?: string): void {
-
     this.isLoadingCode = true;
 
     this.categoryService
@@ -207,21 +169,15 @@ private initFormData(): void {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-
           if (response.success) {
             const code = response.data.next_code;
-
-            this.categoryForm.patchValue(
-              { code },
-              { emitEvent: false }
-            );
+            this.categoryForm.patchValue({ code }, { emitEvent: false });
           }
-
           this.isLoadingCode = false;
         },
         error: () => {
           this.isLoadingCode = false;
-        }
+        },
       });
   }
 
@@ -265,12 +221,12 @@ private initFormData(): void {
     return !!(ctrl?.hasError(error) && ctrl.touched);
   }
 
-get categoryOptions() {
-  return this.parentsCategories().map(c => ({
-    value: c.id,
-    label: `${c.code} – ${c.name}`,
-  }));
-}
+  get categoryOptions() {
+    return this.parentsCategories().map((c) => ({
+      value: c.id,
+      label: `${c.code} – ${c.name}`,
+    }));
+  }
 
   // ─── Accesores de controles (usados en template) ──────────────────────────────
   get code() {

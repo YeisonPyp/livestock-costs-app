@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ApiService } from '../../../core/services/api.service';
-import { ApiResponse } from '../../../core/models/api-response.interface';
+import { ApiResponse } from '../../../core/models/api-response.model';
 import {
   Breed, Color,
   Lot, LotSummary, LotFilters,

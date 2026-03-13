@@ -1,6 +1,8 @@
 <div class="table-wrapper">
+
   <!-- Header Section -->
   <div class="table-header">
+
     <!-- Search Bar -->
     @if (config.searchable) {
       <div class="search-container">
@@ -26,7 +28,7 @@
       </div>
     }
 
-    <!-- Actions Slot -->
+    <!-- Actions Slot (botones del header, ej: "Agregar") -->
     <div class="header-actions">
       <ng-content select="[header-actions]"></ng-content>
     </div>
@@ -34,9 +36,9 @@
 
   <!-- Table Container -->
   <div class="table-container" [class.bordered]="config.bordered">
-    <table 
-      class="data-table" 
-      [class.striped]="config.striped" 
+    <table
+      class="data-table"
+      [class.striped]="config.striped"
       [class.hover]="config.hover"
       [class.compact]="config.compact"
     >
@@ -57,7 +59,7 @@
           }
 
           @for (column of columns; track column.key) {
-            <th 
+            <th
               class="table-header-cell"
               [class.sortable]="column.sortable"
               [class.sorted]="sortState.column === column.key"
@@ -70,21 +72,17 @@
                 <span class="header-label">{{ column.label }}</span>
                 @if (column.sortable) {
                   <span class="sort-icons">
-                    <svg 
-                      class="sort-icon sort-asc" 
+                    <svg
+                      class="sort-icon sort-asc"
                       [class.active]="sortState.column === column.key && sortState.direction === 'asc'"
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
                     >
                       <path d="M12 6l-6 6h12l-6-6z" fill="currentColor"/>
                     </svg>
-                    <svg 
-                      class="sort-icon sort-desc" 
+                    <svg
+                      class="sort-icon sort-desc"
                       [class.active]="sortState.column === column.key && sortState.direction === 'desc'"
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
                     >
                       <path d="M12 18l6-6H6l6 6z" fill="currentColor"/>
                     </svg>
@@ -112,6 +110,7 @@
               </div>
             </td>
           </tr>
+
         } @else if (paginatedData.length === 0) {
           <tr class="empty-row">
             <td [attr.colspan]="columns.length + (hasActions ? 1 : 0) + (config.selectable ? 1 : 0)">
@@ -128,10 +127,15 @@
               </div>
             </td>
           </tr>
+
         } @else {
-          @for (row of paginatedData; track row.id || $index; let i = $index) {
-            <tr 
-              class="table-row" 
+          <!--
+            FIX ACCIONES: Se itera con $implicit para pasar la fila al template.
+            El padre define un ng-template con let-row y tiene acceso a cada fila.
+          -->
+          @for (row of paginatedData; track row.id ?? $index) {
+            <tr
+              class="table-row"
               [class.selected]="isRowSelected(row)"
               (click)="onRowClick(row, $event)"
             >
@@ -150,7 +154,7 @@
               }
 
               @for (column of columns; track column.key) {
-                <td 
+                <td
                   class="table-cell"
                   [class.text-center]="column.align === 'center'"
                   [class.text-right]="column.align === 'right'"
@@ -159,8 +163,6 @@
                     <span class="badge" [attr.data-color]="getBadgeColor(column, row[column.key])">
                       {{ formatCellValue(column, row[column.key]) }}
                     </span>
-                  } @else if (column.type === 'custom') {
-                    <ng-content [select]="'[cell-' + column.key + ']'"></ng-content>
                   } @else {
                     <span class="cell-content">
                       {{ formatCellValue(column, row[column.key]) }}
@@ -169,10 +171,18 @@
                 </td>
               }
 
-              @if (hasActions) {
-                <td class="table-cell table-actions">
+              <!--
+                FIX: Renderizar el actionsTemplate con la fila como contexto.
+                Esto permite que cada fila tenga sus propios botones con referencia
+                a sus datos, en lugar de compartir un único ng-content.
+              -->
+              @if (hasActions && actionsTemplate) {
+                <td class="table-cell table-actions" (click)="$event.stopPropagation()">
                   <div class="actions-container">
-                    <ng-content select="[actions]"></ng-content>
+                    <ng-container
+                      [ngTemplateOutlet]="actionsTemplate"
+                      [ngTemplateOutletContext]="{ $implicit: row }"
+                    ></ng-container>
                   </div>
                 </td>
               }
@@ -188,12 +198,13 @@
     <div class="table-footer">
       <div class="footer-info">
         <span class="results-text">
-          Mostrando <strong>{{ showingFrom }}</strong> a <strong>{{ showingTo }}</strong> de <strong>{{ displayedTotal }}</strong> resultados
+          Mostrando <strong>{{ showingFrom }}</strong> a <strong>{{ showingTo }}</strong>
+          de <strong>{{ displayedTotal }}</strong> resultados
         </span>
       </div>
 
       <div class="pagination">
-        <button 
+        <button
           class="pagination-btn"
           [disabled]="currentPage === 1"
           (click)="previousPage()"
@@ -218,7 +229,7 @@
           }
         }
 
-        <button 
+        <button
           class="pagination-btn"
           [disabled]="currentPage === totalPages"
           (click)="nextPage()"
@@ -231,4 +242,5 @@
       </div>
     </div>
   }
+
 </div>

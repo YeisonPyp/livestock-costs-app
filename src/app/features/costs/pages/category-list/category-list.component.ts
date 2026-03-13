@@ -2,8 +2,8 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
@@ -25,13 +25,7 @@ import { ModalComponent } from '../../../../shared/components/modal/modal.compon
 import { CategoryFormComponent } from '../category-form/category-form.component';
 import { NotificationService } from '../../../../core/services/notification.service';
 
-interface CategoryListState {
-  categories: Category[];
-  totalItems: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
-}
+const PAGE_SIZE = 10;
 
 @Component({
   selector: 'app-category-list',
@@ -55,31 +49,36 @@ interface CategoryListState {
 export class CategoryListComponent implements OnInit {
   private svc = inject(CategoryService);
   private dialog = inject(MatDialog);
-  private snackBar = inject(MatSnackBar);
   private notificationService = inject(NotificationService);
 
+  // ── Signals ────────────────────────────────────────────────────────────────
   tree = signal<CategoryTree[]>([]);
   flatList = signal<Category[]>([]);
   loading = signal(false);
+  loadingList = signal(false);
   viewMode = signal<'tree' | 'list'>('tree');
-  searchTerm = '';
+  pagination  = signal<any>(null);
+
+  // ── Paginación ─────────────────────────────────────────────────────────────
+  readonly PAGE_SIZE = PAGE_SIZE;
+  currentPage = 1;
+
+  // ── Búsqueda ───────────────────────────────────────────────────────────────
+  private search$ = new Subject<string>();
+  searchTerm      = '';
+
+    // ── Modals ─────────────────────────────────────────────────────────────────
+  isSubmitting      = false;
+  selectedCategory: Category | null = null;
+  selectedParentId: string | null   = null;
+  isCreateModalOpen = false;
+  isEditModalOpen   = false;
+
+
   expandedIds = new Set<string>();
   categories: Category[] = [];
-  isSubmitting = false;
-  selectedCategory: Category | null = null;
-  selectedParentId: string | null = null;
-
-  isCreateModalOpen = false;
-  isEditModalOpen = false;
   isViewModalOpen = false;
 
-  state = signal<CategoryListState>({
-    categories: [],
-    totalItems: 0,
-    totalPages: 1,
-    currentPage: 1,
-    pageSize: 10,
-  });
 
   ngOnInit(): void {
     this.loadTree();
@@ -87,18 +86,17 @@ export class CategoryListComponent implements OnInit {
   }
 
   private loadTree(): void {
+    this.loading.set(true);
     this.svc.getTree().subscribe({
       next: (r) => {
         if (r.success) {
           this.tree.set(r.data);
-          // Auto-expand level-0 nodes
+          // Expandir el primer nivel automáticamente
           r.data.forEach((n) => this.expandedIds.add(n.id));
         }
         this.loading.set(false);
       },
-      error: () => {
-        this.loading.set(false);
-      },
+      error: () => this.loading.set(false),
     });
   }
 
@@ -155,14 +153,12 @@ export class CategoryListComponent implements OnInit {
   private deleteCategory(id: string): void {
     this.svc.delete(id).subscribe({
       next: () => {
-        this.snackBar.open('Categoría eliminada', 'Cerrar', { duration: 3000 });
+        this.notificationService.success('Categoría eliminada');
         this.reload();
       },
       error: (err) => {
-        this.snackBar.open(
+        this.notificationService.error(
           err?.error?.message || 'No se puede eliminar',
-          'Cerrar',
-          { duration: 4000 },
         );
       },
     });
@@ -178,15 +174,16 @@ export class CategoryListComponent implements OnInit {
     );
   }
 
+    // ── Table config ───────────────────────────────────────────────────────────
   tableConfig: TableConfig = {
-    searchable: false, // Desactivamos búsqueda local, la manejamos vía servidor
-    paginated: true,
-    pageSize: 10,
+    searchable:       true,
+    paginated:        true,
     serverPagination: true,
-    striped: true,
-    hover: true,
-    bordered: false,
-    compact: false,
+    pageSize:         PAGE_SIZE,
+    striped:          true,
+    hover:            true,
+    bordered:         false,
+    compact:          false,
   };
 
   columns: TableColumn[] = [
@@ -235,49 +232,37 @@ export class CategoryListComponent implements OnInit {
   /**
    * Cargar lista desde el servidor con paginación y filtros
    */
-  private loadList(params?: PaginationParams): void {
-    this.loading.set(true);
+
+    loadList(params?: PaginationParams): void {
+    this.loadingList.set(true);
 
     const queryParams: any = {
-      page: params?.page || this.state().currentPage,
-      page_size: params?.page_size || this.state().pageSize,
+      page:      params?.page      ?? this.currentPage,
+      page_size: params?.page_size ?? PAGE_SIZE,
     };
 
-    if (params?.search) {
-      queryParams.search = params.search;
-    }
-
-    if (params?.sort_by) {
-      queryParams.sort_by = params.sort_by;
-      queryParams.sort_direction = params.sort_direction;
-    }
+    if (params?.search)       queryParams.search         = params.search;
+    if (params?.sort_by)      queryParams.sort_by        = params.sort_by;
+    if (params?.sort_direction) queryParams.sort_direction = params.sort_direction;
 
     this.svc.getAll(queryParams).subscribe({
-      next: (response) => {
-        if (response.success) {
-          const newState = this.state();
-          newState.categories = response.data || [];
-          newState.totalItems = response.pagination?.count || 0;
-          newState.totalPages = response.pagination?.total_pages || 1;
-          newState.currentPage = response.pagination?.current_page || 1;
-          this.state.set({ ...newState });
+      next: (r) => {
+        if (r.success) {
+          this.flatList.set(r.data ?? []);
+          this.pagination.set(r.pagination ?? null);
         }
-        this.loading.set(false);
+        this.loadingList.set(false);
       },
-      error: (error) => {
-        console.error('Error loading categories:', error);
-        this.snackBar.open('Error al cargar categorías', 'Cerrar', {
-          duration: 4000,
-        });
-        this.loading.set(false);
+      error: () => {
+        this.notificationService.error('Error al cargar categorías');
+        this.loadingList.set(false);
       },
     });
   }
 
-  /**
-   * Manejo de cambios en paginación/ordenamiento desde TableComponent
-   */
+  // ── Table events ────────────────────────────────────────────────────────────
   onPaginationParamsChange(params: PaginationParams): void {
+    this.currentPage = params.page ?? 1;
     this.loadList(params);
   }
 
@@ -300,7 +285,6 @@ export class CategoryListComponent implements OnInit {
   // Create
   openCreateModal(parentId?: string): void {
     this.selectedParentId = parentId ?? null;
-
     this.isCreateModalOpen = true;
   }
 
@@ -333,19 +317,15 @@ export class CategoryListComponent implements OnInit {
   }
 
   openEditModal(category: Category): void {
-
-  this.svc.getById(category.id).subscribe({
-    next: (r) => {
-
-      if (r.success) {
-        this.selectedCategory = r.data;
-        this.isEditModalOpen = true;
-      }
-
-    }
-  });
-
-}
+    this.svc.getById(category.id).subscribe({
+      next: (r) => {
+        if (r.success) {
+          this.selectedCategory = r.data;
+          this.isEditModalOpen = true;
+        }
+      },
+    });
+  }
 
   closeEditModal(): void {
     this.isEditModalOpen = false;
