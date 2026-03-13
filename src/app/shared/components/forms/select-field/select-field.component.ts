@@ -32,10 +32,11 @@ export class SelectFieldComponent implements ControlValueAccessor {
   @Input() control?: AbstractControl | null;
   @Input() hasError = false;                    // ← Input para error externo
   @Input() errorMessage = '';                   // ← Input para mensaje de error
+  @Input() disabled = false;
 
   readonly inputId = `select-${++nextId}`;
   value: string | number = '';
-  disabled = false;
+  private isDisabledByForm = false;
 
   private onChangeFn: (v: string | number) => void = () => {};
   private onTouchedFn: () => void = () => {};
@@ -52,8 +53,12 @@ export class SelectFieldComponent implements ControlValueAccessor {
     this.onTouchedFn = fn; 
   }
 
-  setDisabledState(d: boolean): void { 
-    this.disabled = d; 
+  setDisabledState(d: boolean): void {
+    this.isDisabledByForm = d;
+  }
+  
+  get isDisabled(): boolean {
+    return this.disabled || this.isDisabledByForm;
   }
 
   onChange(event: Event): void {

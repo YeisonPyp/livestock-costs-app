@@ -28,39 +28,52 @@ export class MenuService {
       path: '/costs/categories',
     },
     {
-      label: 'Gestión de Costos',
-      icon: 'dollar-sign',
-      color: 'green',
-      children: [
-        {
-          label: 'Registro de Costos',
-          icon: 'list',
-          path: '/costs/costs',
-        },
-        {
-          label: 'Reportes',
-          icon: 'file-text',
-          path: '/costs/reports',
-        },
-      ],
-    },
-    {
       label: 'Fincas',
       icon: 'home',
       color: 'yellow',
-      children: [
-        {
-          label: 'Lista de Fincas',
-          icon: 'list',
-          path: '/farms',
-        },
-        {
-          label: 'Nueva Finca',
-          icon: 'plus-circle',
-          path: '/farms/new',
-        },
-      ],
+      path: '/farms',
     },
+
+    // {
+    //   label: 'Fincas',
+    //   icon: 'home',
+    //   color: 'yellow',
+    //   children: [
+    //     {
+    //       label: 'Lista de Fincas',
+    //       icon: 'list',
+    //       path: '/farms',
+    //     },
+    //     {
+    //       label: 'Nueva Finca',
+    //       icon: 'plus-circle',
+    //       path: '/farms/new',
+    //     },
+    //   ],
+    // },
+    {
+      label: 'Gestión de Costos',
+      icon: 'dollar-sign',
+      color: 'green',
+      path: '/costs/costs',
+    },
+    // {
+    //   label: 'Gestión de Costos',
+    //   icon: 'dollar-sign',
+    //   color: 'green',
+    //   children: [
+    //     {
+    //       label: 'Registro de Costos',
+    //       icon: 'list',
+    //       path: '/costs/costs',
+    //     },
+    //     {
+    //       label: 'Reportes',
+    //       icon: 'file-text',
+    //       path: '/costs/reports',
+    //     },
+    //   ],
+    // },
     {
       label: 'Ganado',
       icon: 'plus-circle',

@@ -37,6 +37,7 @@
       label="Total mes"
       [value]="totals()?.total ?? 0"
       type="currency"
+      currency="COP"
       icon="trending-up"
     />
     <app-kpi-card
@@ -125,7 +126,7 @@
   <button
     class="action-btn action-btn--view"
     title="Ver detalle"
-    (click)="viewCost(row)"
+    (click)="openViewModal(row)"
   >
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -159,3 +160,84 @@
   </button>
 
 </ng-template>
+
+<app-modal
+  [isOpen]="isViewModalOpen"
+  title="Detalle del costo"
+  size="lg"
+  [showFooter]="false"
+  (close)="closeViewModal()"
+>
+
+@if (selectedCost) {
+
+  <div class="cost-detail">
+
+    <div class="detail-grid">
+
+      <div class="detail-item">
+        <label>Categoría</label>
+        <span>
+          {{ selectedCost.category.code }} - {{ selectedCost.category.name }}
+        </span>
+      </div>
+
+      <div class="detail-item">
+        <label>Finca</label>
+        <span>
+          {{ selectedCost.farm.code }} - {{ selectedCost.farm.name }}
+        </span>
+      </div>
+
+      <div class="detail-item">
+        <label>Fecha</label>
+        <span>
+          {{ selectedCost.date | date:'mediumDate' }}
+        </span>
+      </div>
+
+      <div class="detail-item">
+        <label>Monto</label>
+        <span class="amount">
+          $ {{ selectedCost.amount | number:'1.0-2' }}
+        </span>
+      </div>
+
+    </div>
+
+    <div class="detail-block">
+      <label>Descripción</label>
+      <p>{{ selectedCost.description }}</p>
+    </div>
+
+    @if (selectedCost.notes) {
+    <div class="detail-block">
+      <label>Notas</label>
+      <p>{{ selectedCost.notes }}</p>
+    </div>
+    }
+
+    <div class="detail-meta">
+
+      <div>
+        <label>Creado por </label>
+        <span>{{ selectedCost.created_by_name || '—' }}</span>
+      </div>
+
+      <div>
+        <label>Creado el </label>
+        <span>{{ selectedCost.created_at | date:'medium' }}</span>
+      </div>
+
+      <div>
+        <label>Actualizado </label>
+        <span>{{ selectedCost.updated_at | date:'medium' }}</span>
+      </div>
+
+    </div>
+
+  </div>
+
+  }
+
+</app-modal>

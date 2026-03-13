@@ -13,7 +13,7 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
 
 import { CostService }     from '../../services/cost.service';
 import { CategoryService } from '../../services/category.service';
-import { Cost, Category, CostTotals, CostFilters } from '../../models/cost.model';
+import { Cost, Category, CostTotals, CostFilters, CostDetail } from '../../models/cost.model';
 import {
   TableComponent,
   TableColumn,
@@ -21,6 +21,7 @@ import {
   PaginationParams,
 } from '../../../../shared/components/table/table.component';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 
 const PAGE_SIZE = 10; // fuente única de verdad
 
@@ -28,7 +29,7 @@ const PAGE_SIZE = 10; // fuente única de verdad
   selector: 'app-cost-list',
   standalone: true,
   imports: [
-    CommonModule, RouterLink, FormsModule, LoaderComponent,
+    CommonModule, RouterLink, FormsModule, LoaderComponent, ModalComponent,
     PageHeaderComponent, KpiCardComponent, TableComponent,
   ],
   templateUrl: './cost-list.component.html',
@@ -58,6 +59,8 @@ export class CostListComponent implements OnInit {
   endDate     = '';
   ordering    = '-date';
   currentPage = 1;
+  isViewModalOpen = false;
+  selectedCost: CostDetail | null = null;
 
   hasActiveFilters = computed(() =>
     !!(this.searchTerm || this.categoryFilter || this.startDate || this.endDate)
@@ -86,13 +89,6 @@ export class CostListComponent implements OnInit {
       sortable: true,
       type:    'currency',
       align:   'right',
-    },
-    {
-      key:    'status',
-      label:  'Estado',
-      type:   'badge',
-      align:  'center',
-      badgeColor: (v) => v === 'active' ? 'success' : 'warning',
     },
   ];
 
@@ -179,7 +175,7 @@ export class CostListComponent implements OnInit {
 
   /** Navegar a la pantalla de edición del costo */
   editCost(cost: Cost): void {
-    this.router.navigate(['/costs/costs/new', cost.id, 'edit']);
+    this.router.navigate(['/costs/costs/', cost.id, 'edit']);
   }
 
   /** Ver detalle (opcional) */
@@ -193,7 +189,7 @@ export class CostListComponent implements OnInit {
       .open(ConfirmDialogComponent, {
         data: {
           title:       'Eliminar Costo',
-          message:     `¿Eliminar el registro "${cost.description}"? Esta acción no se puede deshacer.`,
+          message:     `¿Deseas eliminar el registro "${cost.description} con valor $ ${cost.amount}"? Esta acción no se puede deshacer.`,
           confirmText: 'Eliminar',
           type:        'danger',
         },
@@ -214,6 +210,26 @@ export class CostListComponent implements OnInit {
         this.notSvc.error(err?.error?.message || 'Error al guardar el costo',);
       }
     });
+  }
+
+  openViewModal(cost: Cost): void {
+
+    this.isViewModalOpen = true;
+    this.selectedCost = null;
+
+    this.costSvc.getById(cost.id).subscribe({
+      next: (r) => {
+        if (r.success) {
+          this.selectedCost = r.data;
+        }
+      }
+    });
+
+  }
+
+  closeViewModal(): void {
+    this.isViewModalOpen = false;
+    this.selectedCost = null;
   }
 
   // ── Filters ─────────────────────────────────────────────────────────────────

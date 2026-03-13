@@ -1,3 +1,5 @@
+import { FarmsSimple } from "../../farms/models/farm.model";
+
 // src/app/modules/costs/models/cost.model.ts
 export type UUID = string;
 
@@ -38,6 +40,20 @@ export interface Cost {
   description: string;
   notes?: string;
   created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CostDetail {
+  id: UUID;
+  category: Category;
+  farm: FarmsSimple;
+  date: string;            // YYYY-MM-DD
+  amount: string;
+  description: string;
+  notes?: string;
+  created_by?: string;
+  created_by_name?: string;
   created_at: string;
   updated_at: string;
 }

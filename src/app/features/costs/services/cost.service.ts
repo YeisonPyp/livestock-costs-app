@@ -5,6 +5,7 @@ import { ApiResponse } from '../../../core/models/api-response.model';
 import {
   Cost, CostFilters, CostTotals,
   CategorySummary, MonthlySummary, MonthlyReport, YearToDate,
+  CostDetail,
 } from '../models/cost.model';
 
 @Injectable({ providedIn: 'root' })
@@ -18,7 +19,7 @@ export class CostService {
     return this.api.get(`${this.base}/`, params);
   }
 
-  getById(id: string): Observable<ApiResponse<Cost>> {
+  getById(id: string): Observable<ApiResponse<CostDetail>> {
     return this.api.get(`${this.base}/${id}/`);
   }
 

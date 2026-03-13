@@ -14,7 +14,7 @@ import { AmountDisplayComponent } from '../../../../shared/components/bills/amou
 import { CostService } from '../../services/cost.service';
 import { CategoryService } from '../../services/category.service';
 import { FarmService } from '../../../farms/services/farm.service';
-import { Cost, Category } from '../../models/cost.model';
+import { Cost, Category, CostDetail } from '../../models/cost.model';
 import { FarmsSimple } from '../../../farms/models/farm.model';
 import { NotificationService } from '../../../../core/services/notification.service';
 
@@ -104,8 +104,8 @@ export class CostFormComponent implements OnInit {
           const cost = r.data;
 
           this.form.patchValue({
-            category: cost.category,
-            farm: cost.farm,
+            category: cost.category.id,
+            farm: cost.farm.id,
             date: cost.date,
             amount: Number(cost.amount),
             description: cost.description,
@@ -156,7 +156,7 @@ export class CostFormComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error save costs', error);
-        this.notSvc.error(error?.error?.message || 'Error al guardar el costo');
+        this.notSvc.error(error?.error?.message || 'Error al guardar el costo',);
         this.saving.set(false);
       },
     });

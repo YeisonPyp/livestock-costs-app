@@ -11,7 +11,7 @@
     <select
       [id]="inputId"
       class="field-select"
-      [disabled]="disabled"
+      [disabled]="isDisabled"
       [value]="value"
       (change)="onChange($event)"
       (blur)="onBlur()"
