@@ -104,11 +104,11 @@ export class ReportsComponent implements OnInit {
 
   // ── Export ────────────────────────────────────────────────────────────────
   exportExcel(): void {
-    window.open(this.costSvc.exportExcelUrl({ date_from: this.startDate, date_to: this.endDate }), '_blank');
+    // window.open(this.costSvc.exportExcel({ date_from: this.startDate, date_to: this.endDate }), '_blank');
   }
 
   exportPdf(): void {
-    window.open(this.costSvc.exportPdfUrl({ date_from: this.startDate, date_to: this.endDate }), '_blank');
+    // window.open(this.costSvc.exportPdfUrl({ date_from: this.startDate, date_to: this.endDate }), '_blank');
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────

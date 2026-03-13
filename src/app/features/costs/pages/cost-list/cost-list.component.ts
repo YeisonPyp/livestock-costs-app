@@ -5,15 +5,21 @@ import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 
-import { PageHeaderComponent }   from '../../../../shared/components/page-header/page-header.component';
-import { KpiCardComponent }       from '../../../../shared/components/display/kpi-card/kpi-card.component';
-import { LoaderComponent }        from '../../../../shared/components/loader/loader.component';
-import { EmptyStateComponent }    from '../../../../shared/components/empty-state/empty-state.component';
+import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
+import { KpiCardComponent } from '../../../../shared/components/display/kpi-card/kpi-card.component';
+import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
-import { CostService }     from '../../services/cost.service';
+import { CostService } from '../../services/cost.service';
 import { CategoryService } from '../../services/category.service';
-import { Cost, Category, CostTotals, CostFilters, CostDetail } from '../../models/cost.model';
+import {
+  Cost,
+  Category,
+  CostTotals,
+  CostFilters,
+  CostDetail,
+} from '../../models/cost.model';
 import {
   TableComponent,
   TableColumn,
@@ -29,41 +35,52 @@ const PAGE_SIZE = 10; // fuente única de verdad
   selector: 'app-cost-list',
   standalone: true,
   imports: [
-    CommonModule, RouterLink, FormsModule, LoaderComponent, ModalComponent,
-    PageHeaderComponent, KpiCardComponent, TableComponent,
+    CommonModule,
+    RouterLink,
+    FormsModule,
+    LoaderComponent,
+    ModalComponent,
+    PageHeaderComponent,
+    KpiCardComponent,
+    TableComponent,
   ],
   templateUrl: './cost-list.component.html',
-  styleUrl:    './cost-list.component.scss',
+  styleUrl: './cost-list.component.scss',
 })
 export class CostListComponent implements OnInit {
-
-  private costSvc  = inject(CostService);
-  private catSvc   = inject(CategoryService);
-  private dialog   = inject(MatDialog);
-  private notSvc   = inject(NotificationService);
-  private router   = inject(Router);
+  private costSvc = inject(CostService);
+  private catSvc = inject(CategoryService);
+  private dialog = inject(MatDialog);
+  private notSvc = inject(NotificationService);
+  private router = inject(Router);
 
   // ── Signals ────────────────────────────────────────────────────────────────
-  costs       = signal<Cost[]>([]);
-  categories  = signal<Category[]>([]);
-  totals      = signal<CostTotals | null>(null);
-  pagination  = signal<any>(null);
-  loading     = signal(true);
+  costs = signal<Cost[]>([]);
+  categories = signal<Category[]>([]);
+  totals = signal<CostTotals | null>(null);
+  pagination = signal<any>(null);
+  loading = signal(true);
   loadingKpis = signal(true);
 
   // ── Filters ────────────────────────────────────────────────────────────────
   private search$ = new Subject<string>();
-  searchTerm      = '';
+  searchTerm = '';
   categoryFilter: number | '' = '';
-  startDate   = '';
-  endDate     = '';
-  ordering    = '-date';
+  startDate = '';
+  endDate = '';
+  ordering = '-date';
   currentPage = 1;
   isViewModalOpen = false;
   selectedCost: CostDetail | null = null;
 
-  hasActiveFilters = computed(() =>
-    !!(this.searchTerm || this.categoryFilter || this.startDate || this.endDate)
+  hasActiveFilters = computed(
+    () =>
+      !!(
+        this.searchTerm ||
+        this.categoryFilter ||
+        this.startDate ||
+        this.endDate
+      ),
   );
 
   // ── Table config ───────────────────────────────────────────────────────────
@@ -71,24 +88,24 @@ export class CostListComponent implements OnInit {
   readonly PAGE_SIZE = PAGE_SIZE;
 
   tableConfig: TableConfig = {
-    searchable:       false, // buscador propio arriba
-    paginated:        true,
+    searchable: false, // buscador propio arriba
+    paginated: true,
     serverPagination: true,
-    pageSize:         PAGE_SIZE,
-    striped:          true,
-    hover:            true,
+    pageSize: PAGE_SIZE,
+    striped: true,
+    hover: true,
   };
 
   columns: TableColumn[] = [
-    { key: 'date',          label: 'Fecha',      sortable: true, type: 'date' },
+    { key: 'date', label: 'Fecha', sortable: true, type: 'date' },
     { key: 'category_name', label: 'Categoría' },
-    { key: 'description',   label: 'Descripción' },
+    { key: 'description', label: 'Descripción' },
     {
-      key:     'amount',
-      label:   'Monto',
+      key: 'amount',
+      label: 'Monto',
       sortable: true,
-      type:    'currency',
-      align:   'right',
+      type: 'currency',
+      align: 'right',
     },
   ];
 
@@ -100,25 +117,33 @@ export class CostListComponent implements OnInit {
 
     this.search$
       .pipe(debounceTime(350), distinctUntilChanged())
-      .subscribe(() => { this.currentPage = 1; this.loadCosts(); });
+      .subscribe(() => {
+        this.currentPage = 1;
+        this.loadCosts();
+      });
   }
 
   // ── Loaders ─────────────────────────────────────────────────────────────────
   private loadCategories(): void {
     this.catSvc.getAll().subscribe({
-      next: (r) => { if (r.success) this.categories.set(r.data); },
+      next: (r) => {
+        if (r.success) this.categories.set(r.data);
+      },
     });
   }
 
   private loadTotals(): void {
     this.loadingKpis.set(true);
     const filters: Partial<CostFilters> = {};
-    if (this.startDate)      filters.date_from = this.startDate;
-    if (this.endDate)        filters.date_to   = this.endDate;
-    if (this.categoryFilter) filters.category  = +this.categoryFilter;
+    if (this.startDate) filters.date_from = this.startDate;
+    if (this.endDate) filters.date_to = this.endDate;
+    if (this.categoryFilter) filters.category = +this.categoryFilter;
 
     this.costSvc.getTotals(filters).subscribe({
-      next:  (r) => { if (r.success) this.totals.set(r.data); this.loadingKpis.set(false); },
+      next: (r) => {
+        if (r.success) this.totals.set(r.data);
+        this.loadingKpis.set(false);
+      },
       error: () => this.loadingKpis.set(false),
     });
   }
@@ -130,12 +155,12 @@ export class CostListComponent implements OnInit {
     const filters: CostFilters = {
       page,
       page_size: PAGE_SIZE,
-      ordering:  this.ordering,
+      ordering: this.ordering,
     };
-    if (this.searchTerm)     filters.search   = this.searchTerm;
+    if (this.searchTerm) filters.search = this.searchTerm;
     if (this.categoryFilter) filters.category = +this.categoryFilter;
-    if (this.startDate)      filters.date_from = this.startDate;
-    if (this.endDate)        filters.date_to   = this.endDate;
+    if (this.startDate) filters.date_from = this.startDate;
+    if (this.endDate) filters.date_to = this.endDate;
 
     this.costSvc.getAll(filters).subscribe({
       next: (r) => {
@@ -159,9 +184,10 @@ export class CostListComponent implements OnInit {
     this.currentPage = params.page ?? 1;
 
     if (params.sort_by) {
-      this.ordering = params.sort_direction === 'desc'
-        ? `-${params.sort_by}`
-        : params.sort_by;
+      this.ordering =
+        params.sort_direction === 'desc'
+          ? `-${params.sort_by}`
+          : params.sort_by;
     }
 
     if (params.search !== undefined) {
@@ -188,32 +214,33 @@ export class CostListComponent implements OnInit {
     this.dialog
       .open(ConfirmDialogComponent, {
         data: {
-          title:       'Eliminar Costo',
-          message:     `¿Deseas eliminar el registro "${cost.description} con valor $ ${cost.amount}"? Esta acción no se puede deshacer.`,
+          title: 'Eliminar Costo',
+          message: `¿Deseas eliminar el registro "${cost.description} con valor $ ${cost.amount}"? Esta acción no se puede deshacer.`,
           confirmText: 'Eliminar',
-          type:        'danger',
+          type: 'danger',
         },
       })
       .afterClosed()
-      .subscribe((ok) => { if (ok) this.deleteCost(cost.id); });
+      .subscribe((ok) => {
+        if (ok) this.deleteCost(cost.id);
+      });
   }
 
   private deleteCost(id: string): void {
     this.costSvc.delete(id).subscribe({
       next: () => {
-        this.notSvc.success('Registro eliminado',);
+        this.notSvc.success('Registro eliminado');
         this.loadCosts();
         this.loadTotals();
       },
       error: (err) => {
         console.error('Error save costs', err);
-        this.notSvc.error(err?.error?.message || 'Error al guardar el costo',);
-      }
+        this.notSvc.error(err?.error?.message || 'Error al guardar el costo');
+      },
     });
   }
 
   openViewModal(cost: Cost): void {
-
     this.isViewModalOpen = true;
     this.selectedCost = null;
 
@@ -222,9 +249,8 @@ export class CostListComponent implements OnInit {
         if (r.success) {
           this.selectedCost = r.data;
         }
-      }
+      },
     });
-
   }
 
   closeViewModal(): void {
@@ -233,45 +259,59 @@ export class CostListComponent implements OnInit {
   }
 
   // ── Filters ─────────────────────────────────────────────────────────────────
-  onSearchChange(val: string): void { this.searchTerm = val; this.search$.next(val); }
+  onSearchChange(val: string): void {
+    this.searchTerm = val;
+    this.search$.next(val);
+  }
 
-  onFilterChange(): void { this.currentPage = 1; this.loadCosts(); this.loadTotals(); }
+  onFilterChange(): void {
+    this.currentPage = 1;
+    this.loadCosts();
+    this.loadTotals();
+  }
 
   clearFilters(): void {
-    this.searchTerm     = '';
+    this.searchTerm = '';
     this.categoryFilter = '';
-    this.startDate      = '';
-    this.endDate        = '';
-    this.ordering       = '-date';
+    this.startDate = '';
+    this.endDate = '';
+    this.ordering = '-date';
     this.onFilterChange();
   }
 
   // ── Export ──────────────────────────────────────────────────────────────────
-  private download(url: string) {
-    const link = document.createElement('a');
-    link.href = url;
-    link.target = '_blank';
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
   exportExcel(): void {
-    const url = this.costSvc.exportExcelUrl(this.activeFilters());
-    this.download(url);
+    this.costSvc.exportExcel(this.activeFilters()).subscribe((blob) => {
+      const file = new Blob([blob]);
+      const url = window.URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'reporte_costos.xlsx';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    });
   }
 
   exportPdf(): void {
-    const url = this.costSvc.exportPdfUrl(this.activeFilters());
-    this.download(url);
-  }
+    this.costSvc.exportPdf(this.activeFilters()).subscribe((blob) => {
+      const file = new Blob([blob], { type: 'application/pdf' });
 
+      const url = window.URL.createObjectURL(file);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'reporte_costos.pdf';
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+    });
+  }
+  
   private activeFilters(): Partial<CostFilters> {
     const f: Partial<CostFilters> = {};
-    if (this.startDate)      f.date_from = this.startDate;
-    if (this.endDate)        f.date_to   = this.endDate;
-    if (this.categoryFilter) f.category  = +this.categoryFilter;
+    if (this.startDate) f.date_from = this.startDate;
+    if (this.endDate) f.date_to = this.endDate;
+    if (this.categoryFilter) f.category = +this.categoryFilter;
     return f;
   }
 

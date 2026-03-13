@@ -8,22 +8,31 @@ import { ApiResponse } from '../models/api-response.model';
   providedIn: 'root'
 })
 export class ApiService {
+
   private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
-  get<T>(endpoint: string, params?: any): Observable<ApiResponse<T>> {
+  private buildParams(params?: any): HttpParams {
     let httpParams = new HttpParams();
-    
+
     if (params) {
       Object.keys(params).forEach(key => {
-        if (params[key] !== null && params[key] !== undefined) {
-          httpParams = httpParams.append(key, params[key].toString());
+        const value = params[key];
+        if (value !== null && value !== undefined && value !== '') {
+          httpParams = httpParams.append(key, value.toString());
         }
       });
     }
 
-    return this.http.get<ApiResponse<T>>(`${this.baseUrl}${endpoint}`, { params: httpParams });
+    return httpParams;
+  }
+
+  get<T>(endpoint: string, params?: any): Observable<ApiResponse<T>> {
+    return this.http.get<ApiResponse<T>>(
+      `${this.baseUrl}${endpoint}`,
+      { params: this.buildParams(params) }
+    );
   }
 
   post<T>(endpoint: string, body: any): Observable<ApiResponse<T>> {
@@ -37,4 +46,15 @@ export class ApiService {
   delete<T>(endpoint: string): Observable<ApiResponse<T>> {
     return this.http.delete<ApiResponse<T>>(`${this.baseUrl}${endpoint}`);
   }
+
+  /**
+   * Descargar archivos (PDF, Excel, etc)
+   */
+  download(endpoint: string, params?: any): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}${endpoint}`, {
+      params: this.buildParams(params),
+      responseType: 'blob'
+    });
+  }
+
 }

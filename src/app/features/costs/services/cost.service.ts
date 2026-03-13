@@ -11,9 +11,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class CostService {
   private api  = inject(ApiService);
-  private base = '/costs/costs';
-  private API_URL = 'http://localhost:8000';
-  
+  private base = '/costs/costs';  
 
   // ── CRUD ──────────────────────────────────────────────────────────────────
   getAll(filters: CostFilters = {}): Observable<ApiResponse<Cost[]>> {
@@ -64,14 +62,14 @@ export class CostService {
 
   // ── Export ────────────────────────────────────────────────────────────────
   /** Returns a URL to trigger download — open in new tab or via anchor */
-  exportExcelUrl(filters?: Partial<CostFilters>): string {
-    const q = new URLSearchParams(this.cleanParams(filters ?? {})).toString();
-    return `/api/${this.base}/export-excel/${q ? '?' + q : ''}`;
+  exportPdf(filters: CostFilters = {}) {
+    const params = this.cleanParams(filters);
+    return this.api.download(`${this.base}/export-pdf/`, params);
   }
 
-  exportPdfUrl(filters?: Partial<CostFilters>): string {
-    const q = new URLSearchParams(this.cleanParams(filters ?? {})).toString();
-    return `${this.API_URL}/api/v1${this.base}/export-pdf/${q ? '?' + q : ''}`;
+  exportExcel(filters: CostFilters = {}) {
+    const params = this.cleanParams(filters);
+    return this.api.download(`${this.base}/export-excel/`, params);
   }
 
   // ── Helper ────────────────────────────────────────────────────────────────

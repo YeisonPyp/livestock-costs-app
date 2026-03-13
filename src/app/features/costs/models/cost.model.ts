@@ -114,6 +114,8 @@ export interface YearToDate {
 
 // ── Filter params ─────────────────────────────────────────────────────────────
 export interface CostFilters {
+  farm_id?: string;
+  // category?: string;
   page?: number;
   page_size?: number;
   category?: number;

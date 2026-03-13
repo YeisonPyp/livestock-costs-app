@@ -13,6 +13,7 @@ import { DropdownMenuComponent, DropdownItem } from '../../../../shared/componen
 import { EmptyStateComponent }    from '../../../../shared/components/empty-state/empty-state.component';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { CostService } from '../../../costs/services/cost.service';
 
 import {
   EmployeeFormDialogComponent,
@@ -25,6 +26,7 @@ import {
   PADDOCK_STATUS, EMPLOYEE_ROLES,
 } from '../../models/farm.model';
 import { formatNumber } from '../../../../core/utils/helpers';
+import { CostFilters } from '../../../costs/models/cost.model';
 
 @Component({
   selector: 'app-farm-detail',
@@ -49,12 +51,21 @@ export class FarmDetailComponent implements OnInit {
   private farmService = inject(FarmService);
   private dialog      = inject(MatDialog);
   private notiService = inject(NotificationService);
+  private costSvc     = inject(CostService);
 
   farm      = signal<Farm | null>(null);
   summary   = signal<FarmSummary | null>(null);
   paddocks  = signal<Paddock[]>([]);
   employees = signal<Employee[]>([]);
   loading   = signal(true);
+
+  private activeFilters(): Partial<CostFilters> {
+    const farmId = this.farm()?.id;
+
+    return {
+      farm_id: farmId
+    };
+  }
 
   formatNumber = formatNumber;
 
@@ -204,5 +215,33 @@ export class FarmDetailComponent implements OnInit {
   // ── Paddock form (placeholder) ─────────────────────────────────────────────
   openPaddockForm(): void {
     // TODO: Implement paddock dialog
+  }
+
+    // ── Export ──────────────────────────────────────────────────────────────────
+  exportExcel(): void {
+    this.costSvc.exportExcel(this.activeFilters()).subscribe((blob) => {
+      const file = new Blob([blob]);
+      const url = window.URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'reporte_costos.xlsx';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    });
+  }
+
+  exportPdf(): void {
+    this.costSvc.exportPdf(this.activeFilters()).subscribe((blob) => {
+      const file = new Blob([blob], { type: 'application/pdf' });
+
+      const url = window.URL.createObjectURL(file);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'reporte_costos.pdf';
+      a.click();
+
+      window.URL.revokeObjectURL(url);
+    });
   }
 }
