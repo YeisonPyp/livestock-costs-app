@@ -32,27 +32,41 @@
 @if (loadingKpis()) {
   <app-loader message="Calculando totales..." />
 } @else if (totals()) {
-  <div class="kpi-grid">
-    <app-kpi-card
-      label="Total mes"
-      [value]="totals()?.total ?? 0"
-      type="currency"
-      currency="COP"
-      icon="trending-up"
-    />
-    <app-kpi-card
-      label="Total año"
-      [value]="totals()?.average  ?? 0"
-      type="currency"
-      icon="calendar"
-    />
-    <app-kpi-card
-      label="Registros"
-      [value]="pagination()?.count ?? 0"
-      type="number"
-      icon="list"
-    />
-  </div>
+  <!-- KPIs -->
+<div class="kpis-row">
+  <app-kpi-card
+    label="Total general"
+    [value]="totals()?.total ?? 0"
+    format="currency"
+    color="blue"
+    icon="dollar-sign"
+    [loading]="loadingKpis()"
+  />
+  <app-kpi-card
+    label="Registros"
+    [value]="totals()?.count ?? 0"
+    format="number"
+    color="purple"
+    icon="file-text"
+    [loading]="loadingKpis()"
+  />
+  <app-kpi-card
+    label="Promedio por registro"
+    [value]="totals()?.average ?? 0"
+    format="currency"
+    color="green"
+    icon="trending-up"
+    [loading]="loadingKpis()"
+  />
+  <app-kpi-card
+    label="Total del año"
+    [value]="totals()?.current_year_total ?? 0"
+    format="currency"
+    color="yellow"
+    icon="zap"
+    [loading]="loadingKpis()"
+  />
+</div>
 }
 
 <!-- ── Filters ───────────────────────────────────────────────────────────────── -->

@@ -63,6 +63,7 @@ export interface CostTotals {
   total: number;
   count: number;
   average: number;
+  current_year_total: number;
   max: number;
   min: number;
 }
