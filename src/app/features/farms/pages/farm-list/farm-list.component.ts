@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { debounceTime, Subject } from 'rxjs';
 
 import { PageHeaderComponent }    from '../../../../shared/components/page-header/page-header.component';
@@ -17,6 +16,7 @@ import { SelectFieldComponent, SelectOption } from '../../../../shared/component
 import { FarmService } from '../../services/farm.service';
 import { Farm, FARM_TYPES, FARM_STATUS } from '../../models/farm.model';
 import { formatNumber } from '../../../../core/utils/helpers';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-farm-list',
@@ -37,7 +37,7 @@ import { formatNumber } from '../../../../core/utils/helpers';
 export class FarmListComponent implements OnInit {
   private farmService = inject(FarmService);
   private dialog      = inject(MatDialog);
-  private snackBar    = inject(MatSnackBar);
+  private notiService = inject(NotificationService);
 
   farms        = signal<Farm[]>([]);
   loading      = signal(true);
@@ -82,7 +82,7 @@ export class FarmListComponent implements OnInit {
       },
       error: () => {
         this.loading.set(false);
-        this.snackBar.open('Error al cargar las fincas', 'Cerrar', { duration: 3000 });
+        this.notiService.error('Error al cargar las fincas', );
       },
     });
   }
@@ -126,12 +126,12 @@ export class FarmListComponent implements OnInit {
   private deleteFarm(id: string): void {
     this.farmService.delete(id).subscribe({
       next: () => {
-        this.snackBar.open('Finca eliminada', 'Cerrar', { duration: 3000 });
+        this.notiService.success('Finca eliminada', );
         this.loadFarms();
       },
       error: (err) => {
         const msg = err?.error?.message || 'Error al eliminar la finca';
-        this.snackBar.open(msg, 'Cerrar', { duration: 4000 });
+        this.notiService.error(msg, );
       },
     });
   }

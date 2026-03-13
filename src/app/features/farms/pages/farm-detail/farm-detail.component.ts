@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { PageHeaderComponent }   from '../../../../shared/components/page-header/page-header.component';
 import { LoaderComponent }        from '../../../../shared/components/loader/loader.component';
@@ -13,6 +12,7 @@ import { ProgressBarComponent }   from '../../../../shared/components/display/pr
 import { DropdownMenuComponent, DropdownItem } from '../../../../shared/components/display/dropdown-menu/dropdown-menu.component';
 import { EmptyStateComponent }    from '../../../../shared/components/empty-state/empty-state.component';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 import {
   EmployeeFormDialogComponent,
@@ -48,7 +48,7 @@ export class FarmDetailComponent implements OnInit {
   private route       = inject(ActivatedRoute);
   private farmService = inject(FarmService);
   private dialog      = inject(MatDialog);
-  private snackBar    = inject(MatSnackBar);
+  private notiService = inject(NotificationService);
 
   farm      = signal<Farm | null>(null);
   summary   = signal<FarmSummary | null>(null);
@@ -79,7 +79,7 @@ export class FarmDetailComponent implements OnInit {
       },
       error: () => {
         this.loading.set(false);
-        this.snackBar.open('Error al cargar la finca', 'Cerrar', { duration: 3000 });
+        this.notiService.error('Error al cargar la finca',);
       },
     });
   }
@@ -91,15 +91,15 @@ export class FarmDetailComponent implements OnInit {
   }
 
   private loadPaddocks(id: string): void {
-    this.farmService.getPaddocks(id).subscribe({
-      next: (res) => { if (res.success) this.paddocks.set(res.data); },
-    });
+    // this.farmService.getPaddocks(id).subscribe({
+    //   next: (res) => { if (res.success) this.paddocks.set(res.data); },
+    // });
   }
 
   private loadEmployees(id: string): void {
-    this.farmService.getEmployees(id).subscribe({
-      next: (res) => { if (res.success) this.employees.set(res.data); },
-    });
+    // this.farmService.getEmployees(id).subscribe({
+    //   next: (res) => { if (res.success) this.employees.set(res.data); },
+    // });
   }
 
   // ── Label helpers ──────────────────────────────────────────────────────────

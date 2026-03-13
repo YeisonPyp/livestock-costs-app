@@ -18,7 +18,7 @@ export class FarmService {
   }
 
   getById(id: string): Observable<ApiResponse<Farm>> {
-    return this.api.get(`${this.endpoint}${id}`);
+    return this.api.get(`${this.endpoint}${id}/`);
   }
 
   create(data: Partial<Farm>): Observable<ApiResponse<Farm>> {
@@ -26,23 +26,23 @@ export class FarmService {
   }
 
   update(id: string, data: Partial<Farm>): Observable<ApiResponse<Farm>> {
-    return this.api.put(`${this.endpoint}${id}`, data);
+    return this.api.put(`${this.endpoint}${id}/`, data);
   }
 
   delete(id: string): Observable<ApiResponse<void>> {
-    return this.api.delete(`${this.endpoint}${id}`);
+    return this.api.delete(`${this.endpoint}${id}/`);
   }
 
   getSummary(id: string): Observable<ApiResponse<FarmSummary>> {
-    return this.api.get(`${this.endpoint}${id}/summary`);
+    return this.api.get(`${this.endpoint}${id}/summary/`);
   }
 
   getAllSummary(): Observable<ApiResponse<Farm[]>> {
-    return this.api.get(`${this.endpoint}all-summary`);
+    return this.api.get(`${this.endpoint}all-summary/`);
   }
 
   getListSimple(): Observable<ApiResponse<Farm[]>> {
-    return this.api.get(`${this.endpoint}simple`);
+    return this.api.get(`${this.endpoint}simple/`);
   }
 
   // ==================== PADDOCKS ====================

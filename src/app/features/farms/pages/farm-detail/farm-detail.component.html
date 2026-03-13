@@ -1,10 +1,4 @@
 <app-page-header [title]="farm()?.name || 'Cargando...'">
-  <ng-container breadcrumb>
-    <a routerLink="/farms" class="breadcrumb-link">Fincas</a>
-    <span class="breadcrumb-sep">/</span>
-    <span>{{ farm()?.code }}</span>
-  </ng-container>
-
   <div class="header-actions">
     <a [routerLink]="['edit']" class="btn btn-outline btn-sm">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -80,9 +74,6 @@
               <h4 class="info-card-title">Áreas</h4>
               <div class="info-row"><span class="info-label">Total</span>       <span class="info-value">{{ formatNumber(farm()!.total_area) }} ha</span></div>
               <div class="info-row"><span class="info-label">Útil</span>        <span class="info-value">{{ formatNumber(farm()!.usable_area ?? 0) }} ha</span></div>
-              <div class="info-row"><span class="info-label">Bosque</span>      <span class="info-value">{{ formatNumber(farm()!.forest_area ?? 0) }} ha</span></div>
-              <div class="info-row"><span class="info-label">Agua</span>        <span class="info-value">{{ formatNumber(farm()!.water_area ?? 0) }} ha</span></div>
-              <div class="info-row"><span class="info-label">Pasto</span>       <span class="info-value">{{ formatNumber(farm()!.pasture_area ?? 0) }} ha</span></div>
             </div>
 
             <div class="info-card">
@@ -91,9 +82,6 @@
               <div class="info-row"><span class="info-label">Ganado Actual</span>       <span class="info-value">{{ farm()!.current_cattle_count }} cabezas</span></div>
               <div class="info-row"><span class="info-label">Disponible</span>          <span class="info-value">{{ farm()!.available_capacity }} cabezas</span></div>
               <div class="info-row"><span class="info-label">Ocupación</span>           <span class="info-value">{{ formatNumber(farm()!.occupancy_percentage, 1) }}%</span></div>
-              @if (farm()!.carrying_capacity) {
-                <div class="info-row"><span class="info-label">Cap. de Carga</span>    <span class="info-value">{{ farm()!.carrying_capacity }} UGG/ha</span></div>
-              }
             </div>
 
             <div class="info-card">

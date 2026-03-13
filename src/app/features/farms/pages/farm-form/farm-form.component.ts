@@ -2,13 +2,14 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
+
 
 import { PageHeaderComponent }  from '../../../../shared/components/page-header/page-header.component';
 import { LoaderComponent }       from '../../../../shared/components/loader/loader.component';
 import { FormCardComponent }     from '../../../../shared/components/forms/form-card/form-card.component';
 import { InputFieldComponent }   from '../../../../shared/components/forms/input-field/input-field.component';
 import { SelectFieldComponent, SelectOption } from '../../../../shared/components/forms/select-field/select-field.component';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 import { FarmService } from '../../services/farm.service';
 import { FARM_TYPES, FARM_STATUS } from '../../models/farm.model';
@@ -34,7 +35,7 @@ export class FarmFormComponent implements OnInit {
   private router      = inject(Router);
   private route       = inject(ActivatedRoute);
   private farmService = inject(FarmService);
-  private snackBar    = inject(MatSnackBar);
+  private notiService = inject(NotificationService);
 
   form!: FormGroup;
   loading    = signal(false);
@@ -91,7 +92,7 @@ export class FarmFormComponent implements OnInit {
       },
       error: () => {
         this.loading.set(false);
-        this.snackBar.open('Error al cargar la finca', 'Cerrar', { duration: 3000 });
+        this.notiService.error('Error al cargar la finca', );
         this.router.navigate(['/farms']);
       },
     });
@@ -109,16 +110,15 @@ export class FarmFormComponent implements OnInit {
     req$.subscribe({
       next: () => {
         this.saving.set(false);
-        this.snackBar.open(
+        this.notiService.success(
           this.isEditMode() ? 'Finca actualizada exitosamente' : 'Finca creada exitosamente',
-          'Cerrar', { duration: 3000 }
         );
         this.router.navigate(['/farms']);
       },
       error: (err) => {
         this.saving.set(false);
         const msg = err.error?.message || 'Error al guardar la finca';
-        this.snackBar.open(msg, 'Cerrar', { duration: 3000 });
+        this.notiService.error(msg, );
       },
     });
   }
