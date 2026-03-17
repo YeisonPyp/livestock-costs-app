@@ -1,7 +1,13 @@
 import { FarmsSimple } from "../../farms/models/farm.model";
 
-// src/app/modules/costs/models/cost.model.ts
+
 export type UUID = string;
+
+
+export interface SelectOption {
+  value: string;
+  label: string;
+}
 
 // ── Category ──────────────────────────────────────────────────────────────────
 export interface Category {
@@ -38,6 +44,8 @@ export interface Cost {
   date: string;            // YYYY-MM-DD
   amount: string;
   description: string;
+  payment_status: string;
+  payment_method: string;
   notes?: string;
   created_by?: string;
   created_at: string;
@@ -51,6 +59,8 @@ export interface CostDetail {
   date: string;            // YYYY-MM-DD
   amount: string;
   description: string;
+  payment_status: string;
+  payment_method: string;
   notes?: string;
   created_by?: string;
   created_by_name?: string;

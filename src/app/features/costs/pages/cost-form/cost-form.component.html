@@ -1,51 +1,51 @@
 <app-page-header
   [title]="isEdit ? 'Editar Costo' : 'Registrar Costo'"
-  [subtitle]="isEdit ? 'Modifica los datos del registro' : 'Agrega un nuevo registro de gasto'"
-  backUrl="/costs/costs">
+  [subtitle]="
+    isEdit
+      ? 'Modifica los datos del registro'
+      : 'Agrega un nuevo registro de gasto'
+  "
+  backUrl="/costs/costs"
+>
 </app-page-header>
 
 @if (loading()) {
   <app-loader [overlay]="false" type="spinner" message="Cargando..." />
 } @else {
   <div class="form-layout">
-
     <!-- Main form -->
     <div class="form-main">
       <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
-
         @if (error()) {
           <app-alert type="danger" [message]="error()" class="mb-5" />
         }
 
         <!-- Main fields -->
         <app-form-card title="Datos del Gasto" icon="receipt" class="mb-5">
-
           <div class="grid-2 mt-4">
+            <app-select-field
+              label="Categoría"
+              [required]="true"
+              formControlName="category"
+              [options]="categoryOptions"
+              placeholder="Selecciona una categoría de gasto"
+              hint="Solo se muestran categorías habilitadas para registrar costos"
+              [hasError]="hasError('category', 'required')"
+              errorMessage="La categoría es requerida"
+            />
 
-          <app-select-field
-            label="Categoría"
-            [required]="true"
-            formControlName="category"
-            [options]="categoryOptions"
-            placeholder="Selecciona una categoría de gasto"
-            hint="Solo se muestran categorías habilitadas para registrar costos"
-            [hasError]="hasError('category','required')"
-            errorMessage="La categoría es requerida"
-          />
-
-          <app-select-field
-            label="Finca"
-            [required]="true"
-            formControlName="farm"
-            [options]="farmOptions"
-            placeholder="Selecciona una finca"
-            hint="Solo se muestran fincas habilitadas para registrar costos"
-            [hasError]="hasError('farm','required')"
-            errorMessage="La finca es requerida"
-          />
+            <app-select-field
+              label="Finca"
+              [required]="true"
+              formControlName="farm"
+              [options]="farmOptions"
+              placeholder="Selecciona una finca"
+              hint="Solo se muestran fincas habilitadas para registrar costos"
+              [hasError]="hasError('farm', 'required')"
+              errorMessage="La finca es requerida"
+            />
           </div>
           <div class="grid-2 mt-4">
-
             <app-input-field
               label="Fecha del Gasto"
               [required]="true"
@@ -63,43 +63,74 @@
               placeholder="0"
               prefix="$"
             />
+          </div>
 
+          <div class="grid-2 mt-4">
+            <app-select-field
+              label="Estado de costo"
+              [required]="true"
+              formControlName="payment_status"
+              [options]="paymentStatusOptions"
+              placeholder="Selecciona un estado"
+              errorMessage="El estado es requerido"
+            ></app-select-field>
+
+            <app-select-field
+              label="Método de pago"
+              [required]="true"
+              formControlName="payment_method"
+              [options]="paymentMethodOptions"
+              placeholder="Selecciona un metodo de pago"
+              errorMessage="El metodo de pago es requerido"
+            ></app-select-field>
           </div>
 
           <div class="form-group mt-4">
-            <label class="field-label">Descripción <span class="req">*</span></label>
+            <label class="field-label"
+              >Descripción <span class="req">*</span></label
+            >
             <textarea
               formControlName="description"
               class="textarea"
-              [class.error]="hasError('description','required') || hasError('description','maxlength')"
+              [class.error]="
+                hasError('description', 'required') ||
+                hasError('description', 'maxlength')
+              "
               placeholder="Describe el gasto con suficiente detalle..."
               rows="3"
             ></textarea>
-            @if (hasError('description','required')) {
+            @if (hasError("description", "required")) {
               <span class="error-msg">La descripción es requerida</span>
             }
-            @if (hasError('description','maxlength')) {
+            @if (hasError("description", "maxlength")) {
               <span class="error-msg">Máximo 500 caracteres</span>
             }
-            <span class="char-count">{{ form.value.description?.length || 0 }} / 500</span>
+            <span class="char-count"
+              >{{ form.value.description?.length || 0 }} / 500</span
+            >
           </div>
-
         </app-form-card>
 
         <!-- Notes -->
-        <app-form-card title="Notas Adicionales" icon="message-square" class="mb-5">
+        <app-form-card
+          title="Notas Adicionales"
+          icon="message-square"
+          class="mb-5"
+        >
           <div class="form-group">
             <textarea
               formControlName="notes"
               class="textarea"
-              [class.error]="hasError('notes','maxlength')"
+              [class.error]="hasError('notes', 'maxlength')"
               placeholder="Información adicional, número de referencia, proveedor, etc."
               rows="4"
             ></textarea>
-            @if (hasError('notes','maxlength')) {
+            @if (hasError("notes", "maxlength")) {
               <span class="error-msg">Máximo 1000 caracteres</span>
             }
-            <span class="char-count">{{ form.value.notes?.length || 0 }} / 1000</span>
+            <span class="char-count"
+              >{{ form.value.notes?.length || 0 }} / 1000</span
+            >
           </div>
         </app-form-card>
 
@@ -111,12 +142,22 @@
               <span class="spinner-sm"></span>
               Guardando...
             } @else {
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
-              {{ isEdit ? 'Actualizar' : 'Registrar' }} Costo
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+              >
+                <path
+                  d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                />
+                <polyline points="17 21 17 13 7 13 7 21" />
+              </svg>
+              {{ isEdit ? "Actualizar" : "Registrar" }} Costo
             }
           </button>
         </div>
-
       </form>
     </div>
 
@@ -124,23 +165,38 @@
     <aside class="form-aside">
       <div class="preview-card">
         <div class="preview-header">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
           Vista Previa
         </div>
         <div class="preview-body">
           <div class="preview-row">
             <span class="preview-label">Monto</span>
-            <app-amount-display [amount]="previewAmount" type="expense" size="xl" [showSign]="false" />
+            <app-amount-display
+              [amount]="previewAmount"
+              type="expense"
+              size="xl"
+              [showSign]="false"
+            />
           </div>
           <div class="preview-row">
             <span class="preview-label">Fecha</span>
             <span class="preview-value">
-              {{ form.value.date | date:'mediumDate' }}
+              {{ form.value.date | date: "mediumDate" }}
             </span>
           </div>
           @if (form.value.category) {
             <div class="preview-row">
-              <span class="preview-label">Categoría</span>
+              <span class="preview-label">Categoría del costo</span>
               <span class="preview-value">
                 {{ selectedCategoryLabel }}
               </span>
@@ -151,6 +207,22 @@
               <span class="preview-label">Granja</span>
               <span class="preview-value">
                 {{ selectedFarmLabel }}
+              </span>
+            </div>
+          }
+          @if (form.value.payment_status) {
+            <div class="preview-row">
+              <span class="preview-label">Estado del costo</span>
+              <span class="preview-value">
+                {{ selectedPaymentStatusLabel }}
+              </span>
+            </div>
+          }
+          @if (form.value.payment_method) {
+            <div class="preview-row">
+              <span class="preview-label">Metodo de pago</span>
+              <span class="preview-value">
+                {{ selectedPaymentMethodLabel }}
               </span>
             </div>
           }
@@ -166,11 +238,11 @@
       </div>
 
       @if (movableCategories().length === 0) {
-        <app-alert type="warning"
+        <app-alert
+          type="warning"
           message="No hay categorías habilitadas para registrar costos. Crea una categoría con 'Registra costos' activado."
         />
       }
     </aside>
-
   </div>
 }
