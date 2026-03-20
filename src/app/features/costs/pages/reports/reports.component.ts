@@ -22,9 +22,9 @@ import {
   selector: 'app-cost-reports',
   standalone: true,
   imports: [
-    CommonModule, RouterLink, FormsModule,
+    CommonModule, FormsModule,
     PageHeaderComponent, KpiCardComponent, AmountDisplayComponent,
-    ProgressBarComponent, BadgeComponent, LoaderComponent, EmptyStateComponent, AlertComponent,
+    ProgressBarComponent, LoaderComponent, EmptyStateComponent, AlertComponent,
   ],
   templateUrl: './reports.component.html',
   styleUrl:    './reports.component.scss',

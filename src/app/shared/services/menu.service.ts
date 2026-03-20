@@ -33,29 +33,17 @@ export class MenuService {
       color: 'yellow',
       path: '/farms',
     },
-
-    // {
-    //   label: 'Fincas',
-    //   icon: 'home',
-    //   color: 'yellow',
-    //   children: [
-    //     {
-    //       label: 'Lista de Fincas',
-    //       icon: 'list',
-    //       path: '/farms',
-    //     },
-    //     {
-    //       label: 'Nueva Finca',
-    //       icon: 'plus-circle',
-    //       path: '/farms/new',
-    //     },
-    //   ],
-    // },
     {
       label: 'Gestión de Costos',
       icon: 'dollar-sign',
       color: 'green',
       path: '/costs/costs',
+    },
+    {
+      label: 'Inversionistas',
+      icon: 'users',
+      color: 'purple',
+      path: '/investments/investors',
     },
     // {
     //   label: 'Gestión de Costos',

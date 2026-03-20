@@ -42,12 +42,12 @@ export interface Investor {
   code: string;
   person: string;
   full_name: string;
+  document_number: string;
   email?: string;
   phone?: string;
   joined_date: string;
   is_active: boolean;
   notify_sales: boolean;
-  notify_costs: boolean;
   default_sale_decision: string;
   notes?: string;
   // computed (from summary)

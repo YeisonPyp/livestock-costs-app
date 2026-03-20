@@ -13,7 +13,7 @@
   <div class="profile-card">
     <app-avatar [name]="investor()!.full_name" size="xl"></app-avatar>
     <div class="profile-info">
-      <span class="profile-code">{{ investor()!.code }}</span>
+      <span class="profile-code">{{ investor()!.document_number }}</span>
       <h2 class="profile-name">{{ investor()!.full_name }}</h2>
       <div class="profile-meta">
         @if (investor()!.email) { <span>✉ {{ investor()!.email }}</span> }

@@ -24,8 +24,8 @@ interface MonthOption { label: string; year: number; month: number; }
   standalone: true,
   imports: [
     CommonModule, RouterLink,
-    KpiCardComponent, AmountDisplayComponent, BadgeComponent,
-    ProgressBarComponent, LoaderComponent, EmptyStateComponent, AlertComponent,
+    KpiCardComponent, AmountDisplayComponent,
+    ProgressBarComponent, LoaderComponent, EmptyStateComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl:    './dashboard.component.scss',

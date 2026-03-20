@@ -26,7 +26,7 @@
     <app-kpi-card label="Capital Inicial"     [value]="formatCurrency(investment()!.initial_capital)"      color="purple"></app-kpi-card>
     <app-kpi-card label="Total Aportes"       [value]="formatCurrency(investment()!.total_contributions)"  color="green"></app-kpi-card>
     <app-kpi-card label="Total Retiros"       [value]="formatCurrency(investment()!.total_withdrawals)"    color="red"></app-kpi-card>
-    <app-kpi-card label="Ganancias"           [value]="formatCurrency(investment()!.total_profits)"        [color]="(investment()!.total_profits ?? 0) >= 0 ? 'green' : 'red'"></app-kpi-card>
+    <app-kpi-card label="Ganancias"           [value]="formatCurrency(investment()!.total_profits)"        [color]="(investment()?.total_profits ?? 0) >= 0 ? 'green' : 'red'"></app-kpi-card>
     <app-kpi-card label="ROI"                 [value]="(investment()!.roi ?? 0).toFixed(1) + '%'"         [color]="(investment()!.roi ?? 0) >= 0 ? 'green' : 'red'"></app-kpi-card>
   </div>
 

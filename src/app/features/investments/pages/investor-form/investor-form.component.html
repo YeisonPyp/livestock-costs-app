@@ -1,9 +1,4 @@
 <app-page-header [title]="isEdit() ? 'Editar Inversionista' : 'Nuevo Inversionista'">
-  <ng-container breadcrumb>
-    <a routerLink="/investments/investors" class="bc-link">Inversionistas</a>
-    <span class="bc-sep">/</span>
-    <span>{{ isEdit() ? 'Editar' : 'Nuevo' }}</span>
-  </ng-container>
 </app-page-header>
 
 @if (loading()) {
@@ -16,19 +11,7 @@
       title="Persona"
       subtitle="Vincula el inversionista con una persona registrada en el sistema"
     >
-      <app-alert type="info" [dismissible]="false">
-        Ingresa el UUID de la persona. En producción este campo puede ser reemplazado
-        por un componente de búsqueda de personas.
-      </app-alert>
-      <div class="form-row">
-        <app-input-field
-          label="ID de Persona (UUID) *"
-          formControlName="person"
-          [control]="f['person']"
-          placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-          hint="Identificador único de la persona en el módulo de usuarios"
-        ></app-input-field>
-      </div>
+    <app-person-search (personSelected)="onPersonSelected($event)" />
     </app-form-card>
 
     <!-- Configuración -->
@@ -68,13 +51,6 @@
           description="Recibe alertas cuando se registra una venta de ganado que le corresponde"
           mode="toggle"
           formControlName="notify_sales"
-        ></app-checkbox-toggle>
-
-        <app-checkbox-toggle
-          label="Notificar costos"
-          description="Recibe alertas cuando se registran costos que afectan su inversión"
-          mode="toggle"
-          formControlName="notify_costs"
         ></app-checkbox-toggle>
 
         <app-checkbox-toggle

@@ -10,7 +10,8 @@ import { FormCardComponent }     from '../../../../shared/components/forms/form-
 import { InputFieldComponent }   from '../../../../shared/components/forms/input-field/input-field.component';
 import { SelectFieldComponent, SelectOption } from '../../../../shared/components/forms/select-field/select-field.component';
 import { CheckboxToggleComponent } from '../../../../shared/components/forms/checkbox-toggle/checkbox-toggle.component';
-import { AlertComponent }         from '../../../../shared/components/display/alert/alert.component';
+import { PersonSearchComponent } from '../../../users/components/person-search/person-search.component'
+import { PersonSimple } from "../../../users/models/user.model"
 
 import { InvestmentService } from '../../services/investment.service';
 import { SALE_DECISION_TYPES } from '../../models/investment.model';
@@ -21,7 +22,8 @@ import { SALE_DECISION_TYPES } from '../../models/investment.model';
   imports: [
     CommonModule, RouterLink, ReactiveFormsModule,
     PageHeaderComponent, LoaderComponent, FormCardComponent,
-    InputFieldComponent, SelectFieldComponent, CheckboxToggleComponent, AlertComponent,
+    InputFieldComponent, SelectFieldComponent, CheckboxToggleComponent,
+    PersonSearchComponent
   ],
   templateUrl: './investor-form.component.html',
   styleUrl:    './investor-form.component.scss',
@@ -49,13 +51,16 @@ export class InvestorFormComponent implements OnInit {
     if (id) { this.isEdit.set(true); this.investorId.set(id); this.loadInvestor(id); }
   }
 
+  onPersonSelected(person: PersonSimple): void {
+    this.form.get('person_id')?.setValue(person.id);
+  }
+
   private buildForm(): void {
     this.form = this.fb.group({
       // person UUID — in real app this would be a person-selector component
-      person:                 ['', Validators.required],
+      person_id:              ['', Validators.required],
       joined_date:            [this.today(), Validators.required],
       notify_sales:           [true],
-      notify_costs:           [true],
       notify_weight_gains:    [false],
       default_sale_decision:  ['pending'],
       is_active:              [true],
