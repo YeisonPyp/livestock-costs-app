@@ -14,3 +14,5 @@ export interface Pagination {
   next: string | null;
   previous: string | null;
 }
+
+export type UUID = string;

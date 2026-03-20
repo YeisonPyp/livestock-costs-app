@@ -9,95 +9,83 @@ import { Farm, FarmSummary, Paddock, Employee } from '../models/farm.model';
 })
 export class FarmService {
   private api = inject(ApiService);
-  private endpoint = '/farms/farms/';
+  private endpointFarms = '/farms/farms/';
+  private endpointEmployees = '/farms/employees/';
 
   // ==================== FARMS ====================
 
   getAll(params?: Record<string, any>): Observable<ApiResponse<Farm[]>> {
-    return this.api.get(this.endpoint, params);
+    return this.api.get(this.endpointFarms, params);
   }
 
   getById(id: string): Observable<ApiResponse<Farm>> {
-    return this.api.get(`${this.endpoint}${id}/`);
+    return this.api.get(`${this.endpointFarms}${id}/`);
   }
 
   create(data: Partial<Farm>): Observable<ApiResponse<Farm>> {
-    return this.api.post(this.endpoint, data);
+    return this.api.post(this.endpointFarms, data);
   }
 
   update(id: string, data: Partial<Farm>): Observable<ApiResponse<Farm>> {
-    return this.api.put(`${this.endpoint}${id}/`, data);
+    return this.api.put(`${this.endpointFarms}${id}/`, data);
+  }
+
+  patch(id: string, data: Partial<Farm>): Observable<ApiResponse<Farm>> {
+    return this.api.patch(`${this.endpointFarms}${id}/`, data);
   }
 
   delete(id: string): Observable<ApiResponse<void>> {
-    return this.api.delete(`${this.endpoint}${id}/`);
+    return this.api.delete(`${this.endpointFarms}${id}/`);
   }
 
   getSummary(id: string): Observable<ApiResponse<FarmSummary>> {
-    return this.api.get(`${this.endpoint}${id}/summary/`);
+    return this.api.get(`${this.endpointFarms}${id}/summary/`);
   }
 
   getAllSummary(): Observable<ApiResponse<Farm[]>> {
-    return this.api.get(`${this.endpoint}all-summary/`);
+    return this.api.get(`${this.endpointFarms}all-summary/`);
   }
 
   getListSimple(): Observable<ApiResponse<Farm[]>> {
-    return this.api.get(`${this.endpoint}simple/`);
-  }
-
-  // ==================== PADDOCKS ====================
-
-  getPaddocks(farmId: string): Observable<ApiResponse<Paddock[]>> {
-    return this.api.get(`${this.endpoint}${farmId}/paddocks`);
-  }
-
-  getAvailablePaddocks(farmId: string, params?: Record<string, any>): Observable<ApiResponse<Paddock[]>> {
-    return this.api.get('farms/paddocks/available', { farm_id: farmId, ...params });
-  }
-
-  createPaddock(data: Partial<Paddock>): Observable<ApiResponse<Paddock>> {
-    return this.api.post('farms/paddocks', data);
-  }
-
-  updatePaddock(id: string, data: Partial<Paddock>): Observable<ApiResponse<Paddock>> {
-    return this.api.put(`farms/paddocks/${id}`, data);
-  }
-
-  deletePaddock(id: string): Observable<ApiResponse<void>> {
-    return this.api.delete(`farms/paddocks/${id}`);
-  }
-
-  startPaddockOccupation(id: string, cattleCount: number): Observable<ApiResponse<Paddock>> {
-    return this.api.post(`farms/paddocks/${id}/start-occupation`, { cattle_count: cattleCount });
-  }
-
-  endPaddockOccupation(id: string, restDays?: number): Observable<ApiResponse<Paddock>> {
-    return this.api.post(`farms/paddocks/${id}/end-occupation`, { rest_days: restDays });
-  }
-
-  getRotationSchedule(farmId: string): Observable<ApiResponse<any[]>> {
-    return this.api.get(`${this.endpoint}/${farmId}/rotation-schedule`);
+    return this.api.get(`${this.endpointFarms}simple/`);
   }
 
   // ==================== EMPLOYEES ====================
 
-  getEmployees(farmId: string, activeOnly = true): Observable<ApiResponse<Employee[]>> {
-    return this.api.get(`${this.endpoint}/${farmId}/employees`, { active_only: activeOnly });
-  }
-
-  createEmployee(data: Partial<Employee>): Observable<ApiResponse<Employee>> {
-    return this.api.post('farms/employees', data);
-  }
-
-  updateEmployee(id: string, data: Partial<Employee>): Observable<ApiResponse<Employee>> {
-    return this.api.put(`farms/employees/${id}`, data);
-  }
-
-  terminateEmployee(id: string, data: { termination_date?: string; reason?: string }): Observable<ApiResponse<Employee>> {
-    return this.api.post(`farms/employees/${id}/terminate`, data);
+  getEmployeesFarm(farmId: string, activeOnly = true): Observable<ApiResponse<Employee[]>> {
+    return this.api.get(`${this.endpointFarms}${farmId}/employees`, { active_only: activeOnly });
   }
 
   getPayroll(farmId: string): Observable<ApiResponse<any>> {
-    return this.api.get(`${this.endpoint}/${farmId}/payroll`);
+    return this.api.get(`${this.endpointFarms}${farmId}/payroll`);
   }
+
+  getAllEmployees(params?: Record<string, any>): Observable<ApiResponse<Employee[]>> {
+    return this.api.get(this.endpointEmployees, params);
+  }
+
+  createEmployee(data: Partial<Employee>): Observable<ApiResponse<Employee>> {
+    return this.api.post(this.endpointEmployees, data);
+  }
+
+  getEmployeeById(id: string): Observable<ApiResponse<Employee>> {
+    return this.api.get(`${this.endpointEmployees}${id}/`);
+  }
+
+  updateEmployee(id: string, data: Partial<Employee>): Observable<ApiResponse<Employee>> {
+    return this.api.put(`${this.endpointEmployees}${id}/`, data);
+  }
+
+  patchEmployee(id: string, data: Partial<Employee>): Observable<ApiResponse<Employee>> {
+    return this.api.patch(`${this.endpointEmployees}${id}/`, data);
+  }
+
+  deleteEmployee(id: string): Observable<ApiResponse<void>> {
+    return this.api.delete(`${this.endpointEmployees}${id}/`);
+  }
+
+  terminateEmployee(id: string, data: { termination_date?: string; reason?: string }): Observable<ApiResponse<Employee>> {
+    return this.api.post(`${this.endpointEmployees}${id}/terminate/`, data);
+  }
+
 }

@@ -49,16 +49,7 @@
   } @else {
     <!-- ── CREATE / EDIT FORM ── -->
     <form [formGroup]="employeeForm" class="dialog-form">
-      <div class="form-row">
-        <app-input-field
-          label="ID de Persona *"
-          placeholder="UUID de la persona"
-          formControlName="person"
-          [control]="employeeForm.get('person')"
-          hint="Ingresa el ID único de la persona registrada en el sistema"
-        ></app-input-field>
-      </div>
-
+      <app-person-search (personSelected)="onPersonSelected($event)" />
       <div class="form-grid">
         <app-select-field
           label="Rol *"

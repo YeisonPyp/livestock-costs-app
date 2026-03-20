@@ -99,9 +99,9 @@ export interface Paddock {
 
 export interface Employee {
   id: string;
-  person: string;
+  person_id: string;
   full_name: string;
-  farm: string;
+  farm_id: string;
   farm_code?: string;
   role: string;
   role_display?: string;

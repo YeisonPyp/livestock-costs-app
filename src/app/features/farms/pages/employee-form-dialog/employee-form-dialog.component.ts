@@ -3,16 +3,18 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { InputFieldComponent } from '../../../../shared/components/forms/input-field/input-field.component';
 import { SelectFieldComponent, SelectOption } from '../../../../shared/components/forms/select-field/select-field.component';
 import { CurrencyInputComponent } from '../../../../shared/components/forms/currency-input/currency-input.component';
 import { CheckboxToggleComponent } from '../../../../shared/components/forms/checkbox-toggle/checkbox-toggle.component';
 import { AlertComponent } from '../../../../shared/components/display/alert/alert.component';
+import { PersonSearchComponent } from '../../../users/components/person-search/person-search.component'
+import { PersonSimple } from "../../../users/models/user.model"
 
 import { FarmService } from '../../services/farm.service';
 import { Employee, EMPLOYEE_ROLES } from '../../models/farm.model';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 export interface EmployeeDialogData {
   farmId: string;
@@ -33,6 +35,7 @@ export interface EmployeeDialogData {
     CurrencyInputComponent,
     CheckboxToggleComponent,
     AlertComponent,
+    PersonSearchComponent
   ],
   templateUrl: './employee-form-dialog.component.html',
   styleUrl: './employee-form-dialog.component.scss',
@@ -40,7 +43,7 @@ export interface EmployeeDialogData {
 export class EmployeeFormDialogComponent implements OnInit {
   private fb        = inject(FormBuilder);
   private farmSvc   = inject(FarmService);
-  private snackBar  = inject(MatSnackBar);
+  private notiService = inject(NotificationService);
   private dialogRef = inject(MatDialogRef<EmployeeFormDialogComponent>);
   data              = inject<EmployeeDialogData>(MAT_DIALOG_DATA);
 
@@ -76,10 +79,14 @@ export class EmployeeFormDialogComponent implements OnInit {
     }
   }
 
+  onPersonSelected(person: PersonSimple): void {
+    this.employeeForm.get('person_id')?.setValue(person.id);
+  }
+
   // ── Form builders ──────────────────────────────────────────────────────────
   private buildEmployeeForm(): void {
     this.employeeForm = this.fb.group({
-      person:                    ['', Validators.required],
+      person_id:                    ['', Validators.required],
       role:                      ['general', Validators.required],
       job_title:                 [''],
       hire_date:                 [this.today(), Validators.required],
@@ -114,7 +121,7 @@ export class EmployeeFormDialogComponent implements OnInit {
     this.saving = true;
     const payload = {
       ...this.employeeForm.value,
-      farm: this.data.farmId,
+      farm_id: this.data.farmId,
     };
 
     const req$ = this.data.employee
@@ -124,16 +131,13 @@ export class EmployeeFormDialogComponent implements OnInit {
     req$.subscribe({
       next: (res) => {
         this.saving = false;
-        this.snackBar.open(
-          this.data.employee ? 'Empleado actualizado' : 'Empleado agregado',
-          'Cerrar', { duration: 3000 }
-        );
+        this.notiService.success(this.data.employee ? 'Empleado actualizado' : 'Empleado agregado',);
         this.dialogRef.close(true);
       },
       error: (err) => {
         this.saving = false;
         const msg = err?.error?.message || 'Error al guardar el empleado';
-        this.snackBar.open(msg, 'Cerrar', { duration: 4000 });
+        this.notiService.error(msg, );
       },
     });
   }
@@ -146,13 +150,13 @@ export class EmployeeFormDialogComponent implements OnInit {
     this.farmSvc.terminateEmployee(this.data.employee.id, this.terminateForm.value).subscribe({
       next: () => {
         this.saving = false;
-        this.snackBar.open('Empleado retirado exitosamente', 'Cerrar', { duration: 3000 });
+        this.notiService.success('Empleado retirado exitosamente', );
         this.dialogRef.close(true);
       },
       error: (err) => {
         this.saving = false;
         const msg = err?.error?.message || 'Error al retirar el empleado';
-        this.snackBar.open(msg, 'Cerrar', { duration: 4000 });
+        this.notiService.error(msg, );
       },
     });
   }

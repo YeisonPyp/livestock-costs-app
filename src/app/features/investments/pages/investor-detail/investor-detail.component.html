@@ -1,7 +1,5 @@
 <app-page-header [title]="investor()?.full_name ?? 'Cargando...'">
   <ng-container breadcrumb>
-    <a routerLink="/investments/investors" class="bc-link">Inversionistas</a>
-    <span class="bc-sep">/</span>
     <span>{{ investor()?.code }}</span>
   </ng-container>
   <a [routerLink]="['edit']" class="btn btn-outline btn-sm">Editar</a>

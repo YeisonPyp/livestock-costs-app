@@ -1,7 +1,5 @@
 import { FarmsSimple } from "../../farms/models/farm.model";
-
-
-export type UUID = string;
+import { UUID } from "../../../core/models/api-response.model"
 
 
 export interface SelectOption {
