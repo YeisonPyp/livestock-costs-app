@@ -1,0 +1,175 @@
+// ─── Host ────────────────────────────────────────────────────────────────────
+:host {
+  display: block;
+  font-family: inherit;
+}
+
+// ─── Form layout ─────────────────────────────────────────────────────────────
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// ─── Person type switch ───────────────────────────────────────────────────────
+.pf-type-switch {
+  display: flex;
+  gap: 10px;
+}
+
+.pf-type-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-color, #e2e6ed);
+  background: transparent;
+  color: var(--text-muted, #6b7385);
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.16s, background 0.16s, color 0.16s, box-shadow 0.16s;
+
+  svg { flex-shrink: 0; }
+
+  &:hover:not(.pf-type-btn--active) {
+    border-color: var(--primary, #3b6bde);
+    color: var(--primary, #3b6bde);
+    background: rgba(59, 107, 222, 0.04);
+  }
+
+  &--active {
+    border-color: var(--primary, #3b6bde);
+    background: rgba(59, 107, 222, 0.08);
+    color: var(--primary, #3b6bde);
+    font-weight: 600;
+    box-shadow: 0 0 0 3px rgba(59, 107, 222, 0.12);
+  }
+}
+
+// ─── Grid helpers ─────────────────────────────────────────────────────────────
+.pf-grid {
+  display: grid;
+  gap: 16px;
+
+  & + & { margin-top: 16px; }
+
+  &--1 { grid-template-columns: 1fr; }
+  &--2 { grid-template-columns: 1fr 1fr; }
+  &--3 { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+// ─── Field wrapper (for adding async error below a component) ─────────────────
+.pf-field-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+// ─── Async error message (below input-field, outside the component) ───────────
+.pf-async-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #ef4444;
+
+  svg { flex-shrink: 0; }
+}
+
+// ─── Actions bar ─────────────────────────────────────────────────────────────
+.pf-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+// ─── Buttons ─────────────────────────────────────────────────────────────────
+.pf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 22px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: background 0.16s, box-shadow 0.16s, transform 0.1s, opacity 0.16s;
+
+  &:active:not(:disabled) { transform: scale(0.98); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  &--primary {
+    background: var(--primary, #3b6bde);
+    color: #fff;
+    box-shadow: 0 1px 4px rgba(59,107,222,0.3);
+
+    &:hover:not(:disabled) {
+      background: #2a54c7;
+      box-shadow: 0 3px 10px rgba(59,107,222,0.35);
+    }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: var(--text-muted, #6b7385);
+    border: 1.5px solid var(--border-color, #e2e6ed);
+
+    &:hover:not(:disabled) {
+      background: var(--surface, #f8f9fb);
+      color: var(--text, #1a1f2e);
+    }
+  }
+}
+
+// ─── Spinner ─────────────────────────────────────────────────────────────────
+.pf-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: pfSpin 0.7s linear infinite;
+}
+
+@keyframes pfSpin { to { transform: rotate(360deg); } }
+
+// ─── Spinner SVG suffix icon animation ───────────────────────────────────────
+// (used in the inline SVG injected via suffixIcon)
+:host ::ng-deep [style*="animation:spin"] {
+  animation: pfSpin 0.7s linear infinite;
+}
+
+// ─── Slide-in for conditional cards ──────────────────────────────────────────
+app-form-card {
+  animation: pfFade 0.2s ease;
+}
+
+@keyframes pfFade {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ─── Responsive ──────────────────────────────────────────────────────────────
+@media (max-width: 640px) {
+  .pf-grid--2,
+  .pf-grid--3 { grid-template-columns: 1fr; }
+
+  .pf-type-switch { flex-direction: column; }
+
+  .pf-actions {
+    flex-direction: column-reverse;
+    .pf-btn { width: 100%; }
+  }
+}

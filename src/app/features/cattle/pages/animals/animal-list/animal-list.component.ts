@@ -21,7 +21,7 @@ import { AnimalFilters, AnimalListItem, BulkImportResult, ANIMAL_STATUS_LABELS, 
   standalone: true,
   imports: [
     CommonModule, RouterLink, FormsModule,
-    PageHeaderComponent, KpiCardComponent, BadgeComponent,
+    PageHeaderComponent, KpiCardComponent,
     LoaderComponent, EmptyStateComponent, DropdownMenuComponent,
   ],
   templateUrl: './animal-list.component.html',
@@ -63,6 +63,10 @@ export class AnimalListComponent implements OnInit, OnDestroy {
   statusColors   = ANIMAL_STATUS_COLORS;
   categoryLabels = ANIMAL_CATEGORY_LABELS;
   sexLabels      = SEX_LABELS;
+
+  // ── Bulk weight upload ────────────────────────────────────────────────────
+  uploadingWeight    = signal(false);
+  uploadResultWeight  = signal<BulkImportResult | null>(null);
   
 
   kpis = computed(() => {
@@ -182,6 +186,34 @@ export class AnimalListComponent implements OnInit, OnDestroy {
       },
     });
   }
+
+
+   // ── Bulk weight from file ─────────────────────────────────────────────────
+    onWeightFileSelected(event: Event): void {
+      const input = event.target as HTMLInputElement;
+      const file  = input.files?.[0];
+      if (!file) return;
+  
+      this.uploadingWeight .set(true);
+      this.uploadResultWeight .set(null);
+  
+      this.svc.bulkWeightFile(file).pipe(takeUntil(this.destroy$)).subscribe({
+        next: r => {
+          this.uploadingWeight .set(false);
+          this.uploadResultWeight .set(r.data);
+          if (r.data.recorded && r.data.recorded > 0) {
+            this.snack.open(r.message, 'Cerrar', { duration: 4000 });
+            this.load();
+          }
+          input.value = '';
+        },
+        error: e => {
+          this.uploadingWeight.set(false);
+          this.snack.open(e?.error?.message || 'Error al procesar archivo', 'Cerrar', { duration: 4000 });
+          input.value = '';
+        },
+      });
+    }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   formatDate(d?: string | null): string {

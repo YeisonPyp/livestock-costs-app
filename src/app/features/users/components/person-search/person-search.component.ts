@@ -23,7 +23,9 @@ import {
 
 import { PersonService } from '../../services/person.service';
 import { CatalogService } from '../../services/catalog.service';
-import { PersonSimple, DocumentType, SearchFilters } from '../../models/user.model';
+import { PersonSimple, Person, DocumentType, SearchFilters } from '../../models/user.model';
+import { PersonFormComponent } from '../../pages/person-form/person-form.component';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 
 interface PersonTypeOption {
   value: '' | 'N' | 'J';
@@ -39,13 +41,12 @@ const PERSON_TYPES: PersonTypeOption[] = [
 @Component({
   selector: 'app-person-search',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PersonFormComponent, ModalComponent],
   templateUrl: './person-search.component.html',
   styleUrls: ['./person-search.component.scss'],
 })
 export class PersonSearchComponent implements OnInit, OnDestroy {
-  // Emite PersonSimple al padre — si el padre necesita el objeto completo
-  // puede llamar a PersonService.getById(person.id)
+  /** Emite la persona seleccionada o recién creada al componente padre */
   @Output() personSelected = new EventEmitter<PersonSimple>();
 
   private personService  = inject(PersonService);
@@ -53,7 +54,7 @@ export class PersonSearchComponent implements OnInit, OnDestroy {
   private destroy$       = new Subject<void>();
   private search$        = new Subject<string>();
 
-  // ── State ──────────────────────────────────────────────────────────────────
+  // ── Search state ──────────────────────────────────────────────────────────
   query          = signal('');
   filters        = signal<SearchFilters>({ document_type: '', person_type: '' });
   results        = signal<PersonSimple[]>([]);
@@ -64,7 +65,11 @@ export class PersonSearchComponent implements OnInit, OnDestroy {
   selectedPerson = signal<PersonSimple | null>(null);
   documentTypes  = signal<DocumentType[]>([]);
 
-  // ── Derived ────────────────────────────────────────────────────────────────
+  // ── Create modal state ────────────────────────────────────────────────────
+  isCreateModalOpen = signal(false);
+  isSubmitting      = signal(false);
+
+  // ── Derived ───────────────────────────────────────────────────────────────
   displayName = computed(() => this.selectedPerson()?.full_name ?? '');
 
   isEmpty = computed(
@@ -73,24 +78,20 @@ export class PersonSearchComponent implements OnInit, OnDestroy {
 
   readonly personTypes = PERSON_TYPES;
 
-  // ── Getters/setters para [(ngModel)] sin lógica en el template ────────────
-  get selectedDocType(): string {
-    return this.filters().document_type;
-  }
+  // ── ngModel bindings ──────────────────────────────────────────────────────
+  get selectedDocType(): string { return this.filters().document_type; }
   set selectedDocType(value: string) {
     this.filters.update(f => ({ ...f, document_type: value }));
     this.onFilterChange();
   }
 
-  get selectedPersonType(): string {
-    return this.filters().person_type;
-  }
+  get selectedPersonType(): string { return this.filters().person_type; }
   set selectedPersonType(value: string) {
     this.filters.update(f => ({ ...f, person_type: value }));
     this.onFilterChange();
   }
 
-  // ── Lifecycle ──────────────────────────────────────────────────────────────
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
   ngOnInit(): void {
     this.loadCatalogs();
     this.initSearch();
@@ -101,10 +102,9 @@ export class PersonSearchComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // ── Private ────────────────────────────────────────────────────────────────
+  // ── Private ───────────────────────────────────────────────────────────────
   private loadCatalogs(): void {
-    this.catalogService
-      .getDocumentTypes()
+    this.catalogService.getDocumentTypes()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
@@ -159,7 +159,7 @@ export class PersonSearchComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ── Actions ────────────────────────────────────────────────────────────────
+  // ── Search actions ────────────────────────────────────────────────────────
   onQueryChange(value: string): void {
     this.query.set(value);
     this.search$.next(value);
@@ -190,12 +190,44 @@ export class PersonSearchComponent implements OnInit, OnDestroy {
     this.selectPerson(person);
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Modal actions ─────────────────────────────────────────────────────────
+  openCreateModal(): void {
+    this.isCreateModalOpen.set(true);
+  }
+
+  closeCreateModal(): void {
+    this.isCreateModalOpen.set(false);
+    this.isSubmitting.set(false);
+  }
+
+  onCreatePerson(data: Partial<Person>): void {
+    this.isSubmitting.set(true);
+    this.personService.create(data)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.isSubmitting.set(false);
+          if (res.data) {
+            const p = res.data;
+            const simple: PersonSimple = {
+              id:              p.id,
+              document_number: p.document_number,
+              full_name:       p.full_name ?? `${p.first_name ?? ''} ${p.last_name ?? ''}`.trim(),
+              email:           p.email,
+              phone_number:    p.phone_number,
+              document_type:   p.document_type,
+              person_type:     p.person_type,
+            };
+            this.selectPerson(simple);
+            this.closeCreateModal();
+          }
+        },
+        error: () => this.isSubmitting.set(false),
+      });
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
   getInitial(p: PersonSimple): string {
-    // Usa person_type si el backend lo incluye, si no asume Natural
-    if (p.person_type === 'J') {
-      return (p.full_name?.[0] ?? 'J').toUpperCase();
-    }
     return (p.full_name?.[0] ?? '?').toUpperCase();
   }
 

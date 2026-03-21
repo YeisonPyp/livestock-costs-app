@@ -1,128 +1,176 @@
 <div class="ps-wrapper">
 
-  <!-- ── Estado: persona seleccionada ───────────────────────────────────────── -->
-  <div class="ps-selected" *ngIf="selectedPerson()">
-    <div class="ps-selected__badge">
-      <div class="ps-selected__avatar">
-        {{ getInitial(selectedPerson()!) }}
-      </div>
-      <div class="ps-selected__info">
-        <span class="ps-selected__name">{{ displayName() }}</span>
-        <span class="ps-selected__doc">{{ selectedPerson()!.document_number }}</span>
-      </div>
-    </div>
-    <button class="ps-selected__clear"
-            (click)="clearSelection()"
-            aria-label="Limpiar selección">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="18" y1="6" x2="6" y2="18"/>
-        <line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-    </button>
-  </div>
-
-  <!-- ── Panel de búsqueda ──────────────────────────────────────────────────── -->
-  <div class="ps-panel" *ngIf="!selectedPerson()">
-
-    <!-- Input -->
-    <div class="ps-input-wrap" [class.is-loading]="loading()">
-      <svg class="ps-icon-search" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <input
-        class="ps-input"
-        type="text"
-        placeholder="Nombre, apellido, documento o correo…"
-        autocomplete="off"
-        [ngModel]="query()"
-        (ngModelChange)="onQueryChange($event)"
-      />
-      <span class="ps-spinner" *ngIf="loading()"></span>
-    </div>
-
-    <!-- Filtros -->
-    <div class="ps-filters">
-
-      <div class="ps-filter-group">
-        <label class="ps-filter-label">Tipo de documento</label>
-        <div class="ps-select-skeleton" *ngIf="loadingCatalog()"></div>
-        <select *ngIf="!loadingCatalog()" class="ps-select" [(ngModel)]="selectedDocType">
-          <option value="">Todos los tipos</option>
-          <option *ngFor="let dt of documentTypes()" [value]="dt.code">
-            {{ dt.code }} – {{ dt.name }}
-          </option>
-        </select>
-      </div>
-
-      <div class="ps-filter-group">
-        <label class="ps-filter-label">Tipo de persona</label>
-        <select class="ps-select" [(ngModel)]="selectedPersonType">
-          <option *ngFor="let pt of personTypes" [value]="pt.value">
-            {{ pt.label }}
-          </option>
-        </select>
-      </div>
-
-    </div>
-
-    <!-- Error -->
-    <div class="ps-error" *ngIf="error()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
-      {{ error() }}
-    </div>
-
-    <!-- Sin resultados -->
-    <div class="ps-empty" *ngIf="isEmpty()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-        <line x1="23" y1="11" x2="17" y2="11"/>
-      </svg>
-      <p>Sin resultados para <strong>"{{ query() }}"</strong></p>
-    </div>
-
-    <!-- Resultados -->
-    <ul class="ps-results" *ngIf="results().length" role="listbox">
-      <li
-        class="ps-result-item"
-        *ngFor="let person of results(); let i = index"
-        role="option"
-        tabindex="0"
-        [style.animation-delay.ms]="i * 28"
-        (click)="selectPerson(person)"
-        (keydown.enter)="selectPerson(person)"
-        (keydown.space)="onSpaceKey($event, person)"
-      >
-        <!-- Avatar -->
-        <div class="ps-result-avatar" [class.juridica]="person.person_type === 'J'">
-          {{ getInitial(person) }}
+  <!-- ══════════════════════════════════════════════════════
+       ESTADO: persona ya seleccionada
+  ══════════════════════════════════════════════════════ -->
+  @if (selectedPerson()) {
+    <div class="ps-selected">
+      <div class="ps-selected__badge">
+        <div class="ps-selected__avatar">
+          {{ getInitial(selectedPerson()!) }}
         </div>
-
-        <!-- Info -->
-        <div class="ps-result-info">
-          <span class="ps-result-name">{{ person.full_name }}</span>
-          <span class="ps-result-doc">{{ person.document_number }}</span>
-          <span class="ps-result-doc">{{ person.email }}</span>
+        <div class="ps-selected__info">
+          <span class="ps-selected__name">{{ displayName() }}</span>
+          <span class="ps-selected__doc">{{ selectedPerson()!.document_number }}</span>
         </div>
-
-        <svg class="ps-result-arrow" viewBox="0 0 24 24"
-             fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="9 18 15 12 9 6"/>
+      </div>
+      <button class="ps-selected__clear" (click)="clearSelection()" aria-label="Limpiar selección">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
-      </li>
-    </ul>
-
-    <!-- Contador -->
-    <div class="ps-counter" *ngIf="results().length">
-      {{ getResultCount() }}
-      <span *ngIf="isAtLimit()" class="ps-counter__limit">· primeros 50</span>
+      </button>
     </div>
+  }
 
-  </div>
+  <!-- ══════════════════════════════════════════════════════
+       PANEL DE BÚSQUEDA
+  ══════════════════════════════════════════════════════ -->
+  @if (!selectedPerson()) {
+    <div class="ps-panel">
+
+      <!-- Input de búsqueda -->
+      <div class="ps-input-wrap" [class.is-loading]="loading()">
+        <svg class="ps-icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          class="ps-input"
+          type="text"
+          placeholder="Nombre, apellido, documento o correo…"
+          autocomplete="off"
+          [ngModel]="query()"
+          (ngModelChange)="onQueryChange($event)"
+        />
+        @if (loading()) {
+          <span class="ps-spinner"></span>
+        }
+      </div>
+
+      <!-- Filtros -->
+      <div class="ps-filters">
+
+        <div class="ps-filter-group">
+          <label class="ps-filter-label">Tipo de documento</label>
+          @if (loadingCatalog()) {
+            <div class="ps-select-skeleton"></div>
+          } @else {
+            <select class="ps-select" [(ngModel)]="selectedDocType">
+              <option value="">Todos los tipos</option>
+              @for (dt of documentTypes(); track dt.code) {
+                <option [value]="dt.code">{{ dt.code }} – {{ dt.name }}</option>
+              }
+            </select>
+          }
+        </div>
+
+        <div class="ps-filter-group">
+          <label class="ps-filter-label">Tipo de persona</label>
+          <select class="ps-select" [(ngModel)]="selectedPersonType">
+            @for (pt of personTypes; track pt.value) {
+              <option [value]="pt.value">{{ pt.label }}</option>
+            }
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Error -->
+      @if (error()) {
+        <div class="ps-error">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {{ error() }}
+        </div>
+      }
+
+      <!-- Sin resultados -->
+      @if (isEmpty()) {
+        <div class="ps-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <line x1="23" y1="11" x2="17" y2="11"/>
+          </svg>
+          <p>Sin resultados para <strong>"{{ query() }}"</strong></p>
+          <p class="ps-empty__hint">¿No existe aún? Puedes crearla ahora.</p>
+          <button type="button" class="ps-create-btn" (click)="openCreateModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Crear nueva persona
+          </button>
+        </div>
+      }
+
+      <!-- Resultados -->
+      @if (results().length) {
+        <ul class="ps-results" role="listbox">
+          @for (person of results(); track person.id; let i = $index) {
+            <li
+              class="ps-result-item"
+              role="option"
+              tabindex="0"
+              [style.animation-delay.ms]="i * 28"
+              (click)="selectPerson(person)"
+              (keydown.enter)="selectPerson(person)"
+              (keydown.space)="onSpaceKey($event, person)"
+            >
+              <div class="ps-result-avatar" [class.juridica]="person.person_type === 'J'">
+                {{ getInitial(person) }}
+              </div>
+              <div class="ps-result-info">
+                <span class="ps-result-name">{{ person.full_name }}</span>
+                <span class="ps-result-meta">{{ person.document_number }}</span>
+                <span class="ps-result-meta">{{ person.email }}</span>
+              </div>
+              <svg class="ps-result-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </li>
+          }
+        </ul>
+
+        <!-- Contador + botón crear al pie de resultados -->
+        <div class="ps-footer">
+          <span class="ps-counter">
+            {{ getResultCount() }}
+            @if (isAtLimit()) { <span class="ps-counter__limit">· primeros 50</span> }
+          </span>
+          <button type="button" class="ps-create-btn ps-create-btn--sm" (click)="openCreateModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Nueva persona
+          </button>
+        </div>
+      }
+
+    </div>
+  }
+
 </div>
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL — Crear persona
+══════════════════════════════════════════════════════ -->
+<app-modal
+  [isOpen]="isCreateModalOpen()"
+  title="Nueva persona"
+  size="xl"
+  [showFooter]="false"
+  (close)="closeCreateModal()"
+>
+  <app-person-form
+    mode="create"
+    [loading]="isSubmitting()"
+    (formSubmit)="onCreatePerson($event)"
+    (formCancel)="closeCreateModal()"
+  />
+</app-modal>
