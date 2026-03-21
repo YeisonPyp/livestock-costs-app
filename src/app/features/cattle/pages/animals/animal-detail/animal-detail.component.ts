@@ -1,169 +1,139 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+// animal-detail.component.ts
+import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Subject, takeUntil, forkJoin } from 'rxjs';
 
-import { PageHeaderComponent } from '../../../../../shared/components/page-header/page-header.component';
-import { KpiCardComponent } from '../../../../../shared/components/display/kpi-card/kpi-card.component';
-import { BadgeComponent } from '../../../../../shared/components/display/badge/badge.component';
-import { AmountDisplayComponent } from '../../../../../shared/components/bills/amount-display/amount-display.component';
-import { LoaderComponent } from '../../../../../shared/components/loader/loader.component';
-import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state.component';
-import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog.component';
-import { AlertComponent } from '../../../../../shared/components/display/alert/alert.component';
+import { PageHeaderComponent }    from '../../../../../shared/components/page-header/page-header.component';
+import { KpiCardComponent }       from '../../../../../shared/components/display/kpi-card/kpi-card.component';
+import { BadgeComponent }         from '../../../../../shared/components/display/badge/badge.component';
+import { LoaderComponent }        from '../../../../../shared/components/loader/loader.component';
+import { EmptyStateComponent }    from '../../../../../shared/components/empty-state/empty-state.component';
 
-import { CattleService } from '../../../services/cattle.service';
-import {
-  AnimalSummary,
-  WeightRecord,
-  HealthEvent,
-  ANIMAL_STATUS_LABELS,
-  ANIMAL_STATUS_COLORS,
-  HEALTH_EVENT_LABELS,
-  HEALTH_EVENT_COLORS,
-  SEX_LABELS,
-} from '../../../models/cattle.model';
+import { CattleService} from '../../../services/cattle.service';
+import { AnimalDetail, AnimalSummary, WeightHistoryItem, BulkImportResult, ANIMAL_STATUS_LABELS, ANIMAL_STATUS_COLORS, ANIMAL_CATEGORY_LABELS, SEX_LABELS } from '../../../models/cattle.model';
 
-type Tab = 'info' | 'weights' | 'health';
+type Tab = 'info' | 'weights' | 'health' | 'movements';
 
 @Component({
   selector: 'app-animal-detail',
   standalone: true,
   imports: [
-    CommonModule,
-    RouterLink,
-    ReactiveFormsModule,
-    PageHeaderComponent,
-    KpiCardComponent,
-    BadgeComponent,
-    AmountDisplayComponent,
-    LoaderComponent,
-    EmptyStateComponent,
-    AlertComponent,
+    CommonModule, RouterLink,
+    PageHeaderComponent, KpiCardComponent, BadgeComponent,
+    LoaderComponent, EmptyStateComponent,
   ],
   templateUrl: './animal-detail.component.html',
   styleUrl: './animal-detail.component.scss',
 })
-export class AnimalDetailComponent implements OnInit {
-  private route = inject(ActivatedRoute);
-  private svc = inject(CattleService);
-  private fb = inject(FormBuilder);
-  private dialog = inject(MatDialog);
-  private snack = inject(MatSnackBar);
+export class AnimalDetailComponent implements OnInit, OnDestroy {
+  private route    = inject(ActivatedRoute);
+  private svc      = inject(CattleService);
+  private snack    = inject(MatSnackBar);
+  private destroy$ = new Subject<void>();
 
-  animalId = +this.route.snapshot.paramMap.get('id')!;
-  summary = signal<AnimalSummary | null>(null);
-  loading = signal(true);
-  activeTab = signal<Tab>('info');
+  animalId = this.route.snapshot.paramMap.get('id')!;
 
-  // Weight form
-  showWeightForm = signal(false);
-  savingWeight = signal(false);
-  weightError = signal('');
-  weightForm = this.fb.group({
-    weight: [null as number | null, [Validators.required, Validators.min(1)]],
-    date: [new Date().toISOString().split('T')[0], [Validators.required]],
-    notes: [''],
+  // ── State ─────────────────────────────────────────────────────────────────
+  animal        = signal<AnimalDetail | null>(null);
+  summary       = signal<AnimalSummary | null>(null);
+  weightHistory = signal<WeightHistoryItem[]>([]);
+  loading       = signal(true);
+  activeTab     = signal<Tab>('info');
+
+  // ── Bulk weight upload ────────────────────────────────────────────────────
+  uploading    = signal(false);
+  uploadResult = signal<BulkImportResult | null>(null);
+
+  // ── Display ───────────────────────────────────────────────────────────────
+  statusLabels   = ANIMAL_STATUS_LABELS;
+  statusColors   = ANIMAL_STATUS_COLORS;
+  categoryLabels = ANIMAL_CATEGORY_LABELS;
+  sexLabels      = SEX_LABELS;
+
+  // ── Computed ──────────────────────────────────────────────────────────────
+  pageTitle = computed(() => this.animal()?.tag_number ?? 'Cargando...');
+
+  pageSubtitle = computed(() => {
+    const a = this.animal();
+    if (!a) return '';
+    const parts = [a.breed?.name, a.category ? (this.categoryLabels[a.category as keyof typeof this.categoryLabels] ?? a.category) : null].filter(Boolean);
+    return parts.join(' · ');
   });
 
-  statusLabels = ANIMAL_STATUS_LABELS;
-  statusColors = ANIMAL_STATUS_COLORS;
-  healthEventLabels = HEALTH_EVENT_LABELS;
-  healthEventColors = HEALTH_EVENT_COLORS;
-  sexLabels = SEX_LABELS;
-
   ngOnInit(): void {
-    this.svc.getAnimalSummary(this.animalId).subscribe({
-      next: (r) => {
-        if (r.success) this.summary.set(r.data);
+    forkJoin({
+      animal:  this.svc.getAnimal(this.animalId),
+      summary: this.svc.getAnimalSummary(this.animalId),
+      weights: this.svc.getWeightHistory(this.animalId),
+    }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: ({ animal, summary, weights }) => {
+        if (animal.success)  this.animal.set(animal.data);
+        if (summary.success) this.summary.set(summary.data);
+        if (weights.success) this.weightHistory.set(weights.data);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        this.loading.set(false);
+        this.snack.open('Error al cargar el animal', 'Cerrar', { duration: 3500 });
+      },
     });
   }
 
-  // ── Weight registration ────────────────────────────────────────────────────
-  submitWeight(): void {
-    if (this.weightForm.invalid) {
-      this.weightForm.markAllAsTouched();
-      return;
-    }
-    this.savingWeight.set(true);
-    this.weightError.set('');
+  ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 
-    const v = this.weightForm.value;
-    this.svc
-      .recordWeight(this.animalId, {
-        weight: +v.weight!,
-        date: v.date!,
-        notes: v.notes ?? '',
-      })
-      .subscribe({
-        next: (r) => {
-          this.snack.open(r.message || 'Peso registrado', 'Cerrar', {
-            duration: 3000,
+  // ── Bulk weight from file ─────────────────────────────────────────────────
+  onWeightFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file  = input.files?.[0];
+    if (!file) return;
+
+    this.uploading.set(true);
+    this.uploadResult.set(null);
+
+    this.svc.bulkWeightFile(file).pipe(takeUntil(this.destroy$)).subscribe({
+      next: r => {
+        this.uploading.set(false);
+        this.uploadResult.set(r.data);
+        if (r.data.recorded && r.data.recorded > 0) {
+          this.snack.open(r.message, 'Cerrar', { duration: 4000 });
+          // Refrescar peso y summary
+          forkJoin({
+            animal:  this.svc.getAnimal(this.animalId),
+            summary: this.svc.getAnimalSummary(this.animalId),
+            weights: this.svc.getWeightHistory(this.animalId),
+          }).pipe(takeUntil(this.destroy$)).subscribe(({ animal, summary, weights }) => {
+            if (animal.success)  this.animal.set(animal.data);
+            if (summary.success) this.summary.set(summary.data);
+            if (weights.success) this.weightHistory.set(weights.data);
           });
-          this.showWeightForm.set(false);
-          // Refresh summary
-          this.svc.getAnimalSummary(this.animalId).subscribe({
-            next: (s) => {
-              if (s.success) this.summary.set(s.data);
-            },
-          });
-        },
-        error: (e) => {
-          this.weightError.set(e?.error?.message || 'Error al guardar');
-          this.savingWeight.set(false);
-        },
-      });
+        }
+        input.value = '';
+      },
+      error: e => {
+        this.uploading.set(false);
+        this.snack.open(e?.error?.message || 'Error al procesar archivo', 'Cerrar', { duration: 4000 });
+        input.value = '';
+      },
+    });
   }
 
-  // ── Record death ───────────────────────────────────────────────────────────
-  confirmDeath(): void {
-    this.dialog
-      .open(ConfirmDialogComponent, {
-        data: {
-          title: 'Registrar Muerte',
-          message: '¿Registrar la muerte de este animal?',
-          confirmText: 'Confirmar',
-          type: 'danger',
-        },
-      })
-      .afterClosed()
-      .subscribe((ok) => {
-        if (!ok) return;
-        const date = new Date().toISOString().split('T')[0];
-        this.svc.recordDeath(this.animalId, { date }).subscribe({
-          next: () => {
-            this.snack.open('Muerte registrada', 'Cerrar', { duration: 3000 });
-            this.ngOnInit();
-          },
-          error: (e) =>
-            this.snack.open(e?.error?.message || 'Error', 'Cerrar', {
-              duration: 3500,
-            }),
-        });
-      });
-  }
-
+  // ── Helpers ───────────────────────────────────────────────────────────────
   formatDate(d?: string | null): string {
     if (!d) return '—';
-    return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
+    return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
-  get animal() {
-    return this.summary()?.animal;
+  formatWeight(v?: number | null): string {
+    if (v == null) return '—';
+    return `${v.toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kg`;
   }
-  get weights(): WeightRecord[] {
-    return this.summary()?.weight_history ?? [];
+
+  formatCurrency(v?: number | null): string {
+    if (v == null) return '—';
+    return v.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
   }
-  get healthEvents(): HealthEvent[] {
-    return this.summary()?.health_events ?? [];
-  }
+
+  parseFloat = parseFloat; // exponer al template
 }

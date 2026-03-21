@@ -1,73 +1,87 @@
+<!-- animal-detail.component.html -->
 @if (loading()) {
   <app-loader type="spinner" message="Cargando animal..." />
-} @else if (!summary()) {
+} @else if (!animal()) {
   <app-empty-state title="Animal no encontrado" icon="alert-circle" />
 } @else {
 
-  <app-page-header
-    [title]="animal()!.tag"
-    [subtitle]="(animal()!.name ? animal()!.name + ' · ' : '') + animal()!.breed_name + ' · ' + animal()!.current_lot_name"
-    backUrl="/cattle/animals">
+  <app-page-header [title]="pageTitle()" [subtitle]="pageSubtitle()" backUrl="/cattle/animals">
     <div class="header-actions">
-      <button class="btn btn-ghost" (click)="showWeightForm.set(!showWeightForm())">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Registrar Peso
-      </button>
-      <a [routerLink]="['health', 'new']" class="btn btn-ghost">+ Evento Salud</a>
-      @if (animal()!.status === 'active') {
-        <button class="btn btn-danger-outline" (click)="confirmDeath()">Registrar Muerte</button>
-      }
-      <a [routerLink]="['edit']" class="btn btn-secondary">Editar</a>
+      <!-- Registrar peso desde archivo -->
+      <label class="btn btn-ghost" [class.loading]="uploading()">
+        @if (uploading()) {
+          <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+          Procesando...
+        } @else {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          Subir Pesajes
+        }
+        <input type="file" accept=".xlsx,.xls,.csv" (change)="onWeightFileSelected($event)" style="display:none" [disabled]="uploading()" />
+      </label>
+      <a [routerLink]="['../']" class="btn btn-ghost">← Volver</a>
     </div>
   </app-page-header>
 
-  <!-- Quick weight form -->
-  @if (showWeightForm()) {
-    <div class="weight-form-card">
-      <h4 class="weight-form-title">Registrar Peso</h4>
-      @if (weightError()) { <app-alert type="danger" [message]="weightError()" class="mb-3" /> }
-      <form [formGroup]="weightForm" (ngSubmit)="submitWeight()" class="weight-form-row">
-        <div class="field-group">
-          <label class="field-label">Peso (kg) *</label>
-          <input type="number" formControlName="weight" class="field-input" placeholder="Ej: 420" min="1" />
+  <!-- Upload result -->
+  @if (uploadResult()) {
+    <div class="upload-result" [class.has-errors]="uploadResult()!.errors.length > 0">
+      <div class="upload-result-summary">
+        <span class="result-stat success">✓ {{ uploadResult()!.recorded }} registrados</span>
+        <span class="result-stat warn">{{ uploadResult()!.skipped }} omitidos</span>
+        @if (uploadResult()!.errors.length > 0) {
+          <span class="result-stat error">{{ uploadResult()!.errors.length }} errores</span>
+        }
+        <button class="btn-close-result" (click)="uploadResult.set(null)">✕</button>
+      </div>
+      @if (uploadResult()!.errors.length > 0) {
+        <div class="upload-errors">
+          @for (err of uploadResult()!.errors; track err.row) {
+            <div class="upload-error-row">
+              <span class="err-row">Fila {{ err.row }}</span>
+              <span class="err-tag">{{ err.tag }}</span>
+              <span class="err-msg">{{ err.error }}</span>
+            </div>
+          }
         </div>
-        <div class="field-group">
-          <label class="field-label">Fecha *</label>
-          <input type="date" formControlName="date" class="field-input" [max]="weightForm.value.date" />
-        </div>
-        <div class="field-group flex-1">
-          <label class="field-label">Notas</label>
-          <input type="text" formControlName="notes" class="field-input" placeholder="Observaciones..." />
-        </div>
-        <div class="weight-form-actions">
-          <button type="button" class="btn btn-ghost btn-sm" (click)="showWeightForm.set(false)">Cancelar</button>
-          <button type="submit" class="btn btn-primary btn-sm" [disabled]="savingWeight()">
-            {{ savingWeight() ? 'Guardando...' : 'Guardar' }}
-          </button>
-        </div>
-      </form>
+      }
     </div>
   }
 
-  <!-- KPIs -->
-  <div class="kpis-row">
-    <app-kpi-card label="Peso Actual"   [value]="animal()!.current_weight ?? 0"       format="number" color="blue"   icon="activity"    suffix=" kg" />
-    <app-kpi-card label="Peso Ingreso"  [value]="animal()!.entry_weight ?? 0"          format="number" color="green"  icon="log-in"      suffix=" kg" />
-    <app-kpi-card label="Ganancia Total"[value]="summary()!.total_weight_gain ?? 0"    format="number" color="purple" icon="trending-up"  suffix=" kg" />
-    <app-kpi-card label="GMD"           [value]="summary()!.avg_daily_gain ?? 0"       format="number" color="yellow" icon="zap"         suffix=" kg/d" precision="2" />
-  </div>
+  <!-- KPIs desde summary -->
+  @if (summary()) {
+    <div class="kpis-row">
+      <app-kpi-card label="Peso Actual"    [value]="summary()!.weight.current"    format="number" color="blue"   icon="activity"   suffix=" kg" />
+      <app-kpi-card label="Ganancia Total" [value]="summary()!.weight.gain"       format="number" color="green"  icon="trending-up" suffix=" kg" />
+      <app-kpi-card label="GMD"            [value]="summary()!.weight.daily_gain" format="number" color="yellow" icon="zap"         suffix=" kg/d" />
+      <app-kpi-card label="Valor Actual"   [value]="summary()!.value.current"     format="currency" color="purple" icon="dollar-sign" />
+    </div>
+  }
 
   <!-- Status banner -->
   <div class="status-banner" [class]="animal()!.status">
-    <app-badge [label]="statusLabels[animal()!.status]" [color]="statusColors[animal()!.status]" size="lg" />
-    <span class="status-info">{{ animal()!.sex === 'M' ? '♂ Macho' : '♀ Hembra' }} · Ingreso: {{ formatDate(animal()!.entry_date) }}</span>
+    <!-- <app-badge [label]="statusLabels[animal().status as any] ?? animal()!.status" [color]="statusColors[animal()!.status as any] ?? 'default'" size="lg" /> -->
+    <span class="status-info">
+      {{ animal()!.gender === 'M' ? '♂ Macho' : '♀ Hembra' }}
+      · Ingreso: {{ formatDate(animal()!.entry_date) }}
+      @if (animal()!.age_months) { · {{ animal()!.age_months }} meses }
+    </span>
   </div>
 
   <!-- Tabs -->
   <div class="tabs-bar">
-    <button class="tab" [class.active]="activeTab() === 'info'"    (click)="activeTab.set('info')">Información</button>
-    <button class="tab" [class.active]="activeTab() === 'weights'" (click)="activeTab.set('weights')">Pesajes ({{ weights.length }})</button>
-    <button class="tab" [class.active]="activeTab() === 'health'"  (click)="activeTab.set('health')">Salud ({{ healthEvents.length }})</button>
+    <button class="tab" [class.active]="activeTab() === 'info'"      (click)="activeTab.set('info')">Información</button>
+    <button class="tab" [class.active]="activeTab() === 'weights'"   (click)="activeTab.set('weights')">
+      Pesajes @if (summary()) { ({{ summary()!.weight.total_records }}) }
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'health'"    (click)="activeTab.set('health')">
+      Salud @if (summary()) { ({{ summary()!.recent_health_events.length }}) }
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'movements'" (click)="activeTab.set('movements')">
+      Movimientos @if (summary()) { ({{ summary()!.recent_movements.length }}) }
+    </button>
   </div>
 
   <!-- Tab: Info -->
@@ -76,29 +90,47 @@
       <div class="info-card">
         <h3 class="card-title">Identificación</h3>
         <dl class="dl">
-          <div class="dl-row"><dt>Arete</dt><dd class="mono">{{ animal()!.tag }}</dd></div>
-          <div class="dl-row"><dt>Nombre</dt><dd>{{ animal()!.name || '—' }}</dd></div>
-          <div class="dl-row"><dt>Raza</dt><dd>{{ animal()!.breed_name }}</dd></div>
+          <div class="dl-row"><dt>Arete</dt>        <dd class="mono">{{ animal()!.tag_number }}</dd></div>
+          <div class="dl-row"><dt>Nombre</dt>       <dd>{{ animal()!.name || '—' }}</dd></div>
+          <div class="dl-row"><dt>ID Electrónico</dt><dd class="mono">{{ animal()!.electronic_id || '—' }}</dd></div>
+          <div class="dl-row"><dt>Raza</dt>         <dd>{{ animal()!.breed?.name || '—' }}</dd></div>
           <div class="dl-row"><dt>Color</dt>
             <dd class="color-cell">
-              <span class="color-dot" [style.background]="animal()!.color_hex ?? '#94a3b8'"></span>
-              {{ animal()!.color_name }}
+              @if (animal()!.color) {
+                <span class="color-dot" [style.background]="animal()!.color!.hex_color"></span>
+                {{ animal()!.color!.name }}
+              } @else { — }
             </dd>
           </div>
-          <div class="dl-row"><dt>Sexo</dt><dd>{{ sexLabels[animal()!.sex] }}</dd></div>
-          @if (animal()!.birth_date) {
-            <div class="dl-row"><dt>Nacimiento</dt><dd>{{ formatDate(animal()!.birth_date) }}</dd></div>
-          }
+          <div class="dl-row"><dt>Sexo</dt>        <dd>{{ sexLabels[animal()!.gender] }}</dd></div>
+          <!-- <div class="dl-row"><dt>Categoría</dt>   <dd>{{ categoryLabels[animal()?.category] ?? animal()!.category }}</dd></div> -->
+          <div class="dl-row"><dt>Nacimiento</dt>  <dd>{{ formatDate(animal()!.birth_date) }}</dd></div>
+          <div class="dl-row"><dt>Hierro/Marca</dt><dd>{{ animal()!.brand_mark || '—' }}</dd></div>
         </dl>
       </div>
 
       <div class="info-card">
-        <h3 class="card-title">Ubicación</h3>
+        <h3 class="card-title">Pesos & Valores</h3>
         <dl class="dl">
-          <div class="dl-row"><dt>Finca</dt><dd>{{ animal()!.current_farm_name }}</dd></div>
-          <div class="dl-row"><dt>Lote</dt><dd>{{ animal()!.current_lot_name }}</dd></div>
-          <div class="dl-row"><dt>Fecha Ingreso</dt><dd>{{ formatDate(animal()!.entry_date) }}</dd></div>
-          <div class="dl-row"><dt>Días en Finca</dt><dd>{{ summary()!.days_in_farm ?? '—' }}</dd></div>
+          <div class="dl-row"><dt>Peso Nacimiento</dt><dd>{{ animal()!.birth_weight  ? animal()!.birth_weight  + ' kg' : '—' }}</dd></div>
+          <div class="dl-row"><dt>Peso Ingreso</dt>   <dd>{{ animal()!.entry_weight  ? animal()!.entry_weight  + ' kg' : '—' }}</dd></div>
+          <div class="dl-row"><dt>Peso Actual</dt>    <dd class="highlight">{{ animal()!.current_weight ? animal()!.current_weight + ' kg' : '—' }}</dd></div>
+          <div class="dl-row"><dt>Último Pesaje</dt>  <dd>{{ formatDate(animal()!.last_weight_date) }}</dd></div>
+          <div class="dl-row"><dt>Ganancia</dt>       <dd>{{ animal()!.weight_gain ? animal()!.weight_gain + ' kg (' + animal()!.weight_gain_percentage + '%)' : '—' }}</dd></div>
+          <div class="dl-row"><dt>GMD</dt>            <dd>{{ animal()!.daily_gain || '—' }}</dd></div>
+          <div class="dl-row"><dt>Precio Compra</dt>  <dd>{{ formatCurrency(parseFloat(animal()!.purchase_price)) }}</dd></div>
+          <div class="dl-row"><dt>Valor Actual</dt>   <dd>{{ formatCurrency(parseFloat(animal()!.current_value)) }}</dd></div>
+        </dl>
+      </div>
+
+      <div class="info-card">
+        <h3 class="card-title">Ubicación & Genealogía</h3>
+        <dl class="dl">
+          <div class="dl-row"><dt>Lote</dt>    <dd>{{ summary()?.location?.lot   || '—' }}</dd></div>
+          <div class="dl-row"><dt>Finca</dt>   <dd>{{ summary()?.location?.farm  || '—' }}</dd></div>
+          <div class="dl-row"><dt>Madre</dt>   <dd class="mono">{{ animal()!.mother_tag || '—' }}</dd></div>
+          <div class="dl-row"><dt>Padre</dt>   <dd class="mono">{{ animal()!.father_tag || '—' }}</dd></div>
+          <div class="dl-row"><dt>Ingreso</dt> <dd>{{ formatDate(animal()!.entry_date) }}</dd></div>
         </dl>
       </div>
 
@@ -114,7 +146,7 @@
   <!-- Tab: Weights -->
   @if (activeTab() === 'weights') {
     <div class="panel">
-      @if (weights.length === 0) {
+      @if (weightHistory().length === 0) {
         <app-empty-state [compact]="true" title="Sin registros de peso" icon="activity" />
       } @else {
         <table class="data-table">
@@ -123,23 +155,26 @@
               <th>Fecha</th>
               <th class="text-right">Peso</th>
               <th class="text-right">Variación</th>
-              <th>Notas</th>
+              <th class="text-right">Precio/kg</th>
+              <th class="text-right">Valor Est.</th>
+              <th class="text-right">C.C.</th>
             </tr>
           </thead>
           <tbody>
-            @for (w of weights; track w.id; let i = $index) {
+            @for (w of weightHistory(); track w.date) {
               <tr>
                 <td>{{ formatDate(w.date) }}</td>
-                <td class="text-right weight-val">{{ w.weight | number:'1.1-1' }} kg</td>
+                <td class="text-right weight-val">{{ formatWeight(w.weight) }}</td>
                 <td class="text-right">
-                  @if (i < weights.length - 1) {
-                    @let diff = w.weight - weights[i + 1].weight;
-                    <span class="diff" [class.positive]="diff > 0" [class.negative]="diff < 0">
-                      {{ diff > 0 ? '+' : '' }}{{ diff | number:'1.1-1' }} kg
+                  @if (w.gain !== null) {
+                    <span class="diff" [class.positive]="w.gain > 0" [class.negative]="w.gain < 0">
+                      {{ w.gain > 0 ? '+' : '' }}{{ formatWeight(w.gain) }}
                     </span>
-                  }
+                  } @else { <span class="muted">—</span> }
                 </td>
-                <td class="notes-td">{{ w.notes || '—' }}</td>
+                <td class="text-right muted">{{ w.price_per_kg ? '$' + w.price_per_kg : '—' }}</td>
+                <td class="text-right muted">{{ w.estimated_value > 0 ? formatCurrency(w.estimated_value) : '—' }}</td>
+                <td class="text-right muted">{{ w.body_condition ?? '—' }}</td>
               </tr>
             }
           </tbody>
@@ -151,35 +186,41 @@
   <!-- Tab: Health -->
   @if (activeTab() === 'health') {
     <div class="panel">
-      <div class="panel-toolbar">
-        <a [routerLink]="['health', 'new']" class="btn btn-primary btn-sm">+ Nuevo Evento</a>
-      </div>
-      @if (healthEvents.length === 0) {
+      @if (!summary()?.recent_health_events?.length) {
         <app-empty-state [compact]="true" title="Sin eventos de salud" icon="heart" />
       } @else {
-        <div class="health-list">
-          @for (ev of healthEvents; track ev.id) {
-            <div class="health-item">
-              <div class="health-icon-wrap">
-                <app-badge [label]="healthEventLabels[ev.event_type]" [color]="healthEventColors[ev.event_type]" />
-              </div>
-              <div class="health-body">
-                <div class="health-head">
-                  <span class="health-desc">{{ ev.description }}</span>
-                  <span class="health-date">{{ formatDate(ev.date) }}</span>
-                </div>
-                @if (ev.product) {
-                  <div class="health-meta">{{ ev.product }} @if (ev.dose) { · {{ ev.dose }} }</div>
-                }
-                @if (ev.withdrawal_days) {
-                  <div class="health-withdrawal">
-                    ⚠ Retiro: {{ ev.withdrawal_days }} días (hasta {{ formatDate(ev.withdrawal_end_date) }})
-                  </div>
-                }
-              </div>
+        <div class="event-list">
+          @for (ev of summary()!.recent_health_events; track $index) {
+            <div class="event-item">
+              <span class="event-date">{{ formatDate(ev.date) }}</span>
+              <span class="event-desc">{{ ev.description }}</span>
             </div>
           }
         </div>
+      }
+    </div>
+  }
+
+  <!-- Tab: Movements -->
+  @if (activeTab() === 'movements') {
+    <div class="panel">
+      @if (!summary()?.recent_movements?.length) {
+        <app-empty-state [compact]="true" title="Sin movimientos" icon="arrow-right" />
+      } @else {
+        <table class="data-table">
+          <thead>
+            <tr><th>Fecha</th><th>Tipo</th><th>Descripción</th></tr>
+          </thead>
+          <tbody>
+            @for (m of summary()!.recent_movements; track m.date) {
+              <tr>
+                <td class="date-cell">{{ formatDate(m.date) }}</td>
+                <td><span class="movement-type">{{ m.type }}</span></td>
+                <td class="muted">{{ m.description }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
       }
     </div>
   }

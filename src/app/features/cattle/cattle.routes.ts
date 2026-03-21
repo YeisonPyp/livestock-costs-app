@@ -13,30 +13,30 @@ export const CATTLE_ROUTES: Routes = [
   // },
 
   // ── Lots ───────────────────────────────────────────────────────────────────
-  {
-    path: 'lots',
-    loadComponent: () =>
-      import('./pages/lots/lot-list/lot-list.component').then(m => m.LotListComponent),
-    title: 'Lotes',
-  },
-  {
-    path: 'lots/new',
-    loadComponent: () =>
-      import('./pages/lots/lot-form/lot-form.component').then(m => m.LotFormComponent),
-    title: 'Nuevo Lote',
-  },
-  {
-    path: 'lots/:id',
-    loadComponent: () =>
-      import('./pages/lots/lot-detail/lot-detail.component').then(m => m.LotDetailComponent),
-    title: 'Detalle de Lote',
-  },
-  {
-    path: 'lots/:id/edit',
-    loadComponent: () =>
-      import('./pages/lots/lot-form/lot-form.component').then(m => m.LotFormComponent),
-    title: 'Editar Lote',
-  },
+  // {
+  //   path: 'lots',
+  //   loadComponent: () =>
+  //     import('./pages/lots/lot-list/lot-list.component').then(m => m.LotListComponent),
+  //   title: 'Lotes',
+  // },
+  // {
+  //   path: 'lots/new',
+  //   loadComponent: () =>
+  //     import('./pages/lots/lot-form/lot-form.component').then(m => m.LotFormComponent),
+  //   title: 'Nuevo Lote',
+  // },
+  // {
+  //   path: 'lots/:id',
+  //   loadComponent: () =>
+  //     import('./pages/lots/lot-detail/lot-detail.component').then(m => m.LotDetailComponent),
+  //   title: 'Detalle de Lote',
+  // },
+  // {
+  //   path: 'lots/:id/edit',
+  //   loadComponent: () =>
+  //     import('./pages/lots/lot-form/lot-form.component').then(m => m.LotFormComponent),
+  //   title: 'Editar Lote',
+  // },
 
   // ── Animals ────────────────────────────────────────────────────────────────
   {
@@ -45,30 +45,30 @@ export const CATTLE_ROUTES: Routes = [
       import('./pages/animals/animal-list/animal-list.component').then(m => m.AnimalListComponent),
     title: 'Animales',
   },
-  {
-    path: 'animals/new',
-    loadComponent: () =>
-      import('./pages/animals/animal-form/animal-form.component').then(m => m.AnimalFormComponent),
-    title: 'Registrar Animal',
-  },
-  {
-    path: 'animals/bulk-file',
-    loadComponent: () =>
-      import('./pages/animals/bulk-animals/bulk-animals.component').then(m => m.BulkAnimalsComponent),
-    title: 'Carga Masiva de Animales',
-  },
+  // {
+  //   path: 'animals/new',
+  //   loadComponent: () =>
+  //     import('./pages/animals/animal-form/animal-form.component').then(m => m.AnimalFormComponent),
+  //   title: 'Registrar Animal',
+  // },
+  // {
+  //   path: 'animals/bulk-file',
+  //   loadComponent: () =>
+  //     import('./pages/animals/bulk-animals/bulk-animals.component').then(m => m.BulkAnimalsComponent),
+  //   title: 'Carga Masiva de Animales',
+  // },
   {
     path: 'animals/:id',
     loadComponent: () =>
       import('./pages/animals/animal-detail/animal-detail.component').then(m => m.AnimalDetailComponent),
     title: 'Detalle de Animal',
   },
-  {
-    path: 'animals/:id/edit',
-    loadComponent: () =>
-      import('./pages/animals/animal-form/animal-form.component').then(m => m.AnimalFormComponent),
-    title: 'Editar Animal',
-  },
+  // {
+  //   path: 'animals/:id/edit',
+  //   loadComponent: () =>
+  //     import('./pages/animals/animal-form/animal-form.component').then(m => m.AnimalFormComponent),
+  //   title: 'Editar Animal',
+  // },
 
   // ── Weights ────────────────────────────────────────────────────────────────
   // {

@@ -64,6 +64,126 @@ export interface LotSummary {
 }
 
 // ── Animal ────────────────────────────────────────────────────────────────────
+export interface AnimalListItem {
+  id: string;
+  tag_number: string;
+  name: string;
+  breed_name: string;
+  gender: 'M' | 'F';
+  category: string;
+  lot_code: string | null;
+  current_weight: string | null;
+  current_value: string;
+  age_months: number | null;
+  weight_gain: string | null;
+  daily_gain: string | null;
+  status: string;
+  entry_date: string;
+  last_weight_date: string | null;
+}
+
+export interface AnimalDetail {
+  id: string;
+  tag_number: string;
+  name: string;
+  electronic_id: string | null;
+  registry_number: string;
+  breed: { id: string; code: string; name: string; description: string; typical_adult_weight_male: string; typical_adult_weight_female: string; is_active: boolean };
+  breed_secondary: any | null;
+  breed_percentage: string;
+  color: { id: string; code: string; name: string; hex_color: string; is_active: boolean } | null;
+  gender: 'M' | 'F';
+  category: string;
+  birth_date: string | null;
+  entry_date: string;
+  exit_date: string | null;
+  mother: string | null;
+  mother_tag: string | null;
+  father: string | null;
+  father_tag: string | null;
+  lot: string | null;
+  farm: string | null;
+  birth_weight: string | null;
+  entry_weight: string | null;
+  current_weight: string | null;
+  last_weight_date: string | null;
+  purchase_price: string;
+  current_value: string;
+  status: string;
+  is_pregnant: boolean;
+  expected_calving_date: string | null;
+  total_calvings: number;
+  is_castrated: boolean;
+  castration_date: string | null;
+  brand_mark: string;
+  distinctive_marks: string;
+  notes: string;
+  age_months: number | null;
+  age_years: number | null;
+  weight_gain: string | null;
+  weight_gain_percentage: string | null;
+  daily_gain: string | null;
+  value_appreciation: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AnimalSummary {
+  animal: {
+    id: string;
+    tag_number: string;
+    name: string;
+    breed: string;
+    gender: string;
+    category: string;
+    age_months: number | null;
+    status: string;
+  };
+  weight: {
+    current: number;
+    entry: number;
+    gain: number;
+    gain_percentage: number;
+    daily_gain: number;
+    last_date: string | null;
+    min: number;
+    max: number;
+    average: number;
+    total_records: number;
+  };
+  value: {
+    purchase: number;
+    current: number;
+    appreciation: number;
+  };
+  location: {
+    lot: string | null;
+    farm: string | null;
+  };
+  recent_health_events: any[];
+  recent_movements: {
+    date: string;
+    type: string;
+    description: string;
+  }[];
+}
+
+export interface WeightHistoryItem {
+  date: string;
+  weight: number;
+  gain: number | null;
+  price_per_kg: number | null;
+  estimated_value: number;
+  body_condition: number | null;
+}
+
+export interface BulkImportResult {
+  created?: number;
+  recorded?: number;
+  skipped: number;
+  errors: { row: number; tag: string; error: string }[];
+}
+
 
 export type AnimalGender   = 'M' | 'F';
 export type AnimalStatus   = 'active' | 'sold' | 'dead' | 'transferred';
@@ -72,72 +192,6 @@ export type AnimalCategory =
   | 'weaned_male' | 'weaned_female'
   | 'heifer' | 'cow' | 'bull' | 'steer';
 
-export interface AnimalListItem {
-  id: string;
-  tag_number: string;          // backend field: tag_number (NOT tag)
-  name: string;
-  electronic_id?: string | null;
-  breed: string;
-  breed_name?: string;
-  breed_secondary?: string | null;
-  breed_percentage: string;
-  color?: string | null;
-  color_name?: string;
-  color_hex?: string;
-  gender: AnimalGender;
-  gender_display?: string;
-  category: AnimalCategory;
-  category_display?: string;
-  birth_date?: string | null;
-  entry_date: string;
-  entry_weight?: string | null;
-  current_weight?: string | null;
-  last_weight_date?: string | null;
-  lot?: string | null;
-  lot_name?: string;
-  farm?: string | null;
-  farm_name?: string;
-  status: AnimalStatus;
-  status_display?: string;
-  current_value: string;
-  purchase_price: string;
-  created_at: string;
-}
-
-export interface AnimalDetail extends AnimalListItem {
-  registry_number: string;
-  brand_mark: string;
-  distinctive_marks: string;
-  birth_weight?: string | null;
-  is_pregnant: boolean;
-  expected_calving_date?: string | null;
-  total_calvings: number;
-  is_castrated: boolean;
-  castration_date?: string | null;
-  mother?: string | null;
-  mother_tag?: string;
-  father?: string | null;
-  father_tag?: string;
-  notes: string;
-  // Computed @property fields from Django model
-  age_months?: number | null;
-  age_years?: number | null;
-  weight_gain?: string;
-  weight_gain_percentage?: string;
-  daily_gain?: string;
-  value_appreciation?: string;
-}
-
-export interface Animal extends AnimalDetail {}  // alias for backward-compat
-
-export interface AnimalSummary {
-  animal: AnimalDetail;
-  weight_history: WeightRecord[];
-  health_events: HealthEvent[];
-  total_weight_gain?: string;
-  avg_daily_gain?: string;
-  days_in_farm?: number;
-}
 
 // ── Weight record ─────────────────────────────────────────────────────────────
 

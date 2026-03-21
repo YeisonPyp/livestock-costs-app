@@ -105,7 +105,7 @@ export class AnimalFormComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
       this.editId = id;
-      this.svc.getAnimalById(id).subscribe({
+      this.svc.getAnimal(id).subscribe({
         next: (r) => { 
           if (r.success) {
             // Map field names from API response to form control names
@@ -113,8 +113,8 @@ export class AnimalFormComponent implements OnInit {
             this.form.patchValue({
               tag: data.tag_number,
               name: data.name,
-              breed: data.breed,
-              color: data.color,
+              // breed: data.breed,
+              // color: data.color,
               gender: data.gender,
               birth_date: data.birth_date,
               entry_date: data.entry_date,
@@ -155,24 +155,24 @@ export class AnimalFormComponent implements OnInit {
       notes: formValue.notes || '',
     };
 
-    const req = this.isEdit
-      ? this.svc.updateAnimal(this.editId!, payload??)
-      : this.svc.createAnimal(payload);
+    // const req = this.isEdit
+    //   ? this.svc.updateAnimal(this.editId!, payload??)
+    //   : this.svc.createAnimal(payload);
 
-    req.subscribe({
-      next: (r: any) => {
-        this.snack.open(
-          r.message || (this.isEdit ? 'Animal actualizado' : 'Animal registrado'), 
-          'Cerrar', 
-          { duration: 3000 }
-        );
-        this.router.navigate(['/cattle/animals']);
-      },
-      error: (e: any) => { 
-        this.error.set(e?.error?.message || 'Error al guardar'); 
-        this.saving.set(false); 
-      },
-    });
+    // req.subscribe({
+    //   next: (r: any) => {
+    //     this.snack.open(
+    //       r.message || (this.isEdit ? 'Animal actualizado' : 'Animal registrado'), 
+    //       'Cerrar', 
+    //       { duration: 3000 }
+    //     );
+    //     this.router.navigate(['/cattle/animals']);
+    //   },
+    //   error: (e: any) => { 
+    //     this.error.set(e?.error?.message || 'Error al guardar'); 
+    //     this.saving.set(false); 
+    //   },
+    // });
   }
 
   hasError(fieldName: string, errorType: string): boolean {

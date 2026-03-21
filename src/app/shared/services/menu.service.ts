@@ -45,6 +45,12 @@ export class MenuService {
       color: 'purple',
       path: '/investments/investors',
     },
+    {
+      label: 'Ganado',
+      icon: 'plus-circle',
+      color: 'orange',
+      path: '/cattle/animals',
+    },
     // {
     //   label: 'Gestión de Costos',
     //   icon: 'dollar-sign',
@@ -62,33 +68,33 @@ export class MenuService {
     //     },
     //   ],
     // },
-    {
-      label: 'Ganado',
-      icon: 'plus-circle',
-      color: 'purple',
-      children: [
-        {
-          label: 'Lotes',
-          icon: 'users',
-          path: '/cattle/lots',
-        },
-        {
-          label: 'Animales',
-          icon: 'briefcase',
-          path: '/cattle/animals',
-        },
-        {
-          label: 'Salud',
-          icon: 'shopping-cart',
-          path: '/cattle/health',
-        },
-        {
-          label: 'Reportes',
-          icon: 'file-text',
-          path: '/cattle/reports',
-        },
-      ]
-    },
+    // {
+    //   label: 'Ganado',
+    //   icon: 'plus-circle',
+    //   color: 'purple',
+    //   children: [
+    //     {
+    //       label: 'Lotes',
+    //       icon: 'users',
+    //       path: '/cattle/lots',
+    //     },
+    //     {
+    //       label: 'Animales',
+    //       icon: 'briefcase',
+    //       path: '/cattle/animals',
+    //     },
+    //     {
+    //       label: 'Salud',
+    //       icon: 'shopping-cart',
+    //       path: '/cattle/health',
+    //     },
+    //     {
+    //       label: 'Reportes',
+    //       icon: 'file-text',
+    //       path: '/cattle/reports',
+    //     },
+    //   ]
+    // },
     {
       label: 'Inversiones',
       icon: 'trending-up',
