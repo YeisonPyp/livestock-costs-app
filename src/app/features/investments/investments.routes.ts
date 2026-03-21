@@ -37,16 +37,16 @@ export const INVESTMENTS_ROUTES: Routes = [
   },
 
   // ── Ventas ────────────────────────────────────────────────────────────────
-  // {
-  //   path: 'sales',
-  //   loadComponent: () =>
-  //     import('./pages/sale-list/sale-list.component').then(m => m.SaleListComponent),
-  // },
-  // {
-  //   path: 'sales/:id',
-  //   loadComponent: () =>
-  //     import('./pages/sale-detail/sale-detail.component').then(m => m.SaleDetailComponent),
-  // },
+  {
+    path: 'sales',
+    loadComponent: () =>
+      import('./pages/sale-list/sale-list.component').then(m => m.SaleListComponent),
+  },
+  {
+    path: 'sales/:id',
+    loadComponent: () =>
+      import('./pages/sale-detail/sale-detail.component').then(m => m.SaleDetailComponent),
+  },
 
   // ── Decisiones ────────────────────────────────────────────────────────────
   {

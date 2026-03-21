@@ -95,37 +95,44 @@ export class MenuService {
     //     },
     //   ]
     // },
+    // {
+    //   label: 'Inversiones',
+    //   icon: 'trending-up',
+    //   color: 'purple',
+    //   children: [
+    //     {
+    //       label: 'Inversiones',
+    //       icon: 'briefcase',
+    //       path: '/investments/investments',
+    //     },
+    //     {
+    //       label: 'Ventas',
+    //       icon: 'shopping-cart',
+    //       path: '/investments/sales',
+    //     },
+    //     {
+    //       label: 'Decisiones',
+    //       icon: 'check-circle',
+    //       path: '/investments/decisions',
+    //     },
+    //     {
+    //       label: 'Reportes',
+    //       icon: 'file-text',
+    //       path: '/investments/reports',
+    //     },
+    //   ],
+    // },
     {
       label: 'Inversiones',
       icon: 'trending-up',
       color: 'purple',
-      children: [
-        {
-          label: 'Inversionistas',
-          icon: 'users',
-          path: '/investments/investors',
-        },
-        {
-          label: 'Inversiones',
-          icon: 'briefcase',
-          path: '/investments/investments',
-        },
-        {
-          label: 'Ventas',
-          icon: 'shopping-cart',
-          path: '/investments/sales',
-        },
-        {
-          label: 'Decisiones',
-          icon: 'check-circle',
-          path: '/investments/decisions',
-        },
-        {
-          label: 'Reportes',
-          icon: 'file-text',
-          path: '/investments/reports',
-        },
-      ],
+      path: '/investments/investments',
+    },
+    {
+      label: 'Ventas',
+      icon: 'shopping-cart',
+      color: 'green',
+      path: '/investments/sales',
     },
   ]);
 

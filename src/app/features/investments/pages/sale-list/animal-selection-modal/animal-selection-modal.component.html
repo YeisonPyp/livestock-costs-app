@@ -112,10 +112,10 @@
                 <td class="text-right weight-cell">
                   {{ animal.current_weight ? (animal.current_weight | number:'1.1-1') + ' kg' : '—' }}
                 </td>
-                <td class="lot-cell">{{ animal.lot_name }}</td>
+                <td class="lot-cell">{{ animal.lot_code }}</td>
                 <td>
                   <app-badge
-                    [label]="statusLabels[animal.status]"
+                    [label]="animal.status"
                     color="success"
                     size="sm" />
                 </td>
