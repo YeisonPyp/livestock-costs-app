@@ -52,9 +52,58 @@ export class DashboardComponent implements OnInit {
   loadingKpis = signal(true);
 
   // ── Derived ────────────────────────────────────────────────────────────────
-  topCategories = computed(() =>
-    this.summaryByCat().slice(0, 6)
-  );
+
+  groupByParent(categories: CategorySummary[]): CategorySummary[] {
+    const map = new Map<string, CategorySummary>();
+
+    categories.forEach(cat => {
+      const key = cat.parent_name || 'Otros';
+
+      if (!map.has(key)) {
+        map.set(key, {
+          category_id: key,
+          category_name: key,
+          total: 0,
+          count: 0,
+          percentage: 0,
+        } as any);
+      }
+
+      const parent = map.get(key)!;
+      parent.total += cat.total;
+      parent.count += cat.count;
+      parent.percentage += cat.percentage;
+    });
+
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  }
+
+  topCategories = computed(() => {
+    const grouped = this.groupByParent(this.summaryByCat());
+
+    if (grouped.length <= 5) return grouped;
+
+    const top = grouped.slice(0, 5);
+    const rest = grouped.slice(5);
+
+    const others = {
+      category_id: 'others',
+      category_name: 'Otros',
+      total: rest.reduce((sum, c) => sum + c.total, 0),
+      count: rest.reduce((sum, c) => sum + c.count, 0),
+      percentage: rest.reduce((sum, c) => sum + c.percentage, 0),
+    };
+
+    return [...top, others];
+  });
+
+  normalizeCategories(data: any[]): CategorySummary[] {
+    return data.map(item => ({
+      ...item,
+      total: Number(item.total),
+      percentage: Number(item.percentage),
+    }));
+  }
 
   yoyChange = computed((): number | null => {
     const c = this.totals()?.total;
@@ -75,7 +124,7 @@ export class DashboardComponent implements OnInit {
     this.loading.set(true);
 
     // Totals for selected month
-    this.costSvc.getTotals({ date_from: this.firstDay(year, month), date_to: this.lastDay(year, month) }).subscribe({
+    this.costSvc.getTotals({ start_date: this.firstDay(year, month), end_date: this.lastDay(year, month) }).subscribe({
       next: (r) => { if (r.success) this.totals.set(r.data); this.loadingKpis.set(false); },
       error: () => this.loadingKpis.set(false),
     });
@@ -83,7 +132,7 @@ export class DashboardComponent implements OnInit {
     // Totals for previous month (for comparison)
     const prev = this.months[this.monthIdx() + 1];
     if (prev) {
-      this.costSvc.getTotals({ date_from: this.firstDay(prev.year, prev.month), date_to: this.lastDay(prev.year, prev.month) }).subscribe({
+      this.costSvc.getTotals({ start_date: this.firstDay(prev.year, prev.month), end_date: this.lastDay(prev.year, prev.month) }).subscribe({
         next: (r) => { if (r.success) this.prevTotals.set(r.data); },
       });
     }
@@ -101,14 +150,18 @@ export class DashboardComponent implements OnInit {
 
     // Summary by category for donut/bars
     this.costSvc.getSummaryByCategory({
-      date_from: this.firstDay(year, month),
-      date_to:   this.lastDay(year, month),
+      start_date: this.firstDay(year, month),
+      end_date:   this.lastDay(year, month),
     }).subscribe({
-      next: (r) => { if (r.success) this.summaryByCat.set(r.data); },
+      next: (r) => {
+        if (r.success) {
+          this.summaryByCat.set(this.normalizeCategories(r.data));
+        }
+      }
     });
 
     // 12-month trend
-    this.costSvc.getSummaryByMonth({ date_from: this.firstDay(year - 1, month + 1), date_to: this.lastDay(year, month) }).subscribe({
+    this.costSvc.getSummaryByMonth({ start_date: this.firstDay(year - 1, month + 1), end_date: this.lastDay(year, month) }).subscribe({
       next: (r) => { if (r.success) this.trendMonths.set(r.data.slice(-12)); },
     });
 

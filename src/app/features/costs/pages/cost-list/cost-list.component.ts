@@ -65,7 +65,7 @@ export class CostListComponent implements OnInit {
   // ── Filters ────────────────────────────────────────────────────────────────
   private search$ = new Subject<string>();
   searchTerm = '';
-  categoryFilter: number | '' = '';
+  categoryFilter: string | '' = '';
   startDate = '';
   endDate = '';
   ordering = '-date';
@@ -135,9 +135,9 @@ export class CostListComponent implements OnInit {
   private loadTotals(): void {
     this.loadingKpis.set(true);
     const filters: Partial<CostFilters> = {};
-    if (this.startDate) filters.date_from = this.startDate;
-    if (this.endDate) filters.date_to = this.endDate;
-    if (this.categoryFilter) filters.category = +this.categoryFilter;
+    if (this.startDate) filters.start_date = this.startDate;
+    if (this.endDate) filters.end_date = this.endDate;
+    if (this.categoryFilter) filters.category = this.categoryFilter;
 
     this.costSvc.getTotals(filters).subscribe({
       next: (r) => {
@@ -158,9 +158,9 @@ export class CostListComponent implements OnInit {
       ordering: this.ordering,
     };
     if (this.searchTerm) filters.search = this.searchTerm;
-    if (this.categoryFilter) filters.category = +this.categoryFilter;
-    if (this.startDate) filters.date_from = this.startDate;
-    if (this.endDate) filters.date_to = this.endDate;
+    if (this.categoryFilter) filters.category = this.categoryFilter;
+    if (this.startDate) filters.start_date = this.startDate;
+    if (this.endDate) filters.end_date = this.endDate;
 
     this.costSvc.getAll(filters).subscribe({
       next: (r) => {
@@ -309,9 +309,9 @@ export class CostListComponent implements OnInit {
   
   private activeFilters(): Partial<CostFilters> {
     const f: Partial<CostFilters> = {};
-    if (this.startDate) f.date_from = this.startDate;
-    if (this.endDate) f.date_to = this.endDate;
-    if (this.categoryFilter) f.category = +this.categoryFilter;
+    if (this.startDate) f.start_date = this.startDate;
+    if (this.endDate) f.end_date = this.endDate;
+    if (this.categoryFilter) f.category = this.categoryFilter;
     return f;
   }
 

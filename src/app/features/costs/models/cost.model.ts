@@ -77,10 +77,10 @@ export interface CostTotals {
 }
 
 export interface CategorySummary {
-  category_id: number;
-  category_name: string;
+  category_id: UUID;
   category_code?: string;
-  category_color?: string;
+  category_name: string;
+  parent_name?: string;
   total: number;
   count: number;
   percentage: number;
@@ -89,7 +89,7 @@ export interface CategorySummary {
 export interface MonthlySummary {
   year: number;
   month: number;
-  month_label: string;   // "Enero 2025"
+  month_label: string;
   total: number;
   count: number;
 }
@@ -126,9 +126,9 @@ export interface CostFilters {
   // category?: string;
   page?: number;
   page_size?: number;
-  category?: number;
-  date_from?: string;
-  date_to?: string;
+  category?: string;
+  start_date?: string;
+  end_date?: string;
   min_amount?: number;
   max_amount?: number;
   search?: string;

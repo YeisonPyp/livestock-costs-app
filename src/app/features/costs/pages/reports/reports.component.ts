@@ -83,7 +83,7 @@ export class ReportsComponent implements OnInit {
     this.error.set('');
     this.generated.set(false);
 
-    const f = { date_from: this.startDate, date_to: this.endDate };
+    const f = { start_date: this.startDate, end_date: this.endDate };
 
     // Fire all in parallel
     let pending = 3;
