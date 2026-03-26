@@ -1,0 +1,135 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate autocomplete="off">
+
+  <!-- ══════════════════════════════════════════════════════
+       CARD 1 — Inversionista
+  ══════════════════════════════════════════════════════ -->
+  <app-form-card
+    title="Inversionista"
+    subtitle="Selecciona a quién pertenece esta inversión">
+
+    @if (loadingInvestors()) {
+      <div class="if-skeleton if-skeleton--select"></div>
+    } @else {
+      <app-select-field
+        label="Inversionista"
+        placeholder="Buscar por nombre o documento…"
+        [options]="investorOptions()"
+        [required]="true"
+        [control]="ctrl.investor_id"
+        [hasError]="!!ctrl.investor_id?.invalid && !!ctrl.investor_id?.touched"
+        [errorMessage]="'Selecciona un inversionista'"
+        formControlName="investor_id"
+      />
+    }
+
+    <!-- Preview del inversionista seleccionado -->
+    @if (selectedInvestor(); as inv) {
+      <div class="if-investor-card">
+        <div class="if-investor-card__avatar">
+          {{ inv.full_name[0].toUpperCase() }}
+        </div>
+        <div class="if-investor-card__info">
+          <span class="if-investor-card__name">{{ inv.full_name }}</span>
+          <span class="if-investor-card__meta">
+            {{ inv.document_number }}
+            @if (inv.email) { · {{ inv.email }} }
+          </span>
+          <div class="if-investor-card__badges">
+            <span class="if-badge if-badge--blue">
+              Inversionista {{ inv.investor_percentage }}%
+            </span>
+            <span class="if-badge if-badge--gray">
+              Operador {{ inv.operator_percentage }}%
+            </span>
+            @if (!inv.is_active) {
+              <span class="if-badge if-badge--red">Inactivo</span>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+  </app-form-card>
+
+  <!-- ══════════════════════════════════════════════════════
+       CARD 2 — Capital y fecha
+  ══════════════════════════════════════════════════════ -->
+  <app-form-card
+    title="Condiciones de la inversión"
+    subtitle="Capital inicial y fecha de inicio">
+
+    <div class="if-grid if-grid--2">
+
+      <div class="if-field-wrap">
+        <app-input-field
+          label="Capital inicial"
+          placeholder="Ej: 4000000"
+          type="number"
+          [required]="true"
+          [min]="1"
+          [control]="ctrl.initial_capital"
+          prefix="$"
+          hint="Ingresa el monto en pesos colombianos"
+          formControlName="initial_capital"
+        />
+        <!-- Preview formateado -->
+        @if (capitalPreview) {
+          <span class="if-capital-preview">{{ capitalPreview }}</span>
+        }
+      </div>
+
+      <app-input-field
+        label="Fecha de inicio"
+        type="date"
+        [required]="true"
+        [control]="ctrl.start_date"
+        formControlName="start_date"
+      />
+
+    </div>
+
+  </app-form-card>
+
+  <!-- ══════════════════════════════════════════════════════
+       CARD 3 — Notas
+  ══════════════════════════════════════════════════════ -->
+  <app-form-card
+    title="Notas"
+    subtitle="Observaciones o acuerdos adicionales (opcional)">
+
+    <div class="if-textarea-wrap">
+      <textarea
+        class="if-textarea"
+        placeholder="Ej: Primera inversión del socio, acuerdo verbal de plazo mínimo 6 meses…"
+        rows="3"
+        [class.has-error]="!!ctrl.notes?.invalid && !!ctrl.notes?.touched"
+        formControlName="notes"
+      ></textarea>
+    </div>
+
+  </app-form-card>
+
+  <!-- ══════════════════════════════════════════════════════
+       ACTIONS
+  ══════════════════════════════════════════════════════ -->
+  <div class="if-actions">
+    <button
+      type="button"
+      class="if-btn if-btn--ghost"
+      (click)="onCancel()"
+      [disabled]="submitting()">
+      Cancelar
+    </button>
+
+    <button
+      type="submit"
+      class="if-btn if-btn--primary"
+      [disabled]="form.invalid || submitting() || loading()">
+      @if (submitting() || loading()) {
+        <span class="if-spinner"></span>
+      }
+      {{ submitLabel }}
+    </button>
+  </div>
+
+</form>

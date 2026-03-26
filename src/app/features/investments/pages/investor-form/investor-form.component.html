@@ -6,14 +6,16 @@
 } @else {
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-container">
 
-    <!-- Persona -->
-    <app-form-card
-      title="Persona"
-      subtitle="Vincula el inversionista con una persona registrada en el sistema"
-    >
-    <app-person-search (personSelected)="onPersonSelected($event)" />
-    </app-form-card>
+    @if (!isEdit()){
+      <!-- Persona -->
+      <app-form-card
+        title="Persona"
+        subtitle="Vincula el inversionista con una persona registrada en el sistema"
+      >
+      <app-person-search (personSelected)="onPersonSelected($event)" />
+      </app-form-card>
 
+    }
     <!-- Configuración -->
     <app-form-card title="Configuración" subtitle="Parámetros de vinculación y comportamiento">
       <div class="form-grid">
@@ -31,6 +33,26 @@
           [options]="defaultDecisionOptions"
           hint="Se aplicará automáticamente si no toma una decisión a tiempo"
         ></app-select-field>
+
+        <app-input-field
+          label="Porcentaje de Ganacia Inversionista *"
+          type="number"
+          formControlName="investor_percentage"
+          [control]="f['investor_percentage']"
+          placeholder="60"
+          min=0
+          max=100
+        ></app-input-field>
+
+        <app-input-field
+          label="Porcentaje de Ganacia Operador"
+          type="number"
+          formControlName="operator_percentage"
+          [disabled]="true"
+          [control]="f['operator_percentage']"
+          placeholder="40"
+        ></app-input-field>
+        
       </div>
 
       <div class="toggles-group">

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -12,6 +12,9 @@ import { EmptyStateComponent }   from '../../../../shared/components/empty-state
 import { KpiCardComponent }      from '../../../../shared/components/display/kpi-card/kpi-card.component';
 import { BadgeComponent }        from '../../../../shared/components/display/badge/badge.component';
 import { AmountDisplayComponent } from '../../../../shared/components/bills/amount-display/amount-display.component';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import { InvestmentFormComponent } from '../../pages/investment-form/investment-form.component';
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
 
 import { InvestmentService } from '../../services/investment.service';
 import { Investment, INVESTMENT_STATUS } from '../../models/investment.model';
@@ -24,6 +27,7 @@ import { formatCurrency } from '../../../../core/utils/helpers';
     CommonModule, RouterLink, FormsModule,
     PageHeaderComponent, LoaderComponent, EmptyStateComponent,
     KpiCardComponent, BadgeComponent, AmountDisplayComponent,
+    ModalComponent, InvestmentFormComponent, ButtonComponent
   ],
   templateUrl: './investment-list.component.html',
   styleUrl:    './investment-list.component.scss',
@@ -37,20 +41,59 @@ export class InvestmentListComponent implements OnInit {
   currentPage = signal(1);
   totalPages  = signal(1);
 
+    // Modals
+  isModalOpen          = signal(false);
+  isEditModalOpen      = signal(false);
+  isSubmitting         = signal(false);
+  preselectedInvestorId = signal<string | null>(null);
+  selectedInvestment   = signal<Investment | null>(null);
+
   statusFilter = '';
   investorFilter = '';
   private search$ = new Subject<void>();
 
   statusOptions = [{ label: 'Todos', value: '' }, ...INVESTMENT_STATUS];
 
-  stats = signal({
-    total: 0,
-    active: 0,
-    totalCapital: 0,
-    totalProfits: 0,
+  stats = computed(() => {
+    const data = this.investments();
+
+    return {
+      total: data.length,
+      active: data.filter(i => i.status === 'active').length,
+      totalCapital: data.reduce((s, i) => s + +i.current_capital, 0),
+      totalProfits: data.reduce((s, i) => s + +i.total_profits, 0),
+    };
   });
 
   formatCurrency = formatCurrency;
+
+  // ── Crear ──────────────────────────────────────────────────────────────────
+  openCreate(): void {
+    this.preselectedInvestorId.set(null);
+    this.isModalOpen.set(true);
+  }
+  /** Abre el modal con un inversor ya seleccionado */
+  openForInvestor(investorId: string): void {
+    this.preselectedInvestorId.set(investorId);
+    this.isModalOpen.set(true);
+  }
+ 
+  closeModal(): void {
+    this.isModalOpen.set(false);
+    this.preselectedInvestorId.set(null);
+  }
+ 
+  onCreate(payload: Record<string, any>): void {
+    this.isSubmitting.set(true);
+    this.svc.createInvestment(payload as any).subscribe({
+      next: (res) => {
+        this.isSubmitting.set(false);
+        this.closeModal();
+        this.load();
+      },
+      error: () => this.isSubmitting.set(false),
+    });
+  }
 
   ngOnInit(): void {
     this.search$.pipe(debounceTime(300)).subscribe(() => this.load());
@@ -68,12 +111,6 @@ export class InvestmentListComponent implements OnInit {
         if (res.success) {
           this.investments.set(res.data);
           this.totalPages.set(res.pagination?.total_pages ?? 1);
-          this.stats.set({
-            total:        res.data.length,
-            active:       res.data.filter(i => i.status === 'active').length,
-            totalCapital: res.data.reduce((s, i) => s + +i.current_capital, 0),
-            totalProfits: res.data.reduce((s, i) => s + +i.total_profits, 0),
-          });
         }
         this.loading.set(false);
       },

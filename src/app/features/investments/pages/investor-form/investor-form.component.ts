@@ -47,6 +47,8 @@ export class InvestorFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.buildForm();
+    this.handlePercentageChanges();
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id) { this.isEdit.set(true); this.investorId.set(id); this.loadInvestor(id); }
   }
@@ -55,11 +57,28 @@ export class InvestorFormComponent implements OnInit {
     this.form.get('person_id')?.setValue(person.id);
   }
 
+  private handlePercentageChanges(): void {
+    this.form.get('investor_percentage')?.valueChanges.subscribe(value => {
+      const investor = Number(value) || 0;
+
+      // Limitar entre 0 y 100
+      if (investor < 0 || investor > 100) return;
+
+      const operator = 100 - investor;
+
+      this.form.get('operator_percentage')?.setValue(operator, {
+        emitEvent: false // 🔥 evita loop infinito
+      });
+    });
+  }
+
   private buildForm(): void {
     this.form = this.fb.group({
       // person UUID — in real app this would be a person-selector component
       person_id:              ['', Validators.required],
       joined_date:            [this.today(), Validators.required],
+      investor_percentage:    [60, [Validators.required, Validators.min(0), Validators.max(100)]],
+      operator_percentage:    [{ value: 40, disabled: true }],
       notify_sales:           [true],
       notify_weight_gains:    [false],
       default_sale_decision:  ['pending'],
@@ -80,8 +99,8 @@ export class InvestorFormComponent implements OnInit {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.saving.set(true);
     const req$ = this.isEdit()
-      ? this.svc.updateInvestor(this.investorId()!, this.form.value)
-      : this.svc.createInvestor(this.form.value);
+      ? this.svc.updateInvestor(this.investorId()!, this.form.getRawValue())
+      : this.svc.createInvestor(this.form.getRawValue());
 
     req$.subscribe({
       next: () => {

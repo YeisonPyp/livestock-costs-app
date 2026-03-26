@@ -46,6 +46,8 @@ export interface Investor {
   email?: string;
   phone?: string;
   joined_date: string;
+  investor_percentage: number;
+  operator_percentage: number;
   is_active: boolean;
   notify_sales: boolean;
   default_sale_decision: string;
@@ -106,20 +108,22 @@ export interface Investment {
   investor: string;
   investor_code?: string;
   investor_name?: string;
+  investor_document_number?: string;
   initial_capital: number;
   current_capital: number;
-  total_contributions: number;
-  total_withdrawals: number;
-  total_profits: number;
-  roi?: number;
   start_date: string;
   end_date?: string;
   status: string;
   status_display?: string;
+  total_contributions: number;
+  total_withdrawals: number;
+  total_profits: number;
   cattle_count?: number;
   cattle_value?: number;
+  roi?: number;
   notes?: string;
   created_at: string;
+  updated_at: string;
 }
 
 export interface InvestmentMovement {
@@ -221,6 +225,7 @@ export interface ParticipationReport {
 export interface ContributeWithdrawPayload {
   amount: number;
   description?: string;
+  effective_date?: string;
 }
 
 export interface MakeDecisionPayload {

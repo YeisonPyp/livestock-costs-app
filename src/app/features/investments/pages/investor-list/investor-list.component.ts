@@ -59,7 +59,9 @@ export class InvestorListComponent implements OnInit {
           this.stats.set({
             total:            res.data.length,
             active:           res.data.filter(i => i.is_active).length,
-            totalCapital:     res.data.reduce((s, i) => s + (i.total_capital ?? 0), 0),
+            totalCapital:     res.data.reduce((s, i) => s + Number(i.total_capital ?? 0),
+  0
+),
             pendingDecisions: 0,
           });
         }
