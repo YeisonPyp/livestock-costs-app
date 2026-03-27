@@ -2,6 +2,16 @@
 
   <div class="form-grid">
 
+    <div class="form-group">
+      <app-select-field
+        label="Tipo de Categoría"
+        formControlName="category_type"
+        [options]="categoryTypeOptions"
+        placeholder="Selecciona tipo"
+        errorMessage="El tipo es requerido"
+      />
+    </div>
+
     <!-- Categoría Padre -->
     <div class="form-group">
       <app-select-field
@@ -9,7 +19,7 @@
         formControlName="parent"
         [options]="categoryOptions"
         [disabled]="isEditMode"
-        placeholder="Selecciona una categoría de gasto"
+        placeholder="Selecciona una categoría"
         hint=" El código y nivel se ajustan automáticamente al seleccionar un padre"
         errorMessage="La categoría es requerida"
       />

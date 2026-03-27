@@ -7,6 +7,9 @@ export interface SelectOption {
   label: string;
 }
 
+export type CategoryType = 'expense' | 'income';
+export type CostType = 'fixed' | 'variable';
+
 // ── Category ──────────────────────────────────────────────────────────────────
 export interface Category {
   id: UUID;
@@ -16,6 +19,9 @@ export interface Category {
   parent?: number | null;
   parent_name?: string;
   level: number;
+  full_name: string;
+  cost_type: CostType;
+  category_type: CategoryType;
   is_movement: boolean;     // can record costs
   is_active: boolean;
   display_name?: string;

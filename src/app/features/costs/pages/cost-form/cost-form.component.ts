@@ -54,6 +54,8 @@ export class CostFormComponent implements OnInit {
 
   // ── State ──────────────────────────────────────────────────────────────────
   movableCategories = signal<Category[]>([]);
+  expenseCategories = signal<Category[]>([]);
+  incomeCategories = signal<Category[]>([]);
   listFarms = signal<FarmsSimple[]>([]);
   paymentMethod = signal<SelectOption[]>([]);
   paymentStatus = signal<SelectOption[]>([]);
@@ -251,5 +253,15 @@ export class CostFormComponent implements OnInit {
   hasError(field: string, err: string): boolean {
     const c = this.form.get(field);
     return !!(c?.hasError(err) && c.touched);
+  }
+
+  get selectedCategory(): Category | undefined {
+    return this.movableCategories().find(
+      c => c.id === this.form.value.category
+    );
+  }
+
+  get isIncome(): boolean {
+    return this.selectedCategory?.category_type === 'income';
   }
 }

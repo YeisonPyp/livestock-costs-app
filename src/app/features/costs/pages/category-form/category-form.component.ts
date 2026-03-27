@@ -1,7 +1,21 @@
-import { Component, Input, Output, EventEmitter, OnInit,
-  OnChanges, SimpleChanges, OnDestroy, signal,} from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnInit,
+  OnChanges,
+  SimpleChanges,
+  OnDestroy,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
@@ -13,7 +27,12 @@ import { SelectFieldComponent } from '../../../../shared/components/forms/select
 @Component({
   selector: 'app-category-form',
   standalone: true,
-  imports: [ CommonModule, ReactiveFormsModule, ButtonComponent, SelectFieldComponent, ],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    ButtonComponent,
+    SelectFieldComponent,
+  ],
   templateUrl: './category-form.component.html',
   styleUrls: ['./category-form.component.scss'],
 })
@@ -82,68 +101,115 @@ export class CategoryFormComponent implements OnInit, OnChanges, OnDestroy {
       description: ['', [Validators.maxLength(255)]],
       level: [{ value: 1, disabled: true }],
       is_movement: [false],
+      category_type: [
+        { value: 'expense', disabled: true },
+        Validators.required,
+      ],
     });
+  }
+
+  get categoryTypeOptions() {
+    return [
+      { value: 'expense', label: 'Gasto' },
+      { value: 'income', label: 'Ingreso' },
+    ];
   }
 
   private initFormData(): void {
     // ───────── EDIT MODE ─────────
     if (this.category) {
-      this.isEditMode = true;
-      this.categoryForm.patchValue({
-        code: this.category.code,
-        name: this.category.name,
-        description: this.category.description ?? '',
-        parent: this.category.parent ?? null,
-        level: this.category.level,
-        is_movement: this.category.is_movement,
-      });
-      return;
-    }
+  this.isEditMode = true;
+
+  this.categoryForm.patchValue({
+    code: this.category.code,
+    name: this.category.name,
+    description: this.category.description ?? '',
+    parent: this.category.parent ?? null,
+    level: this.category.level,
+    is_movement: this.category.is_movement,
+    category_type: this.category.category_type ?? 'expense',
+  });
+
+  // 👇 manejar estado correcto
+  if (this.category.parent) {
+    this.categoryForm.get('category_type')?.disable({ emitEvent: false });
+  } else {
+    this.categoryForm.get('category_type')?.enable({ emitEvent: false });
+  }
+
+  return;
+}
 
     // ───────── CREATE MODE ─────────
     this.isEditMode = false;
-    this.categoryForm.reset({
-      code: '',
-      name: '',
-      description: '',
+
+    this.categoryForm.reset();
+
+    this.categoryForm.patchValue({
       parent: this.parentId ?? null,
       level: 1,
       is_movement: false,
+      category_type: 'expense',
     });
 
+    // 👇 manejar estado del campo tipo
     if (this.parentId) {
+      this.categoryForm.get('category_type')?.disable();
       this.updateLevelFromParent(this.parentId);
       this.fetchNextCode(this.parentId);
     } else {
+      this.categoryForm.get('category_type')?.enable();
       this.fetchNextCode();
     }
-  
   }
 
   // ─── Listeners ───────────────────────────────────────────────────────────────
 
-  private setupParentChangeListener(): void {
-    this.categoryForm
-      .get('parent')!
-      .valueChanges.pipe(
-        debounceTime(100),
-        distinctUntilChanged(),
-        takeUntil(this.destroy$),
-      )
-      .subscribe((parentId) => {
-        if (!parentId) {
-          this.level?.setValue(1, { emitEvent: false });
-          return;
+private setupParentChangeListener(): void {
+  this.categoryForm
+    .get('parent')!
+    .valueChanges.pipe(
+      debounceTime(100),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$),
+    )
+    .subscribe((parentId) => {
+
+      const typeCtrl = this.categoryForm.get('category_type');
+      const levelCtrl = this.categoryForm.get('level');
+
+      // ───── SIN PADRE ─────
+      if (!parentId) {
+        levelCtrl?.setValue(1, { emitEvent: false });
+
+        // 👇 habilitar tipo (usuario decide)
+        typeCtrl?.enable({ emitEvent: false });
+        typeCtrl?.setValue('expense', { emitEvent: false });
+
+        if (!this.isEditMode) {
+          this.fetchNextCode();
         }
-        const parent = this.parentsCategories().find((c) => c.id === parentId);
-        if (!parent) return;
-        // calcular nivel
-        const newLevel = parent.level + 1;
-        this.level?.setValue(newLevel, { emitEvent: false });
-        // obtener código
-        if (!this.isEditMode) {this.fetchNextCode(parentId)};
-      });
-  }
+
+        return;
+      }
+
+      // ───── CON PADRE ─────
+      const parent = this.parentsCategories().find((c) => c.id === parentId);
+      if (!parent) return;
+
+      // nivel
+      levelCtrl?.setValue(parent.level + 1, { emitEvent: false });
+
+      // 👇 heredar tipo + BLOQUEAR
+      typeCtrl?.setValue(parent.category_type, { emitEvent: false });
+      typeCtrl?.disable({ emitEvent: false });
+
+      // código
+      if (!this.isEditMode) {
+        this.fetchNextCode(parentId);
+      }
+    });
+}
 
   // ─── Lógica de nivel ─────────────────────────────────────────────────────────
 
@@ -198,6 +264,7 @@ export class CategoryFormComponent implements OnInit, OnChanges, OnDestroy {
       parent: raw.parent ? raw.parent : null,
       level: raw.level,
       is_movement: raw.is_movement,
+      category_type: raw.category_type,
     };
     this.save.emit(payload);
   }
