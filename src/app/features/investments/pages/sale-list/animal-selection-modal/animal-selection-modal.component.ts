@@ -1,7 +1,9 @@
+// animal-selection-modal.component.ts
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef } from '@angular/material/dialog';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
 import { LoaderComponent } from '../../../../../shared/components/loader/loader.component';
 import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state.component';
@@ -18,7 +20,6 @@ import {
 
 export interface AnimalSelection extends AnimalListItem {
   selected?: boolean;
-  quantity?: number;
 }
 
 @Component({
@@ -29,7 +30,7 @@ export interface AnimalSelection extends AnimalListItem {
     FormsModule,
     LoaderComponent,
     EmptyStateComponent,
-    BadgeComponent,
+    // BadgeComponent,
   ],
   templateUrl: './animal-selection-modal.component.html',
   styleUrl: './animal-selection-modal.component.scss',
@@ -38,29 +39,42 @@ export class AnimalSelectionModalComponent implements OnInit {
   private svc = inject(CattleService);
   private dialogRef = inject(MatDialogRef<AnimalSelectionModalComponent>);
 
+  // ── Animales en la vista actual (página/filtro) ───────────────────────────
   animals = signal<AnimalSelection[]>([]);
   loading = signal(true);
 
-  // Filters
+  // ── 👇 CLAVE: Mapa persistente de animales seleccionados ──────────────────
+  // Este Map persiste entre búsquedas/filtros
+  selectedAnimalsMap = signal<Map<string, AnimalSelection>>(new Map());
+
+  // ── Filters ───────────────────────────────────────────────────────────────
   searchTerm = '';
   statusFilter = 'active';
   lotFilter = '';
   genderFilter = '';
 
-  // Pagination
+  // ── Search debounce ───────────────────────────────────────────────────────
+  private searchSubject = new Subject<string>();
+
+  // ── Pagination ────────────────────────────────────────────────────────────
   currentPage = 1;
   pageSize = 25;
+  totalPages = 1;
+  totalCount = 0;
 
+  // ── Labels ────────────────────────────────────────────────────────────────
   statusLabels = ANIMAL_STATUS_LABELS;
   statusColors = ANIMAL_STATUS_COLORS;
   genderLabels = GENDER_LABELS;
 
-  // Computed: filtered and selected animals
+  // ── Computed: animales seleccionados (desde el Map persistente) ───────────
   selectedAnimals = computed(() => {
-    return this.animals().filter(a => a.selected);
+    // Forzar reactividad cuando cambian los animales
+    this.animals();
+    return Array.from(this.selectedAnimalsMap().values());
   });
 
-  selectedCount = computed(() => this.selectedAnimals().length);
+  selectedCount = computed(() => this.selectedAnimalsMap().size);
 
   selectedWeight = computed(() => {
     return this.selectedAnimals().reduce((sum, a) => {
@@ -69,12 +83,28 @@ export class AnimalSelectionModalComponent implements OnInit {
     }, 0);
   });
 
-  selectAll = false;
+  // ── Select all (solo para la página actual) ───────────────────────────────
+  allCurrentPageSelected = computed(() => {
+    const currentAnimals = this.animals();
+    if (currentAnimals.length === 0) return false;
+    return currentAnimals.every(a => this.selectedAnimalsMap().has(a.id));
+  });
 
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
   ngOnInit(): void {
+    // Configurar debounce para búsqueda
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.currentPage = 1;
+      this.loadAnimals();
+    });
+
     this.loadAnimals();
   }
 
+  // ── Load Animals ──────────────────────────────────────────────────────────
   loadAnimals(): void {
     this.loading.set(true);
 
@@ -92,12 +122,19 @@ export class AnimalSelectionModalComponent implements OnInit {
     this.svc.getAnimals(filters).subscribe({
       next: (r) => {
         if (r.success) {
+          // 👇 Marcar como seleccionados los que ya están en el Map
           const animalsWithSelection = r.data.map(a => ({
             ...a,
-            selected: false,
-            quantity: 1,
+            selected: this.selectedAnimalsMap().has(a.id),
           }));
+          
           this.animals.set(animalsWithSelection);
+          
+          // Actualizar paginación
+          if (r.pagination) {
+            this.totalPages = r.pagination.total_pages || 1;
+            this.totalCount = r.pagination.count || r.data.length;
+          }
         }
         this.loading.set(false);
       },
@@ -105,53 +142,112 @@ export class AnimalSelectionModalComponent implements OnInit {
     });
   }
 
+  // ── Search with debounce ──────────────────────────────────────────────────
+  onSearchChange(): void {
+    this.searchSubject.next(this.searchTerm);
+  }
+
+  // ── Filter change (sin debounce) ──────────────────────────────────────────
+  onFilterChange(): void {
+    this.currentPage = 1;
+    this.loadAnimals();
+  }
+
+  // ── Toggle individual animal ──────────────────────────────────────────────
   toggleAnimalSelection(animal: AnimalSelection): void {
-    const animals = this.animals().map(a => {
-      if (a.id === animal.id) {
-        return { ...a, selected: !a.selected };
-      }
-      return a;
-    });
-    this.animals.set(animals);
+    const map = new Map(this.selectedAnimalsMap()); // ← copiar
+
+    if (map.has(animal.id)) {
+      map.delete(animal.id);
+    } else {
+      map.set(animal.id, { ...animal, selected: true });
+    }
+
+    this.selectedAnimalsMap.set(map); // ← esto dispara reactividad
+
+    // actualizar UI
+    this.animals.set(
+      this.animals().map(a => ({
+        ...a,
+        selected: map.has(a.id),
+      }))
+    );
+  }
+  // ── Toggle all (solo página actual) ───────────────────────────────────────
+  toggleAllCurrentPage(): void {
+    const map = new Map(this.selectedAnimalsMap());
+    const currentAnimals = this.animals();
+    const allSelected = this.allCurrentPageSelected();
+
+    if (allSelected) {
+      currentAnimals.forEach(a => map.delete(a.id));
+    } else {
+      currentAnimals.forEach(a => {
+        map.set(a.id, { ...a, selected: true });
+      });
+    }
+
+    this.selectedAnimalsMap.set(map);
+
+    this.animals.set(
+      currentAnimals.map(a => ({
+        ...a,
+        selected: map.has(a.id),
+      }))
+    );
   }
 
-  toggleAllSelection(): void {
-    this.selectAll = !this.selectAll;
-    const animals = this.animals().map(a => ({
-      ...a,
-      selected: this.selectAll,
-    }));
-    this.animals.set(animals);
+  // ── Check if animal is selected ───────────────────────────────────────────
+  isSelected(animalId: string): boolean {
+    return this.selectedAnimalsMap().has(animalId);
   }
 
-  updateQuantity(animal: AnimalSelection, quantity: number): void {
-    const animals = this.animals().map(a => {
-      if (a.id === animal.id) {
-        return { ...a, quantity: Math.max(1, quantity) };
-      }
-      return a;
-    });
-    this.animals.set(animals);
+  // ── Remove from selection (desde el panel de resumen) ─────────────────────
+  removeFromSelection(animalId: string): void {
+    const map = new Map(this.selectedAnimalsMap());
+    map.delete(animalId);
+    this.selectedAnimalsMap.set(map);
+
+    this.animals.set(
+      this.animals().map(a => ({
+        ...a,
+        selected: map.has(a.id),
+      }))
+    );
   }
 
+  // ── Clear all selection ───────────────────────────────────────────────────
+  clearAllSelection(): void {
+    this.selectedAnimalsMap.set(new Map());
+
+    this.animals.set(
+      this.animals().map(a => ({
+        ...a,
+        selected: false,
+      }))
+    );
+  }
+  // ── Confirm selection ─────────────────────────────────────────────────────
   confirmSelection(): void {
-    const selected = this.selectedAnimals();
+    const selected = Array.from(this.selectedAnimalsMap().values());
+    
     if (selected.length === 0) {
-      alert('Por favor selecciona al menos un animal');
       return;
     }
 
     this.dialogRef.close({
       animals: selected,
       totalHeads: selected.length,
-      totalWeight: this.selectedWeight(),
+      totalWeight: this.getSelectedWeight(),
     });
   }
 
+  // ── Cancel ────────────────────────────────────────────────────────────────
   cancelSelection(): void {
     this.dialogRef.close(null);
   }
 
+  // ── Clear filters ─────────────────────────────────────────────────────────
   clearFilters(): void {
     this.searchTerm = '';
     this.statusFilter = 'active';
@@ -161,6 +257,14 @@ export class AnimalSelectionModalComponent implements OnInit {
     this.loadAnimals();
   }
 
+  // ── Pagination ────────────────────────────────────────────────────────────
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.loadAnimals();
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
   formatDate(d?: string | null): string {
     if (!d) return '—';
     return new Date(d + 'T00:00:00').toLocaleDateString('es-CO', {
@@ -170,11 +274,18 @@ export class AnimalSelectionModalComponent implements OnInit {
     });
   }
 
-  getSelectedCount(): number {
-    return this.selectedAnimals().length;
+  formatWeight(value?: string | number | null): string {
+    if (value == null) return '—';
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    if (isNaN(num)) return '—';
+    return `${num.toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kg`;
   }
 
   getSelectedWeight(): number {
     return Math.round(this.selectedWeight() * 100) / 100;
+  }
+
+  get hasActiveFilters(): boolean {
+    return !!(this.searchTerm || this.statusFilter !== 'active' || this.genderFilter || this.lotFilter);
   }
 }

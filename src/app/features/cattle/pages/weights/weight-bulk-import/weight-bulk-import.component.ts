@@ -1,5 +1,5 @@
 // weight-bulk-import.component.ts
-import { Component, inject, signal, computed, output, input } from '@angular/core';
+import { Component, inject, signal, computed, output, input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -14,15 +14,12 @@ import { BulkWeightResult, WeightedAnimal } from '../../../models/cattle.model';
   templateUrl: './weight-bulk-import.component.html',
   styleUrl: './weight-bulk-import.component.scss',
 })
-export class WeightBulkImportComponent {
+export class WeightBulkImportComponent implements OnInit {
   private svc = inject(CattleService);
   private snack = inject(MatSnackBar);
 
   // ── Inputs ──────────────────────────────────────────────────────────────────
-  /** Modo: 'default' solo registra, 'selection' permite seleccionar animales después */
   mode = input<'default' | 'selection'>('default');
-  
-  /** Título personalizado */
   title = input<string>('Carga Masiva de Pesajes');
 
   // ── Signals ─────────────────────────────────────────────────────────────────
@@ -41,7 +38,7 @@ export class WeightBulkImportComponent {
 
   // ── Outputs ─────────────────────────────────────────────────────────────────
   importSuccess = output<number>();
-  animalsSelected = output<WeightedAnimal[]>();  // 👈 Nuevo
+  animalsSelected = output<WeightedAnimal[]>();
   close = output<void>();
 
   // ── Computed ────────────────────────────────────────────────────────────────
@@ -61,11 +58,12 @@ export class WeightBulkImportComponent {
     return r && r.errors && r.errors.length > 0;
   });
 
-  weightedAnimals = computed(() => {
-    return this.result()?.animals || [];
+  weightedAnimals = computed((): WeightedAnimal[] => {
+    const r = this.result();
+    return r?.animals || [];
   });
 
-  selectedAnimals = computed(() => {
+  selectedAnimals = computed((): WeightedAnimal[] => {
     const ids = this.selectedAnimalIds();
     return this.weightedAnimals().filter(a => ids.has(a.id));
   });
@@ -77,14 +75,22 @@ export class WeightBulkImportComponent {
   });
 
   totalSelectedWeight = computed(() => {
-    return this.selectedAnimals().reduce((sum, a) => sum + a.current_weight, 0);
+    return this.selectedAnimals().reduce((sum, a) => sum + (a.current_weight || 0), 0);
   });
+
+  isSelectionMode = computed(() => this.mode() === 'selection');
+
+  // ── Lifecycle ───────────────────────────────────────────────────────────────
+  ngOnInit(): void {
+    console.log('WeightBulkImport initialized with mode:', this.mode());
+  }
 
   // ── File handling ───────────────────────────────────────────────────────────
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     this.setFile(file || null);
+    input.value = ''; // Reset para permitir seleccionar el mismo archivo
   }
 
   onDragOver(event: DragEvent): void {
@@ -142,9 +148,15 @@ export class WeightBulkImportComponent {
     this.uploading.set(true);
     this.result.set(null);
     this.showSelectionStep.set(false);
+    this.selectedAnimalIds.set(new Set());
 
-    this.svc.bulkWeightFile(this.file()!, this.pricePerKg()!).subscribe({
+    // Determinar si necesitamos los animales
+    const needAnimals = this.isSelectionMode();
+    console.log('Submitting with mode:', this.mode(), 'needAnimals:', needAnimals);
+
+    this.svc.bulkWeightFile(this.file()!, this.pricePerKg()!, needAnimals).subscribe({
       next: r => {
+        console.log('Response received:', r);
         this.uploading.set(false);
         this.result.set(r.data);
 
@@ -156,8 +168,9 @@ export class WeightBulkImportComponent {
           );
           this.importSuccess.emit(r.data.recorded);
 
-          // Si es modo selección, mostrar paso de selección
-          if (this.mode() === 'selection' && r.data.animals?.length) {
+          // Si es modo selección y hay animales, mostrar paso de selección
+          if (this.isSelectionMode() && r.data.animals && r.data.animals.length > 0) {
+            console.log('Showing selection step with animals:', r.data.animals);
             this.showSelectionStep.set(true);
             // Seleccionar todos por defecto
             this.selectAll();
@@ -171,6 +184,7 @@ export class WeightBulkImportComponent {
         }
       },
       error: e => {
+        console.error('Error:', e);
         this.uploading.set(false);
         this.snack.open(
           e?.error?.message || 'Error al procesar archivo',
@@ -190,11 +204,13 @@ export class WeightBulkImportComponent {
       selected.add(id);
     }
     this.selectedAnimalIds.set(selected);
+    console.log('Selected animals:', Array.from(selected));
   }
 
   selectAll(): void {
     const all = new Set(this.weightedAnimals().map(a => a.id));
     this.selectedAnimalIds.set(all);
+    console.log('Selected all:', Array.from(all));
   }
 
   deselectAll(): void {
@@ -209,13 +225,23 @@ export class WeightBulkImportComponent {
     }
   }
 
+  isAnimalSelected(id: string): boolean {
+    return this.selectedAnimalIds().has(id);
+  }
+
   confirmSelection(): void {
     const selected = this.selectedAnimals();
+    console.log('Confirming selection:', selected);
+    
     if (selected.length === 0) {
       this.snack.open('Selecciona al menos un animal', 'Cerrar', { duration: 3000 });
       return;
     }
+    
+    // Emitir los animales seleccionados
     this.animalsSelected.emit(selected);
+    
+    // Cerrar el modal
     this.close.emit();
   }
 

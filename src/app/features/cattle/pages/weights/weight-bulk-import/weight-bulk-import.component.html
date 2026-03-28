@@ -33,7 +33,7 @@
     <!-- ── Body ──────────────────────────────────────────────────────────── -->
     <div class="modal-body">
       
-      <!-- Step 1: Upload form -->
+      <!-- Step 1: Upload form (cuando NO hay resultado o NO estamos en selección) -->
       @if (!result() && !showSelectionStep()) {
         <div class="upload-form">
           
@@ -83,7 +83,12 @@
                     <span class="file-name">{{ fileName() }}</span>
                     <span class="file-ready">Listo para procesar</span>
                   </div>
-                  <button class="btn-remove" (click)="removeFile(); $event.stopPropagation()" [disabled]="uploading()">
+                  <button 
+                    type="button"
+                    class="btn-remove" 
+                    (click)="removeFile(); $event.stopPropagation()" 
+                    [disabled]="uploading()"
+                  >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <line x1="18" y1="6" x2="6" y2="18"/>
                       <line x1="6" y1="6" x2="18" y2="18"/>
@@ -92,7 +97,12 @@
                 </div>
               } @else {
                 <label class="drop-label">
-                  <input type="file" accept=".xlsx,.xls,.csv" (change)="onFileSelected($event)" [disabled]="uploading()" />
+                  <input 
+                    type="file" 
+                    accept=".xlsx,.xls,.csv" 
+                    (change)="onFileSelected($event)" 
+                    [disabled]="uploading()" 
+                  />
                   <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                     <polyline points="17 8 12 3 7 8"/>
@@ -114,16 +124,15 @@
             </svg>
             <div class="info-content">
               <strong>Formato del archivo</strong>
-              <p>El archivo debe contener: <code>NUMERO ANIMAL</code>, <code>PESO</code>, <code>FECHA PESO</code></p>
+              <p>El archivo debe contener: <code>IDV</code>, <code>PESO</code>, <code>FECHA</code></p>
             </div>
           </div>
         </div>
       }
 
-      <!-- Step 2: Result panel (modo default) -->
-      @if (result() && mode() === 'default') {
+      <!-- Step 2a: Result panel (modo DEFAULT - solo muestra resultado) -->
+      @if (result() && !isSelectionMode() && !showSelectionStep()) {
         <div class="result-panel" [class.success]="isSuccess()" [class.error]="hasErrors() && !isSuccess()">
-          <!-- ... mismo contenido del result panel anterior ... -->
           <div class="result-header">
             <div class="result-icon">
               @if (isSuccess()) {
@@ -152,22 +161,51 @@
 
           <div class="result-stats">
             <div class="stat success">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
               <span class="value">{{ result()?.recorded || 0 }}</span>
               <span class="label">Registrados</span>
             </div>
             @if ((result()?.skipped || 0) > 0) {
               <div class="stat muted">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                </svg>
                 <span class="value">{{ result()?.skipped }}</span>
                 <span class="label">Omitidos</span>
               </div>
             }
           </div>
+
+          <!-- Errores -->
+          @if (result()?.errors && result()!.errors.length > 0) {
+            <div class="errors-section">
+              <div class="error-header">
+                <span class="count">{{ result()!.errors.length }}</span>
+                <span>Errores encontrados</span>
+              </div>
+              <div class="error-list">
+                @for (err of result()!.errors.slice(0, 10); track err.row) {
+                  <div class="error-item">
+                    <span class="row">Fila {{ err.row }}</span>
+                    <span class="tag">{{ err.tag }}</span>
+                    <span class="msg">{{ err.error }}</span>
+                  </div>
+                }
+                @if (result()!.errors.length > 10) {
+                  <div class="error-more">
+                    ... y {{ result()!.errors.length - 10 }} errores más
+                  </div>
+                }
+              </div>
+            </div>
+          }
         </div>
       }
 
-      <!-- Step 2b: Animal selection (modo selection) -->
+      <!-- Step 2b: Animal selection (modo SELECTION) -->
       @if (showSelectionStep()) {
         <div class="selection-panel">
           
@@ -182,8 +220,8 @@
               <strong>{{ formatWeight(totalSelectedWeight()) }}</strong>
             </div>
             <div class="summary-actions">
-              <button class="btn-text" (click)="selectAll()">Seleccionar todos</button>
-              <button class="btn-text" (click)="deselectAll()">Deseleccionar</button>
+              <button type="button" class="btn-text" (click)="selectAll()">Seleccionar todos</button>
+              <button type="button" class="btn-text" (click)="deselectAll()">Deseleccionar</button>
             </div>
           </div>
 
@@ -193,7 +231,11 @@
               <thead>
                 <tr>
                   <th class="check-col">
-                    <input type="checkbox" [checked]="allSelected()" (change)="toggleAll()" />
+                    <input 
+                      type="checkbox" 
+                      [checked]="allSelected()" 
+                      (change)="toggleAll()" 
+                    />
                   </th>
                   <th>Arete</th>
                   <th>Nombre</th>
@@ -207,14 +249,13 @@
               <tbody>
                 @for (animal of weightedAnimals(); track animal.id) {
                   <tr 
-                    [class.selected]="selectedAnimalIds().has(animal.id)"
+                    [class.selected]="isAnimalSelected(animal.id)"
                     (click)="toggleAnimal(animal.id)"
                   >
-                    <td class="check-col">
+                    <td class="check-col" (click)="$event.stopPropagation()">
                       <input 
                         type="checkbox" 
-                        [checked]="selectedAnimalIds().has(animal.id)"
-                        (click)="$event.stopPropagation()"
+                        [checked]="isAnimalSelected(animal.id)"
                         (change)="toggleAnimal(animal.id)"
                       />
                     </td>
@@ -222,7 +263,7 @@
                       <span class="tag-number">{{ animal.tag_number }}</span>
                     </td>
                     <td>{{ animal.name || '—' }}</td>
-                    <td>{{ animal.breed_name }}</td>
+                    <td>{{ animal.breed_name || '—' }}</td>
                     <td class="num">{{ formatWeight(animal.previous_weight) }}</td>
                     <td class="num weight-current">{{ formatWeight(animal.current_weight) }}</td>
                     <td class="num">
@@ -248,12 +289,35 @@
           </div>
 
           <!-- Price info -->
-          <div class="price-info">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg>
-            <span>Precio registrado: <strong>{{ formatCurrency(pricePerKg()) }}/kg</strong></span>
-          </div>
+          @if (pricePerKg()) {
+            <div class="price-info">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+              <span>Precio registrado: <strong>{{ formatCurrency(pricePerKg()) }}/kg</strong></span>
+            </div>
+          }
+
+          <!-- Errores (si hay) -->
+          @if (result()?.errors && result()!.errors.length > 0) {
+            <div class="errors-section compact">
+              <details>
+                <summary class="error-toggle">
+                  <span class="count">{{ result()!.errors.length }}</span>
+                  errores encontrados (clic para ver)
+                </summary>
+                <div class="error-list">
+                  @for (err of result()!.errors.slice(0, 5); track err.row) {
+                    <div class="error-item">
+                      <span class="row">Fila {{ err.row }}</span>
+                      <span class="tag">{{ err.tag }}</span>
+                      <span class="msg">{{ err.error }}</span>
+                    </div>
+                  }
+                </div>
+              </details>
+            </div>
+          }
         </div>
       }
 
@@ -263,10 +327,11 @@
     <div class="modal-footer">
       @if (showSelectionStep()) {
         <!-- Modo selección: confirmar animales -->
-        <button class="btn btn-secondary" (click)="closeResult()">
+        <button type="button" class="btn btn-secondary" (click)="closeResult()">
           Volver a cargar
         </button>
         <button 
+          type="button"
           class="btn btn-primary"
           (click)="confirmSelection()"
           [disabled]="selectedAnimalIds().size === 0"
@@ -276,14 +341,21 @@
           </svg>
           Confirmar {{ selectedAnimalIds().size }} animales
         </button>
-      } @else if (result() && mode() === 'default') {
+      } @else if (result() && !isSelectionMode()) {
         <!-- Modo default: resultado -->
-        <button class="btn btn-secondary" (click)="closeResult()">Cargar otro archivo</button>
-        <button class="btn btn-primary" (click)="closeModal()">Cerrar</button>
+        <button type="button" class="btn btn-secondary" (click)="closeResult()">
+          Cargar otro archivo
+        </button>
+        <button type="button" class="btn btn-primary" (click)="closeModal()">
+          Cerrar
+        </button>
       } @else {
         <!-- Formulario de carga -->
-        <button class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+        <button type="button" class="btn btn-secondary" (click)="closeModal()">
+          Cancelar
+        </button>
         <button 
+          type="button"
           class="btn btn-primary"
           (click)="submit()"
           [disabled]="uploading() || !isFormValid()"

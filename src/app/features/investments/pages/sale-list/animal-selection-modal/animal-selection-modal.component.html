@@ -1,6 +1,19 @@
+<!-- animal-selection-modal.component.html -->
 <div class="modal-container">
+  
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- HEADER -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
   <div class="modal-header">
-    <h2 class="modal-title">Seleccionar Ganado para Venta</h2>
+    <h2 class="modal-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Seleccionar Ganado para Venta
+    </h2>
     <button class="modal-close" (click)="cancelSelection()" type="button" aria-label="Cerrar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="18" y1="6" x2="6" y2="18"/>
@@ -10,36 +23,92 @@
   </div>
 
   <div class="modal-content">
-    <!-- Selection Summary -->
+    
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- SELECTION SUMMARY (siempre visible si hay selección) -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
     @if (selectedCount() > 0) {
       <div class="selection-summary">
-        <div class="summary-item">
-          <span class="summary-label">Animales seleccionados:</span>
-          <span class="summary-value">{{ selectedCount() }}</span>
+        <div class="summary-left">
+          <div class="summary-stats">
+            <div class="summary-stat">
+              <span class="stat-value">{{ selectedCount() }}</span>
+              <span class="stat-label">Animales</span>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-stat">
+              <span class="stat-value">{{ formatWeight(getSelectedWeight()) }}</span>
+              <span class="stat-label">Peso Total</span>
+            </div>
+          </div>
         </div>
-        <div class="summary-item">
-          <span class="summary-label">Peso total:</span>
-          <span class="summary-value">{{ getSelectedWeight() | number:'1.1-1' }} kg</span>
+        
+        <div class="summary-right">
+          <button type="button" class="btn-text" (click)="clearAllSelection()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+            Limpiar selección
+          </button>
         </div>
+      </div>
+
+      <!-- Selected animals chips (preview) -->
+      <div class="selected-chips">
+        @for (animal of selectedAnimals().slice(0, 8); track animal.id) {
+          <div class="selected-chip">
+            <span class="chip-tag">{{ animal.tag_number }}</span>
+            <span class="chip-weight">{{ formatWeight(animal.current_weight) }}</span>
+            <button type="button" class="chip-remove" (click)="removeFromSelection(animal.id)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        }
+        @if (selectedCount() > 8) {
+          <div class="selected-chip more">
+            +{{ selectedCount() - 8 }} más
+          </div>
+        }
       </div>
     }
 
-    <!-- Filters -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- FILTERS -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
     <div class="filters-panel">
       <div class="filter-row">
-        <div class="filter-group">
+        <div class="filter-group search">
           <label class="filter-label">Buscar</label>
-          <input
-            type="text"
-            class="filter-input"
-            placeholder="Arete, nombre..."
-            [(ngModel)]="searchTerm"
-            (keyup)="loadAnimals()" />
+          <div class="search-input-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              type="text"
+              class="filter-input"
+              placeholder="Arete, nombre..."
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="onSearchChange()"
+            />
+            @if (searchTerm) {
+              <button type="button" class="search-clear" (click)="searchTerm = ''; onSearchChange()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            }
+          </div>
         </div>
 
         <div class="filter-group">
           <label class="filter-label">Estado</label>
-          <select class="filter-select" [(ngModel)]="statusFilter" (change)="loadAnimals()">
+          <select class="filter-select" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
             <option value="">Todos</option>
             <option value="active">Activo</option>
             <option value="sold">Vendido</option>
@@ -49,27 +118,38 @@
 
         <div class="filter-group">
           <label class="filter-label">Sexo</label>
-          <select class="filter-select" [(ngModel)]="genderFilter" (change)="loadAnimals()">
+          <select class="filter-select" [(ngModel)]="genderFilter" (ngModelChange)="onFilterChange()">
             <option value="">Todos</option>
             <option value="M">Macho</option>
             <option value="F">Hembra</option>
           </select>
         </div>
 
-        @if (searchTerm || statusFilter !== 'active' || genderFilter) {
-          <button class="btn-clear" (click)="clearFilters()" type="button">✕ Limpiar</button>
+        @if (hasActiveFilters) {
+          <button type="button" class="btn-clear-filters" (click)="clearFilters()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Limpiar filtros
+          </button>
         }
       </div>
     </div>
 
-    <!-- Animals Table -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
+    <!-- ANIMALS TABLE -->
+    <!-- ════════════════════════════════════════════════════════════════════ -->
     @if (loading()) {
-      <app-loader [overlay]="false" type="bars"/>
+      <div class="loading-container">
+        <app-loader [overlay]="false" type="bars"/>
+      </div>
     } @else if (animals().length === 0) {
       <app-empty-state
         icon="activity"
         title="Sin animales"
-        message="No hay animales disponibles con los filtros aplicados." />
+        message="No hay animales disponibles con los filtros aplicados."
+      />
     } @else {
       <div class="table-wrapper">
         <table class="animals-table">
@@ -78,9 +158,12 @@
               <th class="checkbox-col">
                 <input
                   type="checkbox"
-                  [checked]="selectAll"
-                  (change)="toggleAllSelection()"
-                  class="checkbox-input" />
+                  [checked]="allCurrentPageSelected()"
+                  [indeterminate]="selectedCount() > 0 && !allCurrentPageSelected()"
+                  (change)="toggleAllCurrentPage()"
+                  class="checkbox-input"
+                  title="Seleccionar todos en esta página"
+                />
               </th>
               <th>Arete</th>
               <th>Nombre</th>
@@ -93,54 +176,96 @@
           </thead>
           <tbody>
             @for (animal of animals(); track animal.id) {
-              <tr [class.selected]="animal.selected">
-                <td class="checkbox-col">
+              <tr 
+                [class.selected]="isSelected(animal.id)"
+                (click)="toggleAnimalSelection(animal)"
+              >
+                <td class="checkbox-col" (click)="$event.stopPropagation()">
                   <input
                     type="checkbox"
-                    [checked]="animal.selected"
+                    [checked]="isSelected(animal.id)"
                     (change)="toggleAnimalSelection(animal)"
-                    class="checkbox-input" />
+                    class="checkbox-input"
+                  />
                 </td>
-                <td class="tag-cell">{{ animal.tag_number }}</td>
+                <td class="tag-cell">
+                  <span class="tag-number">{{ animal.tag_number }}</span>
+                </td>
                 <td class="name-cell">{{ animal.name || '—' }}</td>
-                <td>{{ animal.breed_name }}</td>
+                <td>{{ animal.breed_name || '—' }}</td>
                 <td>
                   <span class="gender-badge" [class]="animal.gender === 'M' ? 'male' : 'female'">
                     {{ genderLabels[animal.gender] }}
                   </span>
                 </td>
                 <td class="text-right weight-cell">
-                  {{ animal.current_weight ? (animal.current_weight | number:'1.1-1') + ' kg' : '—' }}
+                  {{ formatWeight(animal.current_weight) }}
                 </td>
-                <td class="lot-cell">{{ animal.lot_code }}</td>
+                <td class="lot-cell">{{ animal.lot_code || '—' }}</td>
                 <td>
-                  <app-badge
-                    [label]="animal.status"
-                    color="success"
-                    size="sm" />
+                  <!-- <app-badge
+                    [label]="statusLabels[animal.status] || animal.status"
+                    [color]="statusColors[animal.status] || 'default'"
+                    size="sm"
+                  /> -->
                 </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination -->
+      @if (totalPages > 1) {
+        <div class="table-pagination">
+          <span class="pagination-info">
+            Mostrando {{ animals().length }} de {{ totalCount }} animales
+          </span>
+          <div class="pagination-controls">
+            <button 
+              type="button"
+              class="pagination-btn"
+              [disabled]="currentPage === 1"
+              (click)="goToPage(currentPage - 1)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
+            <span class="pagination-pages">{{ currentPage }} / {{ totalPages }}</span>
+            <button 
+              type="button"
+              class="pagination-btn"
+              [disabled]="currentPage === totalPages"
+              (click)="goToPage(currentPage + 1)"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      }
     }
   </div>
 
-  <!-- Modal Footer -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- FOOTER -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
   <div class="modal-footer">
-    <button
-      type="button"
-      class="btn btn-ghost"
-      (click)="cancelSelection()">
+    <button type="button" class="btn btn-secondary" (click)="cancelSelection()">
       Cancelar
     </button>
     <button
       type="button"
       class="btn btn-primary"
       (click)="confirmSelection()"
-      [disabled]="selectedCount() === 0">
-      Confirmar Selección ({{ selectedCount() }})
+      [disabled]="selectedCount() === 0"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      Confirmar ({{ selectedCount() }} animales)
     </button>
   </div>
 </div>

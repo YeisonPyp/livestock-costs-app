@@ -254,19 +254,20 @@ export interface WeightedAnimal {
   id: string;
   tag_number: string;
   name?: string;
-  breed_name: string;
+  breed_name?: string;
   current_weight: number;
-  previous_weight?: number;
-  weight_gain?: number;
-  investor_code?: string;
-  investor_name?: string;
+  previous_weight?: number | null;
+  weight_gain?: number | null;
+  record_date?: string;
+  investor_code?: string | null;
+  investor_name?: string | null;
 }
 
 export interface BulkWeightResult {
   recorded: number;
   skipped: number;
   errors: { row: number; tag: string; error: string }[];
-  animals?: WeightedAnimal[];  // 👈 Nuevo: animales pesados
+  animals?: WeightedAnimal[];
 }
 
 

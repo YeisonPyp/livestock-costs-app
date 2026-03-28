@@ -1,512 +1,99 @@
-@use '../../../../styles/variables' as *;
+// sale-list.component.scss
 
+// ══════════════════════════════════════════════════════════════════════════════
+// VARIABLES
+// ══════════════════════════════════════════════════════════════════════════════
+$primary: #6366f1;
+$primary-hover: #4f46e5;
+$success: #10b981;
+$warning: #f59e0b;
+$danger: #ef4444;
+$border: #e5e7eb;
+$text-primary: #111827;
+$text-secondary: #6b7280;
+$text-muted: #9ca3af;
+$bg-surface: #ffffff;
+$bg-muted: #f9fafb;
+
+// ══════════════════════════════════════════════════════════════════════════════
+// KPI GRID
+// ══════════════════════════════════════════════════════════════════════════════
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: $space-4;
-  margin-bottom: $space-5;
-}
-
-// ── New sale panel ────────────────────────────────────────────────────────
-.new-sale-panel {
-  background: $white;
-  border: 1.5px solid $primary;
-  border-radius: $border-radius-md;
-  margin-bottom: $space-5;
-  overflow: hidden;
-  box-shadow: $shadow-md;
-}
-
-.panel-title {
-  padding: $space-3 $space-5;
-  background: $primary-muted;
-  border-bottom: 1px solid $border-color;
-
-  h3 {
-    margin: 0;
-    font-size: $font-base;
-    font-weight: $weight-semibold;
-    color: $primary;
-  }
-}
-
-.alert-margin {
-  margin: $space-4 $space-5 0;
-}
-
-// ── Animals Selection Section ──────────────────────────────────────────────
-.animals-selection-section {
-  padding: $space-5;
-  border-bottom: 2px solid $slate-200;
-  background: $slate-50;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: $space-4;
-
-  h4 {
-    font-size: $font-base;
-    font-weight: $weight-bold;
-    color: $slate-900;
-    margin: 0;
-    flex: 1;
-  }
-}
-
-// ── Selection Summary ──────────────────────────────────────────────────────
-.selection-summary {
-  display: flex;
-  gap: $space-4;
-  margin-bottom: $space-4;
-  padding: $space-3 $space-4;
-  background: #f0fdf4;
-  border-radius: $border-radius;
-  border-left: 4px solid $success;
-
-  @media (max-width: $bp-sm) {
-    flex-direction: column;
-    gap: $space-2;
-  }
-}
-
-.summary-card {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  flex: 1;
-}
-
-.summary-label {
-  font-size: $font-sm;
-  font-weight: $weight-semibold;
-  color: $slate-600;
-}
-
-.summary-value {
-  font-size: $font-base;
-  font-weight: $weight-bold;
-  color: $success;
-}
-
-// ── Selected Animals List ──────────────────────────────────────────────────
-.selected-animals-list {
-  margin-bottom: $space-4;
-  border: 1px solid $border-color;
-  border-radius: $border-radius;
-  overflow: hidden;
-}
-
-.animals-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: $white;
-
-  th {
-    padding: 0.75rem 1rem;
-    text-align: left;
-    font-size: $font-xs;
-    font-weight: $weight-semibold;
-    color: $slate-500;
-    background: $slate-100;
-    border-bottom: 1px solid $slate-200;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-
-    &.text-right {
-      text-align: right;
-    }
-
-    &.actions-col {
-      width: 50px;
-      text-align: center;
-    }
-  }
-
-  td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid $slate-100;
-    color: $slate-700;
-    vertical-align: middle;
-
-    &.tag-cell {
-      font-family: 'Courier New', monospace;
-      font-weight: $weight-bold;
-      color: $primary;
-    }
-
-    &.text-right {
-      text-align: right;
-      font-weight: $weight-semibold;
-    }
-
-    &.actions-cell {
-      text-align: center;
-      width: 50px;
-    }
-  }
-
-  tr {
-    transition: background-color $transition-base;
-
-    &:hover {
-      background: $slate-50;
-    }
-
-    &:last-child td {
-      border-bottom: none;
-    }
-  }
-}
-
-.btn-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: $danger-muted;
-  color: $danger;
-  border-radius: $border-radius;
-  cursor: pointer;
-  transition: all $transition-base;
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  &:hover {
-    background: $danger;
-    color: $white;
-  }
-}
-
-// ── Empty Selection ───────────────────────────────────────────────────────
-.empty-selection {
-  text-align: center;
-  padding: $space-6 $space-4;
-  background: $white;
-  border: 1px dashed $slate-300;
-  border-radius: $border-radius;
-
-  p {
-    margin: 0;
-    font-size: $font-sm;
-    color: $slate-600;
-
-    &.empty-hint {
-      font-size: $font-xs;
-      color: $slate-500;
-      margin-top: $space-2;
-      font-style: italic;
-    }
-  }
-}
-
-// ── Sale Form Grid ────────────────────────────────────────────────────────
-.sale-form-grid {
-  display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: $space-4;
-  padding: $space-5;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 
-  @media (max-width: $bp-lg) {
+  @media (max-width: 1024px) {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  @media (max-width: $bp-sm) {
+  @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
 }
 
-.full-span {
-  grid-column: 1 / -1;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: $space-3;
-
-  @media (max-width: $bp-sm) {
-    flex-direction: column-reverse;
-  }
-}
-
-// ── Form Fields ───────────────────────────────────────────────────────────
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
-}
-
-.field-label {
-  font-size: $font-xs;
-  font-weight: $weight-semibold;
-  color: $slate-600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.field-input,
-.field-textarea {
-  height: 38px;
-  padding: 0 $space-3;
-  border: 1.5px solid $border-color;
-  border-radius: $border-radius;
-  font-size: $font-sm;
-  font-family: $font-family;
-  background: $white;
-  outline: none;
-  transition: all $transition-base;
-
-  &:focus {
-    border-color: $primary;
-    box-shadow: 0 0 0 3px $primary-muted;
-  }
-
-  &:disabled,
-  &.field-readonly {
-    background: $slate-50;
-    color: $slate-500;
-    cursor: not-allowed;
-  }
-}
-
-.field-textarea {
-  height: auto;
-  min-height: 80px;
-  padding: $space-2 $space-3;
-  resize: vertical;
-}
-
-.field-error {
-  font-size: $font-xs;
-  color: $danger;
-  font-weight: $weight-semibold;
-}
-
-// ── Filters ───────────────────────────────────────────────────────────────
-.filters-card {
-  background: $white;
-  border: 1px solid $border-color;
-  border-radius: $border-radius-md;
-  padding: $space-4 $space-5;
-  margin-bottom: $space-5;
-  box-shadow: $shadow-sm;
-}
-
-.filters-row {
-  display: flex;
-  gap: $space-4;
-  flex-wrap: wrap;
-}
-
-.filter-item {
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
-}
-
-.filter-label {
-  font-size: $font-xs;
-  font-weight: $weight-semibold;
-  color: $slate-500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.native-select {
-  height: 38px;
-  padding: 0 2rem 0 $space-3;
-  border: 1.5px solid $border-color;
-  border-radius: $border-radius;
-  font-size: $font-sm;
-  font-family: $font-family;
-  background: $white;
-  appearance: none;
-  outline: none;
-  transition: all $transition-base;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right $space-2 center;
-  background-size: 14px;
-
-  &:focus {
-    border-color: $primary;
-  }
-}
-
-// ── Table ─────────────────────────────────────────────────────────────────
-.table-card {
-  background: $white;
-  border: 1px solid $border-color;
-  border-radius: $border-radius-md;
-  box-shadow: $shadow-sm;
-  overflow-x: auto;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-
-  th,
-  td {
-    padding: $space-3 $space-4;
-    text-align: left;
-    font-size: $font-sm;
-    border-bottom: 1px solid $border-color;
-    vertical-align: middle;
-    white-space: nowrap;
-  }
-
-  th {
-    background: $slate-50;
-    font-weight: $weight-semibold;
-    color: $slate-500;
-    font-size: $font-xs;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  tbody tr:hover {
-    background: $slate-50;
-  }
-
-  tbody tr:last-child td {
-    border-bottom: none;
-  }
-}
-
-.date-cell {
-  color: $slate-500;
-}
-
-.desc-cell {
-  max-width: 240px;
+// ══════════════════════════════════════════════════════════════════════════════
+// NEW SALE PANEL
+// ══════════════════════════════════════════════════════════════════════════════
+.new-sale-panel {
+  background: $bg-surface;
+  border: 1px solid $border;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.center {
-  text-align: center;
-}
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: $bg-muted;
+  border-bottom: 1px solid $border;
 
-// ── Pagination & Links ────────────────────────────────────────────────────
-.btn-link {
-  font-size: $font-xs;
-  font-weight: $weight-semibold;
-  color: $primary;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
+  h3 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $text-primary;
   }
 }
 
-.pagination {
+.btn-close-panel {
+  width: 32px;
+  height: 32px;
   display: flex;
+  align-items: center;
   justify-content: center;
-  align-items: center;
-  gap: $space-4;
-  margin-top: $space-5;
-}
-
-.page-info {
-  font-size: $font-sm;
-  color: $slate-500;
-}
-
-// ── Buttons ───────────────────────────────────────────────────────────────
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: $space-2;
-  border: 1.5px solid transparent;
-  border-radius: $border-radius;
-  font-size: $font-sm;
-  font-weight: $weight-medium;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
   cursor: pointer;
-  text-decoration: none;
-  transition: all $transition-base;
+  color: $text-muted;
+  transition: all 0.15s;
 
   svg {
-    width: 15px;
-    height: 15px;
+    width: 18px;
+    height: 18px;
   }
 
-  &.btn-primary {
-    padding: $space-2 $space-4;
-    background: $primary;
-    color: $white;
-
-    &:hover:not(:disabled) {
-      background: darken($primary, 5%);
-      transform: translateY(-1px);
-      box-shadow: $shadow-md;
-    }
-  }
-
-  &.btn-sm {
-    padding: $space-1 $space-3;
-    font-size: $font-xs;
-  }
-
-  &.btn-outline {
-    background: $white;
-    border-color: $border-color;
-    color: $slate-600;
-
-    &:hover {
-      border-color: $primary;
-      color: $primary;
-    }
-  }
-
-  &.btn-ghost {
-    background: transparent;
-    color: $slate-600;
-
-    &:hover {
-      background: $slate-100;
-    }
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  &:hover {
+    background: #fee2e2;
+    color: $danger;
   }
 }
 
-.btn-spinner-sm {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-top-color: $white;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+.alert-margin {
+  margin: 1rem 1.5rem 0;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-// sale-list.component.scss (agregar)
-
+// ══════════════════════════════════════════════════════════════════════════════
+// FORM SECTION
+// ══════════════════════════════════════════════════════════════════════════════
 .form-section {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  padding: 1.5rem;
+  border-bottom: 1px solid $border;
 }
 
 .section-header {
@@ -521,7 +108,16 @@
     margin: 0;
     font-size: 0.9375rem;
     font-weight: 600;
-    color: #374151;
+    color: $text-primary;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    svg {
+      width: 20px;
+      height: 20px;
+      color: $primary;
+    }
   }
 }
 
@@ -530,78 +126,519 @@
   gap: 0.5rem;
 }
 
-.selected-animals-summary {
-  margin-bottom: 0.75rem;
-
-  .summary-badge {
-    display: inline-block;
-    padding: 0.375rem 0.75rem;
-    background: #d1fae5;
-    color: #065f46;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    border-radius: 16px;
-  }
-}
-
-.selected-animals-list {
+// ══════════════════════════════════════════════════════════════════════════════
+// SELECTION SUMMARY
+// ══════════════════════════════════════════════════════════════════════════════
+.selection-summary {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  margin-bottom: 1rem;
 }
 
-.selected-animal-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.5rem 0.375rem 0.75rem;
-  background: white;
-  border: 1px solid #d1d5db;
-  border-radius: 20px;
-  font-size: 0.8125rem;
+.summary-stats {
+  display: flex;
+  gap: 1.5rem;
 
-  .tag {
-    font-family: 'Courier New', monospace;
-    font-weight: 600;
-    color: #6366f1;
-  }
-
-  .weight {
-    color: #6b7280;
-  }
-
-  .btn-remove-chip {
-    width: 20px;
-    height: 20px;
+  .stat {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: transparent;
-    border-radius: 50%;
-    cursor: pointer;
-    color: #9ca3af;
-    transition: all 0.15s;
+    flex-direction: column;
 
-    svg {
-      width: 14px;
-      height: 14px;
+    .stat-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #065f46;
     }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: #047857;
+    }
+  }
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.15s;
+
+  &.danger {
+    color: $danger;
 
     &:hover {
       background: #fee2e2;
-      color: #ef4444;
     }
   }
 }
 
-.no-animals-message {
-  text-align: center;
-  padding: 2rem 1rem;
-  color: #6b7280;
+// ══════════════════════════════════════════════════════════════════════════════
+// ANIMALS TABLE
+// ══════════════════════════════════════════════════════════════════════════════
+.animals-table-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid $border;
+  border-radius: 8px;
+}
+
+.animals-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+
+  th,
+  td {
+    padding: 0.625rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid $border;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    background: $bg-muted;
+    font-weight: 600;
+    color: $text-secondary;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    z-index: 1;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .actions-col {
+    width: 40px;
+    text-align: center;
+  }
+
+  .tag-number {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: $primary;
+  }
+
+  .investor-badge {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    background: rgba($primary, 0.1);
+    color: $primary;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    border-radius: 4px;
+  }
+
+  .weight-value {
+    font-weight: 600;
+    color: $text-primary;
+  }
+
+  .muted {
+    color: $text-muted;
+  }
+}
+
+.btn-icon-remove {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: $text-muted;
+  transition: all 0.15s;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: #fee2e2;
+    color: $danger;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EMPTY SELECTION
+// ══════════════════════════════════════════════════════════════════════════════
+.empty-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  color: $text-muted;
+
+  svg {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 0.75rem;
+    opacity: 0.5;
+  }
 
   p {
-    margin: 0;
-    font-size: 0.875rem;
+    margin: 0 0 0.25rem;
+    font-size: 0.9375rem;
+    color: $text-secondary;
   }
+
+  .hint {
+    font-size: 0.8125rem;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SALE FORM
+// ══════════════════════════════════════════════════════════════════════════════
+.sale-form {
+  padding: 1.5rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+
+  &.span-2 {
+    grid-column: span 2;
+
+    @media (max-width: 768px) {
+      grid-column: span 1;
+    }
+  }
+
+  &.span-3 {
+    grid-column: span 3;
+
+    @media (max-width: 768px) {
+      grid-column: span 1;
+    }
+  }
+}
+
+.field-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: $text-primary;
+
+  .required {
+    color: $danger;
+  }
+}
+
+.field-input,
+.field-textarea {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid $border;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: all 0.15s;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+
+  &.readonly {
+    background: $bg-muted;
+    cursor: not-allowed;
+  }
+}
+
+.field-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.field-error {
+  font-size: 0.75rem;
+  color: $danger;
+}
+
+.field-hint {
+  font-size: 0.75rem;
+  color: $text-muted;
+}
+
+.input-with-prefix {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .prefix {
+    position: absolute;
+    left: 0.75rem;
+    color: $text-muted;
+    font-weight: 500;
+  }
+
+  .field-input {
+    padding-left: 1.75rem;
+    width: 100%;
+  }
+
+  &.readonly {
+    .field-input {
+      background: $bg-muted;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FORM ACTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid $border;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// BUTTONS
+// ══════════════════════════════════════════════════════════════════════════════
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &.btn-primary {
+    background: $primary;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: $primary-hover;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &.btn-secondary {
+    background: white;
+    color: $text-primary;
+    border: 1px solid $border;
+
+    &:hover:not(:disabled) {
+      background: $bg-muted;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &.btn-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// FILTERS
+// ══════════════════════════════════════════════════════════════════════════════
+.filters-card {
+  background: $bg-surface;
+  border: 1px solid $border;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.filters-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.filter-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.filter-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid $border;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: white;
+  cursor: pointer;
+  min-width: 150px;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DATA TABLE
+// ══════════════════════════════════════════════════════════════════════════════
+.table-card {
+  background: $bg-surface;
+  border: 1px solid $border;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+
+  th,
+  td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid $border;
+  }
+
+  th {
+    background: $bg-muted;
+    font-weight: 600;
+    color: $text-secondary;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover td {
+    background: rgba($primary, 0.02);
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .date-cell {
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    color: $text-secondary;
+  }
+
+  .desc-cell {
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.btn-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: $primary;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.8125rem;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PAGINATION
+// ══════════════════════════════════════════════════════════════════════════════
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid $border;
+}
+
+.page-info {
+  font-size: 0.875rem;
+  color: $text-secondary;
 }
