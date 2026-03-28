@@ -58,6 +58,12 @@ export const CATTLE_ROUTES: Routes = [
   //   title: 'Carga Masiva de Animales',
   // },
   {
+    path: 'animals/bulk-import',
+    loadComponent: () =>
+      import('./pages/animals/animal-bulk-import/animal-bulk-import.component').then(m => m.AnimalBulkImportComponent),
+    title: 'Carga Masiva de Animales',
+  },
+  {
     path: 'animals/:id',
     loadComponent: () =>
       import('./pages/animals/animal-detail/animal-detail.component').then(m => m.AnimalDetailComponent),
@@ -77,6 +83,13 @@ export const CATTLE_ROUTES: Routes = [
   //     import('./pages/weights/bulk-weight/bulk-weight.component').then(m => m.BulkWeightComponent),
   //   title: 'Pesaje Masivo',
   // },
+
+  {
+    path: 'weights/bulk-import',
+    loadComponent: () =>
+      import('./pages/weights/weight-bulk-import/weight-bulk-import.component').then(m => m.WeightBulkImportComponent),
+    title: 'Carga Masiva de Animales',
+  },
 
   // // ── Health ─────────────────────────────────────────────────────────────────
   // {

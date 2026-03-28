@@ -2,56 +2,49 @@
 <app-page-header title="Animales" subtitle="Inventario completo de tu hato ganadero">
   <div class="header-actions">
     <!-- Registrar peso desde archivo -->
-      <label class="btn btn-ghost" [class.loading]="uploading()">
-        @if (uploading()) {
-          <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-          Procesando...
-        } @else {
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-          Subir Pesajes
-        }
-        <input type="file" accept=".xlsx,.xls,.csv" (change)="onWeightFileSelected($event)" style="display:none" [disabled]="uploading()" />
-      </label>
-    <!-- Carga masiva inline (sin navegar a otra ruta) -->
-    <label class="btn btn-ghost" [class.loading]="uploading()">
-      @if (uploading()) {
-        <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-        Procesando...
-      } @else {
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-        </svg>
-        Carga Masiva
-      }
-      <input type="file" accept=".xlsx,.xls,.csv" (change)="onFileSelected($event)" style="display:none" [disabled]="uploading()" />
-    </label>
+    <button class="btn" (click)="showWeightImport.set(true)">
+      Subir Pesajes
+    </button>
+
+    @if (showWeightImport()) {
+      <app-weight-bulk-import
+        (close)="showWeightImport.set(false)"
+        (importSuccess)="onWeightImportSuccess($event)"
+      />
+    }
+
+    <!-- Carga masiva -->
+    <button class="btn" (click)="showBulkImport.set(true)">
+      Carga Masiva
+    </button>
+    @if (showBulkImport()) {
+      <app-animal-bulk-import
+        (close)="showBulkImport.set(false)"
+        (importSuccess)="onImportSuccess($event)"
+      />
+    }
   </div>
 </app-page-header>
 
-<!-- Upload result panel -->
-@if (uploadResult()) {
-  <div class="upload-result" [class.has-errors]="uploadResult()!.errors.length > 0">
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- RESULTADO DE PESAJES (mantener igual) -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+@if (uploadResultWeight(); as resultWeight) {
+  <div class="upload-result" [class.has-errors]="resultWeight.errors.length > 0">
     <div class="upload-result-summary">
-      <span class="result-stat success">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        {{ uploadResult()!.created }} creados
-      </span>
-      <span class="result-stat warn">{{ uploadResult()!.skipped }} omitidos</span>
-      @if (uploadResult()!.errors.length > 0) {
-        <span class="result-stat error">{{ uploadResult()!.errors.length }} errores</span>
+      <span class="result-stat success">✓ {{ resultWeight.recorded }} registrados</span>
+      <span class="result-stat warn">{{ resultWeight.skipped }} omitidos</span>
+      @if (resultWeight.errors.length > 0) {
+        <span class="result-stat error">{{ resultWeight.errors.length }} errores</span>
       }
-      <button class="btn-clear" (click)="uploadResult.set(null)">✕ Cerrar</button>
+      <button class="btn-close-result" (click)="uploadResultWeight.set(null)">✕</button>
     </div>
-    @if (uploadResult()!.errors.length > 0) {
+    @if (resultWeight.errors.length > 0) {
       <div class="upload-errors">
-        @for (err of uploadResult()!.errors; track err.row) {
+        @for (err of resultWeight.errors; track err.row) {
           <div class="upload-error-row">
             <span class="err-row">Fila {{ err.row }}</span>
-            <span class="err-tag">Arete: {{ err.tag }}</span>
+            <span class="err-tag">{{ err.tag }}</span>
             <span class="err-msg">{{ err.error }}</span>
           </div>
         }
@@ -60,31 +53,6 @@
   </div>
 }
 
-
-<!-- Upload result -->
-  @if (uploadResultWeight()) {
-    <div class="upload-result" [class.has-errors]="uploadResultWeight()!.errors.length > 0">
-      <div class="upload-result-summary">
-        <span class="result-stat success">✓ {{ uploadResultWeight()!.recorded }} registrados</span>
-        <span class="result-stat warn">{{ uploadResultWeight()!.skipped }} omitidos</span>
-        @if (uploadResultWeight()!.errors.length > 0) {
-          <span class="result-stat error">{{ uploadResultWeight()!.errors.length }} errores</span>
-        }
-        <button class="btn-close-result" (click)="uploadResultWeight.set(null)">✕</button>
-      </div>
-      @if (uploadResultWeight()!.errors.length > 0) {
-        <div class="upload-errors">
-          @for (err of uploadResultWeight()!.errors; track err.row) {
-            <div class="upload-error-row">
-              <span class="err-row">Fila {{ err.row }}</span>
-              <span class="err-tag">{{ err.tag }}</span>
-              <span class="err-msg">{{ err.error }}</span>
-            </div>
-          }
-        </div>
-      }
-    </div>
-  }
 
 <!-- KPIs -->
 <div class="kpis-row">

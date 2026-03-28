@@ -177,12 +177,84 @@ export interface WeightHistoryItem {
   body_condition: number | null;
 }
 
+// cattle.model.ts
+
+// ── Interfaces para importación masiva ────────────────────────────────────────
+
+export interface BulkImportError {
+  row: number;
+  tag: string;
+  type: 'error' | 'warning' | 'capital_insufficient' | 'exception';
+  field?: string;
+  error: string;
+}
+
+export interface CapitalSummary {
+  inversionista: string;
+  nombre: string;
+  codigo: string;
+  capital_inicial: number;
+  capital_usado: number;
+  capital_restante: number;
+  animales_creados: number;
+}
+
+export interface InvestorInsufficient {
+  inversionista: string;
+  nombre: string;
+  codigo: string;
+  capital_requerido: number;
+  capital_disponible: number;
+  faltante: number;
+  animales_omitidos: number;
+}
+
 export interface BulkImportResult {
-  created?: number;
+  success: boolean;
+  message: string;
+  created: number;
+  skipped: number;
+  skipped_by_capital: number;
+  errors: BulkImportError[];
+  capital_summary: CapitalSummary[];
+  investors_insufficient: InvestorInsufficient[];
+}
+
+// Para el preview (si lo implementas después)
+export interface BulkImportPreview {
+  can_proceed: boolean;
+  blockers: any[];
+  warnings: any[];
+  capital_requirements: CapitalRequirement[];
+  summary: {
+    total_filas: number;
+    animales_a_crear: number;
+    animales_omitidos: number;
+    filas_con_errores: number;
+    total_capital_requerido: number;
+    total_inversionistas: number;
+    inversionistas_sin_capital: number;
+  };
+}
+
+export interface CapitalRequirement {
+  inversionista: string;
+  nombre: string;
+  codigo: string;
+  capital_requerido: number;
+  capital_disponible: number;
+  diferencia: number;
+  cantidad_animales: number;
+  tiene_capital_suficiente: boolean;
+}
+
+export interface BulkWeightResult {
   recorded?: number;
   skipped: number;
   errors: { row: number; tag: string; error: string }[];
 }
+
+
 
 
 export type AnimalGender   = 'M' | 'F';

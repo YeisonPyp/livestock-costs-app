@@ -11,7 +11,7 @@ import {
   HealthEvent, BatchHealthEvent, BatchHealthEventCreate, WithdrawalAnimal, HealthFilters,
   Movement,
   InventoryReport, WeightGainReport, LotsSummaryReport,
-  BulkImportResult,
+  BulkImportResult, BulkWeightResult,
   WeightHistoryItem,
 } from '../models/cattle.model';
 
@@ -66,10 +66,11 @@ export class CattleService {
   }
 
   // ── Bulk weight from file ───────────────────────────────────────────────────
-  bulkWeightFile(file: File): Observable<ApiResponse<BulkImportResult>> {
+  bulkWeightFile(file: File, pricePerKg: number ): Observable<ApiResponse<BulkWeightResult>> {
     const form = new FormData();
     form.append('file', file);
-    return this.api.post(`${this.base}/weight-records/bulk-weight-file/`, form);
+    form.append('price_per_kg', pricePerKg.toString());
+    return this.api.post(`${this.base}/weight-records/bulk-weight-file/`, form );
   }
 
   // // ── Colors ────────────────────────────────────────────────────────────────

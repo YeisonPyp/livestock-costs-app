@@ -12,7 +12,7 @@ import { LoaderComponent }        from '../../../../../shared/components/loader/
 import { EmptyStateComponent }    from '../../../../../shared/components/empty-state/empty-state.component';
 
 import { CattleService} from '../../../services/cattle.service';
-import { AnimalDetail, AnimalSummary, WeightHistoryItem, BulkImportResult, ANIMAL_STATUS_LABELS, ANIMAL_STATUS_COLORS, ANIMAL_CATEGORY_LABELS, SEX_LABELS } from '../../../models/cattle.model';
+import { AnimalDetail, AnimalSummary, WeightHistoryItem, BulkImportResult, BulkWeightResult, ANIMAL_STATUS_LABELS, ANIMAL_STATUS_COLORS, ANIMAL_CATEGORY_LABELS, SEX_LABELS } from '../../../models/cattle.model';
 
 type Tab = 'info' | 'weights' | 'health' | 'movements';
 
@@ -44,7 +44,7 @@ export class AnimalDetailComponent implements OnInit, OnDestroy {
 
   // ── Bulk weight upload ────────────────────────────────────────────────────
   uploading    = signal(false);
-  uploadResult = signal<BulkImportResult | null>(null);
+  uploadResult = signal<BulkWeightResult | null>(null);
 
   // ── Display ───────────────────────────────────────────────────────────────
   statusLabels   = ANIMAL_STATUS_LABELS;
@@ -83,42 +83,11 @@ export class AnimalDetailComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 
+  pricePerKg: number | null = null;
+
   // ── Bulk weight from file ─────────────────────────────────────────────────
-  onWeightFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file  = input.files?.[0];
-    if (!file) return;
 
-    this.uploading.set(true);
-    this.uploadResult.set(null);
-
-    this.svc.bulkWeightFile(file).pipe(takeUntil(this.destroy$)).subscribe({
-      next: r => {
-        this.uploading.set(false);
-        this.uploadResult.set(r.data);
-        if (r.data.recorded && r.data.recorded > 0) {
-          this.snack.open(r.message, 'Cerrar', { duration: 4000 });
-          // Refrescar peso y summary
-          forkJoin({
-            animal:  this.svc.getAnimal(this.animalId),
-            summary: this.svc.getAnimalSummary(this.animalId),
-            weights: this.svc.getWeightHistory(this.animalId),
-          }).pipe(takeUntil(this.destroy$)).subscribe(({ animal, summary, weights }) => {
-            if (animal.success)  this.animal.set(animal.data);
-            if (summary.success) this.summary.set(summary.data);
-            if (weights.success) this.weightHistory.set(weights.data);
-          });
-        }
-        input.value = '';
-      },
-      error: e => {
-        this.uploading.set(false);
-        this.snack.open(e?.error?.message || 'Error al procesar archivo', 'Cerrar', { duration: 4000 });
-        input.value = '';
-      },
-    });
-  }
-
+  
   // ── Helpers ───────────────────────────────────────────────────────────────
   formatDate(d?: string | null): string {
     if (!d) return '—';
