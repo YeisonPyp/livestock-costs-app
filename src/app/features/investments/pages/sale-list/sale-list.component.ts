@@ -17,6 +17,9 @@ import { AnimalSelectionModalComponent } from './animal-selection-modal/animal-s
 import { InvestmentService } from '../../services/investment.service';
 import { SaleEvent } from '../../models/investment.model';
 import { formatCurrency } from '../../../../core/utils/helpers';
+// sale-list.component.ts
+import { WeightBulkImportComponent } from '../../../cattle/pages/weights/weight-bulk-import/weight-bulk-import.component';
+import { WeightedAnimal } from '../../../cattle/models/cattle.model';
 
 interface AnimalSelection {
   id: string;
@@ -33,14 +36,15 @@ interface AnimalSelection {
     CommonModule,
     RouterLink,
     FormsModule,
+    BadgeComponent,
     ReactiveFormsModule,
     PageHeaderComponent,
     LoaderComponent,
     EmptyStateComponent,
-    KpiCardComponent,
-    BadgeComponent,
     AmountDisplayComponent,
+    KpiCardComponent,
     AlertComponent,
+    WeightBulkImportComponent,  // 👈 Importar componente
   ],
   templateUrl: './sale-list.component.html',
   styleUrl: './sale-list.component.scss',
@@ -66,6 +70,10 @@ export class SaleListComponent implements OnInit {
   selectedCount = signal(0);
   selectedWeight = signal(0);
 
+  // 👈 Nuevo: Modal de pesajes para venta
+  showWeightImportModal = signal(false);
+  lastPricePerKg = signal<number | null>(null);
+
   filterFinalized = '';
   formatCurrency = formatCurrency;
 
@@ -89,7 +97,6 @@ export class SaleListComponent implements OnInit {
       notes: [''],
     });
 
-    // Auto-calcular monto bruto
     this.newForm.get('total_weight')?.valueChanges.subscribe(() => this.recalcGross());
     this.newForm.get('price_per_kg')?.valueChanges.subscribe(() => this.recalcGross());
   }
@@ -137,7 +144,7 @@ export class SaleListComponent implements OnInit {
     this.load();
   }
 
-  // ── Animal Selection ───────────────────────────────────────────────────────
+  // ── Animal Selection (manual) ──────────────────────────────────────────────
   openAnimalSelection(): void {
     this.dialog
       .open(AnimalSelectionModalComponent, {
@@ -149,28 +156,57 @@ export class SaleListComponent implements OnInit {
       .afterClosed()
       .subscribe((result) => {
         if (result && result.animals) {
-          const animals = result.animals.map((a: any) => ({
-            id: a.id,
-            tag_number: a.tag_number,
-            name: a.name,
-            breed_name: a.breed_name,
-            current_weight: a.current_weight,
-          }));
-
-          this.selectedAnimals.set(animals);
-          this.selectedCount.set(result.totalHeads);
-          this.selectedWeight.set(result.totalWeight);
-
-          // Auto-llenar campos del formulario
-          this.newForm.patchValue({
-            total_heads: result.totalHeads,
-            total_weight: Math.round(result.totalWeight * 100) / 100,
-          });
-
-          this.recalcGross();
-          this.errorNew.set('');
+          this.processSelectedAnimals(result.animals, result.totalWeight);
         }
       });
+  }
+
+  // ── 👈 NUEVO: Abrir modal de pesajes para seleccionar animales ─────────────
+  openWeightImportForSale(): void {
+    this.showWeightImportModal.set(true);
+  }
+
+  onWeightAnimalsSelected(animals: WeightedAnimal[]): void {
+    // Convertir WeightedAnimal a AnimalSelection
+    const converted: AnimalSelection[] = animals.map(a => ({
+      id: a.id,
+      tag_number: a.tag_number,
+      name: a.name,
+      breed_name: a.breed_name,
+      current_weight: a.current_weight.toString(),
+    }));
+
+    const totalWeight = animals.reduce((sum, a) => sum + a.current_weight, 0);
+    
+    this.processSelectedAnimals(converted, totalWeight);
+    this.showWeightImportModal.set(false);
+
+    // Auto-llenar precio si está disponible
+    // (El precio viene del componente de pesajes)
+    this.snackBar.open(
+      `✅ ${animals.length} animales seleccionados para la venta`,
+      'Cerrar',
+      { duration: 4000 }
+    );
+  }
+
+  closeWeightImportModal(): void {
+    this.showWeightImportModal.set(false);
+  }
+
+  // ── Procesar animales seleccionados ────────────────────────────────────────
+  private processSelectedAnimals(animals: AnimalSelection[], totalWeight: number): void {
+    this.selectedAnimals.set(animals);
+    this.selectedCount.set(animals.length);
+    this.selectedWeight.set(totalWeight);
+
+    this.newForm.patchValue({
+      total_heads: animals.length,
+      total_weight: Math.round(totalWeight * 100) / 100,
+    });
+
+    this.recalcGross();
+    this.errorNew.set('');
   }
 
   removeSelectedAnimal(index: number): void {

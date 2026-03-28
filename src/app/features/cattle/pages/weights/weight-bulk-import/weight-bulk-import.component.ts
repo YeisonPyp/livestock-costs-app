@@ -1,11 +1,11 @@
 // weight-bulk-import.component.ts
-import { Component, inject, signal, computed, output } from '@angular/core';
+import { Component, inject, signal, computed, output, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { CattleService } from '../../../services/cattle.service';
-import { BulkWeightResult } from '../../../models/cattle.model';
+import { BulkWeightResult, WeightedAnimal } from '../../../models/cattle.model';
 
 @Component({
   selector: 'app-weight-bulk-import',
@@ -18,11 +18,22 @@ export class WeightBulkImportComponent {
   private svc = inject(CattleService);
   private snack = inject(MatSnackBar);
 
+  // ── Inputs ──────────────────────────────────────────────────────────────────
+  /** Modo: 'default' solo registra, 'selection' permite seleccionar animales después */
+  mode = input<'default' | 'selection'>('default');
+  
+  /** Título personalizado */
+  title = input<string>('Carga Masiva de Pesajes');
+
   // ── Signals ─────────────────────────────────────────────────────────────────
   uploading = signal(false);
   result = signal<BulkWeightResult | null>(null);
   fileName = signal<string | null>(null);
   dragOver = signal(false);
+  
+  // Para modo selección
+  selectedAnimalIds = signal<Set<string>>(new Set());
+  showSelectionStep = signal(false);
 
   // ── Form state ──────────────────────────────────────────────────────────────
   file = signal<File | null>(null);
@@ -30,11 +41,14 @@ export class WeightBulkImportComponent {
 
   // ── Outputs ─────────────────────────────────────────────────────────────────
   importSuccess = output<number>();
+  animalsSelected = output<WeightedAnimal[]>();  // 👈 Nuevo
   close = output<void>();
 
   // ── Computed ────────────────────────────────────────────────────────────────
   isFormValid = computed(() => {
-    return this.file() !== null && this.pricePerKg() !== null && this.pricePerKg()! > 0;
+    return this.file() !== null &&
+          this.pricePerKg() !== null &&
+          this.pricePerKg()! > 0;
   });
 
   isSuccess = computed(() => {
@@ -45,6 +59,25 @@ export class WeightBulkImportComponent {
   hasErrors = computed(() => {
     const r = this.result();
     return r && r.errors && r.errors.length > 0;
+  });
+
+  weightedAnimals = computed(() => {
+    return this.result()?.animals || [];
+  });
+
+  selectedAnimals = computed(() => {
+    const ids = this.selectedAnimalIds();
+    return this.weightedAnimals().filter(a => ids.has(a.id));
+  });
+
+  allSelected = computed(() => {
+    const animals = this.weightedAnimals();
+    const selected = this.selectedAnimalIds();
+    return animals.length > 0 && animals.every(a => selected.has(a.id));
+  });
+
+  totalSelectedWeight = computed(() => {
+    return this.selectedAnimals().reduce((sum, a) => sum + a.current_weight, 0);
   });
 
   // ── File handling ───────────────────────────────────────────────────────────
@@ -85,17 +118,8 @@ export class WeightBulkImportComponent {
   }
 
   private isValidFileType(file: File): boolean {
-    const validTypes = [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel',
-      'text/csv',
-    ];
     const validExtensions = ['.xlsx', '.xls', '.csv'];
-    
-    return (
-      validTypes.includes(file.type) ||
-      validExtensions.some(ext => file.name.toLowerCase().endsWith(ext))
-    );
+    return validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
   }
 
   removeFile(): void {
@@ -117,6 +141,7 @@ export class WeightBulkImportComponent {
 
     this.uploading.set(true);
     this.result.set(null);
+    this.showSelectionStep.set(false);
 
     this.svc.bulkWeightFile(this.file()!, this.pricePerKg()!).subscribe({
       next: r => {
@@ -130,6 +155,13 @@ export class WeightBulkImportComponent {
             { duration: 5000, panelClass: 'snack-success' }
           );
           this.importSuccess.emit(r.data.recorded);
+
+          // Si es modo selección, mostrar paso de selección
+          if (this.mode() === 'selection' && r.data.animals?.length) {
+            this.showSelectionStep.set(true);
+            // Seleccionar todos por defecto
+            this.selectAll();
+          }
         } else if (r.data.errors?.length > 0) {
           this.snack.open(
             '⚠️ No se registraron pesajes. Revise los errores.',
@@ -149,12 +181,52 @@ export class WeightBulkImportComponent {
     });
   }
 
+  // ── Selection methods ───────────────────────────────────────────────────────
+  toggleAnimal(id: string): void {
+    const selected = new Set(this.selectedAnimalIds());
+    if (selected.has(id)) {
+      selected.delete(id);
+    } else {
+      selected.add(id);
+    }
+    this.selectedAnimalIds.set(selected);
+  }
+
+  selectAll(): void {
+    const all = new Set(this.weightedAnimals().map(a => a.id));
+    this.selectedAnimalIds.set(all);
+  }
+
+  deselectAll(): void {
+    this.selectedAnimalIds.set(new Set());
+  }
+
+  toggleAll(): void {
+    if (this.allSelected()) {
+      this.deselectAll();
+    } else {
+      this.selectAll();
+    }
+  }
+
+  confirmSelection(): void {
+    const selected = this.selectedAnimals();
+    if (selected.length === 0) {
+      this.snack.open('Selecciona al menos un animal', 'Cerrar', { duration: 3000 });
+      return;
+    }
+    this.animalsSelected.emit(selected);
+    this.close.emit();
+  }
+
   // ── Actions ─────────────────────────────────────────────────────────────────
   closeResult(): void {
     this.result.set(null);
     this.file.set(null);
     this.fileName.set(null);
     this.pricePerKg.set(null);
+    this.showSelectionStep.set(false);
+    this.selectedAnimalIds.set(new Set());
   }
 
   closeModal(): void {
@@ -169,5 +241,10 @@ export class WeightBulkImportComponent {
       currency: 'COP',
       maximumFractionDigits: 0,
     }).format(value);
+  }
+
+  formatWeight(value?: number | null): string {
+    if (value == null) return '—';
+    return `${value.toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kg`;
   }
 }

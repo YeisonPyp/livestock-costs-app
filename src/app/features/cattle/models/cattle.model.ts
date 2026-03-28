@@ -248,10 +248,25 @@ export interface CapitalRequirement {
   tiene_capital_suficiente: boolean;
 }
 
+// cattle.model.ts
+
+export interface WeightedAnimal {
+  id: string;
+  tag_number: string;
+  name?: string;
+  breed_name: string;
+  current_weight: number;
+  previous_weight?: number;
+  weight_gain?: number;
+  investor_code?: string;
+  investor_name?: string;
+}
+
 export interface BulkWeightResult {
-  recorded?: number;
+  recorded: number;
   skipped: number;
   errors: { row: number; tag: string; error: string }[];
+  animals?: WeightedAnimal[];  // 👈 Nuevo: animales pesados
 }
 
 

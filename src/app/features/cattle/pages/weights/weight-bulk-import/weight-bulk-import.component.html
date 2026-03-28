@@ -1,15 +1,26 @@
 <!-- weight-bulk-import.component.html -->
 <div class="modal-overlay" (click)="closeModal()">
-  <div class="modal-container" (click)="$event.stopPropagation()">
+  <div class="modal-container" [class.wide]="showSelectionStep()" (click)="$event.stopPropagation()">
     
     <!-- ── Header ────────────────────────────────────────────────────────── -->
     <div class="modal-header">
       <div class="modal-title">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 3v18M3 12h18"/>
-          <circle cx="12" cy="12" r="9"/>
+          @if (showSelectionStep()) {
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          } @else {
+            <path d="M12 3v18M3 12h18"/>
+            <circle cx="12" cy="12" r="9"/>
+          }
         </svg>
-        <h2>Carga Masiva de Pesajes</h2>
+        <h2>
+          @if (showSelectionStep()) {
+            Seleccionar Animales para Venta
+          } @else {
+            {{ title() }}
+          }
+        </h2>
       </div>
       <button class="btn-close" (click)="closeModal()" aria-label="Cerrar modal">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -22,8 +33,8 @@
     <!-- ── Body ──────────────────────────────────────────────────────────── -->
     <div class="modal-body">
       
-      <!-- Form (before upload) -->
-      @if (!result()) {
+      <!-- Step 1: Upload form -->
+      @if (!result() && !showSelectionStep()) {
         <div class="upload-form">
           
           <!-- Price input -->
@@ -63,23 +74,16 @@
               (drop)="onDrop($event)"
             >
               @if (fileName()) {
-                <!-- File selected -->
                 <div class="file-info">
                   <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                     <polyline points="14 2 14 8 20 8"/>
-                    <line x1="16" y1="13" x2="8" y2="13"/>
-                    <line x1="16" y1="17" x2="8" y2="17"/>
                   </svg>
                   <div class="file-details">
                     <span class="file-name">{{ fileName() }}</span>
                     <span class="file-ready">Listo para procesar</span>
                   </div>
-                  <button 
-                    class="btn-remove" 
-                    (click)="removeFile(); $event.stopPropagation()"
-                    [disabled]="uploading()"
-                  >
+                  <button class="btn-remove" (click)="removeFile(); $event.stopPropagation()" [disabled]="uploading()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <line x1="18" y1="6" x2="6" y2="18"/>
                       <line x1="6" y1="6" x2="18" y2="18"/>
@@ -87,37 +91,39 @@
                   </button>
                 </div>
               } @else {
-                <!-- No file -->
                 <label class="drop-label">
-                  <input 
-                    type="file" 
-                    accept=".xlsx,.xls,.csv"
-                    (change)="onFileSelected($event)"
-                    [disabled]="uploading()"
-                  />
+                  <input type="file" accept=".xlsx,.xls,.csv" (change)="onFileSelected($event)" [disabled]="uploading()" />
                   <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                     <polyline points="17 8 12 3 7 8"/>
                     <line x1="12" y1="3" x2="12" y2="15"/>
                   </svg>
-                  <span class="drop-text">
-                    Arrastra el archivo aquí o <strong>haz clic para seleccionar</strong>
-                  </span>
+                  <span class="drop-text">Arrastra el archivo aquí o <strong>haz clic para seleccionar</strong></span>
                   <span class="drop-hint">Formatos: .xlsx, .xls, .csv</span>
                 </label>
               }
             </div>
           </div>
+
+          <!-- Info box -->
+          <div class="info-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <div class="info-content">
+              <strong>Formato del archivo</strong>
+              <p>El archivo debe contener: <code>NUMERO ANIMAL</code>, <code>PESO</code>, <code>FECHA PESO</code></p>
+            </div>
+          </div>
         </div>
       }
 
-      <!-- Result panel -->
-      @if (result(); as r) {
-        <div class="result-panel" 
-             [class.success]="isSuccess()"
-             [class.error]="hasErrors() && !isSuccess()">
-          
-          <!-- Header -->
+      <!-- Step 2: Result panel (modo default) -->
+      @if (result() && mode() === 'default') {
+        <div class="result-panel" [class.success]="isSuccess()" [class.error]="hasErrors() && !isSuccess()">
+          <!-- ... mismo contenido del result panel anterior ... -->
           <div class="result-header">
             <div class="result-icon">
               @if (isSuccess()) {
@@ -133,94 +139,121 @@
                 </svg>
               }
             </div>
-            
             <div class="result-summary">
               <h3>{{ isSuccess() ? 'Pesajes registrados' : 'Proceso completado con errores' }}</h3>
-              <p>
-                @if (r.recorded && r.recorded > 0) {
-                  Se registraron {{ r.recorded }} pesajes correctamente.
-                }
-                @if (r.skipped > 0) {
-                  {{ r.skipped }} registros fueron omitidos.
-                }
-              </p>
+              <p>Se registraron {{ result()?.recorded || 0 }} pesajes. {{ result()?.skipped || 0 }} omitidos.</p>
             </div>
-
             <button class="btn-close-result" (click)="closeResult()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
             </button>
           </div>
 
-          <!-- Stats -->
           <div class="result-stats">
             <div class="stat success">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-              <span class="value">{{ r.recorded || 0 }}</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span class="value">{{ result()?.recorded || 0 }}</span>
               <span class="label">Registrados</span>
             </div>
-
-            @if (r.skipped > 0) {
+            @if ((result()?.skipped || 0) > 0) {
               <div class="stat muted">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
-                </svg>
-                <span class="value">{{ r.skipped }}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                <span class="value">{{ result()?.skipped }}</span>
                 <span class="label">Omitidos</span>
               </div>
             }
+          </div>
+        </div>
+      }
 
-            @if (r.errors.length > 0) {
-              <div class="stat error">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="15" y1="9" x2="9" y2="15"/>
-                  <line x1="9" y1="9" x2="15" y2="15"/>
-                </svg>
-                <span class="value">{{ r.errors.length }}</span>
-                <span class="label">Errores</span>
-              </div>
-            }
+      <!-- Step 2b: Animal selection (modo selection) -->
+      @if (showSelectionStep()) {
+        <div class="selection-panel">
+          
+          <!-- Summary bar -->
+          <div class="selection-summary">
+            <div class="summary-info">
+              <span class="count">{{ selectedAnimalIds().size }}</span>
+              <span class="text">de {{ weightedAnimals().length }} animales seleccionados</span>
+            </div>
+            <div class="summary-weight">
+              <span class="label">Peso total:</span>
+              <strong>{{ formatWeight(totalSelectedWeight()) }}</strong>
+            </div>
+            <div class="summary-actions">
+              <button class="btn-text" (click)="selectAll()">Seleccionar todos</button>
+              <button class="btn-text" (click)="deselectAll()">Deseleccionar</button>
+            </div>
+          </div>
+
+          <!-- Animals table -->
+          <div class="animals-table-wrap">
+            <table class="animals-table">
+              <thead>
+                <tr>
+                  <th class="check-col">
+                    <input type="checkbox" [checked]="allSelected()" (change)="toggleAll()" />
+                  </th>
+                  <th>Arete</th>
+                  <th>Nombre</th>
+                  <th>Raza</th>
+                  <th class="num">Peso Anterior</th>
+                  <th class="num">Peso Actual</th>
+                  <th class="num">Ganancia</th>
+                  <th>Inversionista</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (animal of weightedAnimals(); track animal.id) {
+                  <tr 
+                    [class.selected]="selectedAnimalIds().has(animal.id)"
+                    (click)="toggleAnimal(animal.id)"
+                  >
+                    <td class="check-col">
+                      <input 
+                        type="checkbox" 
+                        [checked]="selectedAnimalIds().has(animal.id)"
+                        (click)="$event.stopPropagation()"
+                        (change)="toggleAnimal(animal.id)"
+                      />
+                    </td>
+                    <td>
+                      <span class="tag-number">{{ animal.tag_number }}</span>
+                    </td>
+                    <td>{{ animal.name || '—' }}</td>
+                    <td>{{ animal.breed_name }}</td>
+                    <td class="num">{{ formatWeight(animal.previous_weight) }}</td>
+                    <td class="num weight-current">{{ formatWeight(animal.current_weight) }}</td>
+                    <td class="num">
+                      @if (animal.weight_gain !== null && animal.weight_gain !== undefined) {
+                        <span class="weight-gain" [class.positive]="animal.weight_gain > 0">
+                          {{ animal.weight_gain > 0 ? '+' : '' }}{{ formatWeight(animal.weight_gain) }}
+                        </span>
+                      } @else {
+                        <span class="muted">—</span>
+                      }
+                    </td>
+                    <td>
+                      @if (animal.investor_code) {
+                        <span class="investor-badge">{{ animal.investor_code }}</span>
+                      } @else {
+                        <span class="muted">Sin asignar</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
           </div>
 
           <!-- Price info -->
-          @if (pricePerKg()) {
-            <div class="price-info">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-              </svg>
-              <span>Precio aplicado: <strong>{{ formatCurrency(pricePerKg()) }}/kg</strong></span>
-            </div>
-          }
-
-          <!-- Errors list -->
-          @if (r.errors.length > 0) {
-            <div class="errors-section">
-              <div class="error-header">
-                <span class="count">{{ r.errors.length }}</span>
-                <span>Errores encontrados</span>
-              </div>
-              <div class="error-list">
-                @for (err of r.errors.slice(0, 10); track err.row) {
-                  <div class="error-item">
-                    <span class="row">Fila {{ err.row }}</span>
-                    <span class="tag">{{ err.tag }}</span>
-                    <span class="msg">{{ err.error }}</span>
-                  </div>
-                }
-                @if (r.errors.length > 10) {
-                  <div class="error-more">
-                    ... y {{ r.errors.length - 10 }} errores más
-                  </div>
-                }
-              </div>
-            </div>
-          }
+          <div class="price-info">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+            <span>Precio registrado: <strong>{{ formatCurrency(pricePerKg()) }}/kg</strong></span>
+          </div>
         </div>
       }
 
@@ -228,17 +261,28 @@
 
     <!-- ── Footer ────────────────────────────────────────────────────────── -->
     <div class="modal-footer">
-      @if (result()) {
+      @if (showSelectionStep()) {
+        <!-- Modo selección: confirmar animales -->
         <button class="btn btn-secondary" (click)="closeResult()">
-          Cargar otro archivo
+          Volver a cargar
         </button>
-        <button class="btn btn-primary" (click)="closeModal()">
-          Cerrar
+        <button 
+          class="btn btn-primary"
+          (click)="confirmSelection()"
+          [disabled]="selectedAnimalIds().size === 0"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Confirmar {{ selectedAnimalIds().size }} animales
         </button>
+      } @else if (result() && mode() === 'default') {
+        <!-- Modo default: resultado -->
+        <button class="btn btn-secondary" (click)="closeResult()">Cargar otro archivo</button>
+        <button class="btn btn-primary" (click)="closeModal()">Cerrar</button>
       } @else {
-        <button class="btn btn-secondary" (click)="closeModal()">
-          Cancelar
-        </button>
+        <!-- Formulario de carga -->
+        <button class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
         <button 
           class="btn btn-primary"
           (click)="submit()"

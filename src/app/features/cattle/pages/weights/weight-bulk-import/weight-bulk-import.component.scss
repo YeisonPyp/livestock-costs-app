@@ -618,3 +618,191 @@
 .spin {
   animation: spin 1s linear infinite;
 }
+
+// weight-bulk-import.component.scss (agregar al final)
+
+// ── Wide modal for selection ──────────────────────────────────────────────────
+.modal-container.wide {
+  max-width: 1100px;
+}
+
+// ── Selection Panel ───────────────────────────────────────────────────────────
+.selection-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.selection-summary {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  flex-wrap: wrap;
+
+  .summary-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .count {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #10b981;
+    }
+
+    .text {
+      color: #065f46;
+      font-size: 0.875rem;
+    }
+  }
+
+  .summary-weight {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+
+    .label {
+      color: #6b7280;
+    }
+
+    strong {
+      color: #111827;
+    }
+  }
+
+  .summary-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 0.75rem;
+  }
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: #10b981;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.15s;
+
+  &:hover {
+    background: rgba(16, 185, 129, 0.1);
+  }
+}
+
+// ── Animals Table ─────────────────────────────────────────────────────────────
+.animals-table-wrap {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.animals-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+
+  th,
+  td {
+    padding: 0.625rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    background: #f9fafb;
+    font-weight: 600;
+    color: #6b7280;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    z-index: 1;
+
+    &.check-col {
+      width: 40px;
+    }
+
+    &.num {
+      text-align: right;
+    }
+  }
+
+  tbody tr {
+    cursor: pointer;
+    transition: background 0.1s;
+
+    &:hover {
+      background: #f9fafb;
+    }
+
+    &.selected {
+      background: #ecfdf5;
+
+      &:hover {
+        background: #d1fae5;
+      }
+    }
+  }
+
+  td {
+    &.check-col {
+      width: 40px;
+    }
+
+    &.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  .tag-number {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: #6366f1;
+  }
+
+  .weight-current {
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .weight-gain {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    background: #f3f4f6;
+    color: #6b7280;
+
+    &.positive {
+      background: #d1fae5;
+      color: #065f46;
+    }
+  }
+
+  .investor-badge {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    border-radius: 4px;
+  }
+
+  .muted {
+    color: #9ca3af;
+  }
+}

@@ -66,10 +66,11 @@ export class CattleService {
   }
 
   // ── Bulk weight from file ───────────────────────────────────────────────────
-  bulkWeightFile(file: File, pricePerKg: number ): Observable<ApiResponse<BulkWeightResult>> {
+  bulkWeightFile(file: File, pricePerKg: number, returnAnimals: boolean = false ): Observable<ApiResponse<BulkWeightResult>> {
     const form = new FormData();
     form.append('file', file);
     form.append('price_per_kg', pricePerKg.toString());
+    form.append('return_animals', returnAnimals.toString());
     return this.api.post(`${this.base}/weight-records/bulk-weight-file/`, form );
   }
 

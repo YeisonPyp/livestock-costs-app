@@ -27,21 +27,61 @@
       <app-alert type="danger" [message]="errorNew()" class="alert-margin" />
     }
 
-    <!-- Animal Selection Section -->
-    <div class="animals-selection-section">
+  <div class="new-sale-form">
+    <div class="form-section">
       <div class="section-header">
-        <h4>Animales a Vender</h4>
-        <button
-          type="button"
-          class="btn btn-primary btn-sm"
-          (click)="openAnimalSelection()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          Seleccionar Animales
-        </button>
+        <h4>Animales para la venta</h4>
+        <div class="section-actions">
+          <!-- Opción 1: Selección manual -->
+          <button type="button" class="btn btn-secondary" (click)="openAnimalSelection()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+            </svg>
+            Seleccionar Animales
+          </button>
+          
+          <!-- 👈 NUEVO: Opción 2: Cargar pesajes y seleccionar -->
+          <button type="button" class="btn btn-primary" (click)="openWeightImportForSale()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Cargar Pesajes
+          </button>
+        </div>
       </div>
+
+      <!-- Lista de animales seleccionados -->
+      @if (selectedAnimals().length > 0) {
+        <div class="selected-animals-summary">
+          <span class="summary-badge">
+            {{ selectedCount() }} animales | {{ selectedWeight() | number:'1.1-1' }} kg
+          </span>
+        </div>
+        
+        <div class="selected-animals-list">
+          @for (animal of selectedAnimals(); track animal.id; let i = $index) {
+            <div class="selected-animal-chip">
+              <span class="tag">{{ animal.tag_number }}</span>
+              <span class="weight">{{ animal.current_weight }} kg</span>
+              <button type="button" class="btn-remove-chip" (click)="removeSelectedAnimal(i)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="no-animals-message">
+          <p>No hay animales seleccionados. Usa los botones arriba para agregar.</p>
+        </div>
+      }
+    </div>
 
       <!-- Selected Animals Summary -->
       @if (selectedCount() > 0) {
@@ -202,6 +242,14 @@
       </div>
     </form>
   </div>
+}
+@if (showWeightImportModal()) {
+  <app-weight-bulk-import
+    mode="selection"
+    title="Registrar Pesajes para Venta"
+    (animalsSelected)="onWeightAnimalsSelected($event)"
+    (close)="closeWeightImportModal()"
+  />
 }
 
 <!-- Filter -->

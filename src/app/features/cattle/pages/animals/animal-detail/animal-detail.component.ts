@@ -21,7 +21,7 @@ type Tab = 'info' | 'weights' | 'health' | 'movements';
   standalone: true,
   imports: [
     CommonModule, RouterLink,
-    PageHeaderComponent, KpiCardComponent, BadgeComponent,
+    PageHeaderComponent, KpiCardComponent,
     LoaderComponent, EmptyStateComponent,
   ],
   templateUrl: './animal-detail.component.html',
