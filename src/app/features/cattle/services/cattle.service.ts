@@ -30,15 +30,6 @@ export class CattleService {
 
   
   // ── Animals list ────────────────────────────────────────────────────────────
-  // getAnimals(filters: AnimalFilters = {}): Observable<ApiResponse<AnimalListItem[]>> {
-  //   let params = new HttpParams();
-  //   Object.entries(filters).forEach(([k, v]) => {
-  //     if (v !== undefined && v !== null && v !== '') {
-  //       params = params.set(k, String(v));
-  //     }
-  //   });
-  //   return this.api.get(`${this.base}/animals/`, { params });
-  // }
   getAnimals(filters: AnimalFilters = {}): Observable<ApiResponse<AnimalListItem[]>> {
     return this.api.get(`${this.base}/animals/`, filters);
   }
@@ -46,6 +37,11 @@ export class CattleService {
   // ── Animal detail ───────────────────────────────────────────────────────────
   getAnimal(id: string): Observable<ApiResponse<AnimalDetail>> {
     return this.api.get(`${this.base}/animals/${id}/`);
+  }
+
+  // ── Delete animal ───────────────────────────────────────────────────────────
+  deleteAnimal(id: string): Observable<ApiResponse<{ message: string }>> {
+    return this.api.delete(`${this.base}/animals/${id}/`);
   }
 
   // ── Animal summary ──────────────────────────────────────────────────────────

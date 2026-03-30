@@ -85,23 +85,23 @@ export class InvestmentService {
 
   // ── Sales ──────────────────────────────────────────────────────────────────
   getSales(params?: Record<string, any>): Observable<ApiResponse<SaleEvent[]>> {
-    return this.api.get('/investments/sales/', params);
+    return this.api.get('/investments/sale-events/', params);
   }
 
   getSale(id: string): Observable<ApiResponse<SaleEvent>> {
-    return this.api.get(`/investments/sales/${id}/`);
+    return this.api.get(`/investments/sale-events/${id}/`);
   }
 
   createSale(data: Partial<SaleEvent>): Observable<ApiResponse<SaleEvent>> {
-    return this.api.post('/investments/sales/', data);
+    return this.api.post('/investments/sale-events/', data);
   }
 
   getSaleDecisions(saleId: string): Observable<ApiResponse<SaleDecision[]>> {
-    return this.api.get(`/investments/sales/${saleId}/decisions/`);
+    return this.api.get(`/investments/sale-events/${saleId}/decisions/`);
   }
 
   finalizeSale(saleId: string): Observable<ApiResponse<any>> {
-    return this.api.post(`/investments/sales/${saleId}/finalize/`, {});
+    return this.api.post(`/investments/sale-events/${saleId}/finalize/`, {});
   }
 
   // ── Sale Decisions ─────────────────────────────────────────────────────────

@@ -532,7 +532,7 @@ export const ANIMAL_STATUS_LABELS: Record<AnimalStatus, string> = {
 
 export const ANIMAL_STATUS_COLORS: Record<AnimalStatus, string> = {
   active:      'success',
-  sold:        'blue',
+  sold:        'info',
   dead:        'danger',
   transferred: 'warning',
 };

@@ -189,6 +189,19 @@ export interface SaleEvent {
   created_at: string;
 }
 
+export interface SaleEventCreate {
+  sale_date: string;
+  description: string;
+  buyer_id?: string;
+  sale_costs?: number;
+  items: {
+    animal_id: string;
+    weight: number;
+    price_per_kg: number;
+  }[];
+}
+
+
 export interface SaleDecision {
   id: string;
   sale_event: string;

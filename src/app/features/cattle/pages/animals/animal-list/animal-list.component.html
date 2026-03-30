@@ -26,33 +26,6 @@
   </div>
 </app-page-header>
 
-<!-- ══════════════════════════════════════════════════════════════════════════ -->
-<!-- RESULTADO DE PESAJES (mantener igual) -->
-<!-- ══════════════════════════════════════════════════════════════════════════ -->
-@if (uploadResultWeight(); as resultWeight) {
-  <div class="upload-result" [class.has-errors]="resultWeight.errors.length > 0">
-    <div class="upload-result-summary">
-      <span class="result-stat success">✓ {{ resultWeight.recorded }} registrados</span>
-      <span class="result-stat warn">{{ resultWeight.skipped }} omitidos</span>
-      @if (resultWeight.errors.length > 0) {
-        <span class="result-stat error">{{ resultWeight.errors.length }} errores</span>
-      }
-      <button class="btn-close-result" (click)="uploadResultWeight.set(null)">✕</button>
-    </div>
-    @if (resultWeight.errors.length > 0) {
-      <div class="upload-errors">
-        @for (err of resultWeight.errors; track err.row) {
-          <div class="upload-error-row">
-            <span class="err-row">Fila {{ err.row }}</span>
-            <span class="err-tag">{{ err.tag }}</span>
-            <span class="err-msg">{{ err.error }}</span>
-          </div>
-        }
-      </div>
-    }
-  </div>
-}
-
 
 <!-- KPIs -->
 <div class="kpis-row">
@@ -61,14 +34,6 @@
   <app-kpi-card label="Hembras"        [value]="kpis().female"    format="number" color="green"  icon="user"        [loading]="loading()" />
   <app-kpi-card label="Peso Promedio"  [value]="kpis().avgWeight" format="number" color="yellow" icon="trending-up" [loading]="loading()" suffix=" kg" />
 </div>
-
-<!-- Bulk action bar -->
-@if (selectedIds().size > 0) {
-  <div class="bulk-bar">
-    <span class="bulk-count">{{ selectedIds().size }} animales seleccionados</span>
-    <button class="btn btn-sm btn-ghost" (click)="clearSelection()">Deseleccionar todo</button>
-  </div>
-}
 
 <!-- Filters -->
 <div class="filters-card">
@@ -130,7 +95,6 @@
     <table class="data-table">
       <thead>
         <tr>
-          <th class="check-col"><input type="checkbox" [checked]="selectAll" (change)="toggleAll()" /></th>
           <th class="sortable" (click)="sortBy('tag_number')">Arete {{ sortIcon('tag_number') }}</th>
           <th>Nombre</th>
           <th>Raza</th>
@@ -147,14 +111,15 @@
       </thead>
       <tbody>
         @for (a of animals(); track a.id) {
-          <tr [class.selected]="selectedIds().has(a.id)">
-            <td class="check-col">
-              <input type="checkbox" [checked]="selectedIds().has(a.id)" (change)="toggleSelect(a.id)" />
-            </td>
+          <tr>
             <td><a [routerLink]="[a.id]" class="tag-link">{{ a.tag_number }}</a></td>
             <td>{{ a.name || '—' }}</td>
             <td>{{ a.breed_name || '—' }}</td>
-            <td><span class="category-label">{{ a.category ?? a.category }}</span></td>
+            <td>
+              <span class="category-label">
+                {{ getCategoryLabel(a.category) }}
+              </span>
+            </td>
             <td>
               <span class="sex-badge" [class.male]="a.gender === 'M'" [class.female]="a.gender === 'F'">
                 {{ sexLabels[a.gender] }}
@@ -174,10 +139,10 @@
             </td>
             <td class="date-cell">{{ formatDate(a.entry_date) }}</td>
             <td>
-              <!-- <app-badge 
-                [label]="statusLabels[a.status] ?? a.status" 
-                [color]="statusColors[a.status] ?? 'default'" 
-              /> -->
+              <app-badge
+                [label]="getStatusLabel(a.status)"
+                [color]="getStatusColor(a.status)"
+              />
             </td>
             <td class="text-right">
               <app-dropdown-menu [items]="[

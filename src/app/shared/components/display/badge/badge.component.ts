@@ -2,7 +2,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-export type BadgeColor = 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'secondary' | 'gray';
+export type BadgeColor = 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'secondary' | 'gray' | 'blue';
 export type BadgeVariant = 'solid' | 'outline' | 'soft';
 export type BadgeSize = 'xs' | 'sm' | 'md' | 'lg';
 

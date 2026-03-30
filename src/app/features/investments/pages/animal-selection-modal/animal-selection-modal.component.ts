@@ -5,18 +5,18 @@ import { FormsModule } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
-import { LoaderComponent } from '../../../../../shared/components/loader/loader.component';
-import { EmptyStateComponent } from '../../../../../shared/components/empty-state/empty-state.component';
-import { BadgeComponent } from '../../../../../shared/components/display/badge/badge.component';
+import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { BadgeComponent } from '../../../../shared/components/display/badge/badge.component';
 
-import { CattleService } from '../../../../cattle/services/cattle.service';
+import { CattleService } from '../../../cattle/services/cattle.service';
 import {
   AnimalListItem,
   AnimalFilters,
   ANIMAL_STATUS_LABELS,
   ANIMAL_STATUS_COLORS,
   GENDER_LABELS,
-} from '../../../../cattle/models/cattle.model';
+} from '../../../cattle/models/cattle.model';
 
 export interface AnimalSelection extends AnimalListItem {
   selected?: boolean;

@@ -1,0 +1,256 @@
+<div class="drawer-overlay" (click)="onCancel()"></div>
+
+<aside class="drawer">
+
+  <!-- Header -->
+  <div class="drawer-header">
+    <div class="drawer-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+      <span>Nueva Venta</span>
+    </div>
+    <button class="btn-close" (click)="onCancel()" title="Cerrar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Scrollable body -->
+  <div class="drawer-body">
+
+    @if (error()) {
+      <app-alert type="danger" [message]="error()" />
+    }
+
+    <!-- ── Sección: animales ────────────────────────────────────────────── -->
+    <section class="section">
+      <div class="section-header">
+        <h4 class="section-title">Animales</h4>
+        <div class="section-actions">
+          <button type="button" class="btn btn-sm btn-ghost" (click)="openAnimalSelection()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+            Seleccionar
+          </button>
+          <button type="button" class="btn btn-sm btn-primary" (click)="showWeightModal.set(true)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Cargar Excel
+          </button>
+        </div>
+      </div>
+
+      @if (hasAnimals()) {
+        <!-- Resumen de selección -->
+        <div class="selection-summary">
+          <div class="summary-pill">
+            <span class="pill-value">{{ totalHeads() }}</span>
+            <span class="pill-label">animales</span>
+          </div>
+          <div class="summary-pill">
+            <span class="pill-value">{{ formatWeight(totalWeight()) }}</span>
+            <span class="pill-label">peso total</span>
+          </div>
+          <button type="button" class="btn-text danger" (click)="clearAnimals()">
+            Limpiar
+          </button>
+        </div>
+
+        <!-- Tabla de animales -->
+        <div class="animals-list">
+          @for (animal of selectedAnimals(); track animal.id; let i = $index) {
+            <div class="animal-row">
+              <div class="animal-info">
+                <span class="animal-tag">{{ animal.tag_number }}</span>
+                @if (animal.name) {
+                  <span class="animal-name">{{ animal.name }}</span>
+                }
+                @if (animal.investor_code) {
+                  <span class="investor-chip">{{ animal.investor_code }}</span>
+                }
+              </div>
+              <div class="animal-right">
+                <span class="animal-weight">{{ formatWeight(animal.current_weight) }}</span>
+                <button
+                  type="button"
+                  class="btn-remove"
+                  (click)="removeAnimal(i)"
+                  title="Quitar"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-animals">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M8 12h8M12 8v8"/>
+          </svg>
+          <p>Sin animales seleccionados</p>
+        </div>
+      }
+    </section>
+
+    <!-- ── Sección: precio ──────────────────────────────────────────────── -->
+    <section class="section">
+      <h4 class="section-title">Precio</h4>
+      <div class="field">
+        <label class="field-label">
+          Precio por kg <span class="req">*</span>
+        </label>
+        <div class="input-prefix">
+          <span>$</span>
+          <input
+            type="number"
+            [formControl]="$any(form.get('price_per_kg'))"
+            class="field-input"
+            min="0.01"
+            step="100"
+            placeholder="0.00"
+          />
+        </div>
+        @if (form.get('price_per_kg')?.invalid && form.get('price_per_kg')?.touched) {
+          <span class="field-error">Campo requerido, debe ser mayor a 0</span>
+        }
+      </div>
+    </section>
+
+    <!-- ── Sección: resumen financiero ──────────────────────────────────── -->
+    @if (hasAnimals() && pricePerKg() > 0) {
+      <section class="section summary-section">
+        <h4 class="section-title">Resumen</h4>
+        <div class="summary-grid">
+          <div class="summary-row">
+            <span class="summary-label">Peso total</span>
+            <span class="summary-value">{{ formatWeight(totalWeight()) }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Precio/kg</span>
+            <span class="summary-value">{{ formatCurrency(pricePerKg()) }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Monto bruto</span>
+            <span class="summary-value">{{ formatCurrency(grossAmount()) }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Costos de venta</span>
+            <span class="summary-value deduction">− {{ formatCurrency(saleCosts()) }}</span>
+          </div>
+          <div class="summary-row total">
+            <span class="summary-label">Monto neto</span>
+            <span class="summary-value net">{{ formatCurrency(netAmount()) }}</span>
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- ── Sección: datos de la venta ────────────────────────────────────── -->
+    <section class="section">
+      <h4 class="section-title">Datos de la venta</h4>
+      <form [formGroup]="form" class="form-fields">
+
+        <div class="field">
+          <label class="field-label">
+            Fecha <span class="req">*</span>
+          </label>
+          <input type="date" formControlName="sale_date" class="field-input" />
+          @if (form.get('sale_date')?.invalid && form.get('sale_date')?.touched) {
+            <span class="field-error">Campo requerido</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field-label">
+            Descripción <span class="req">*</span>
+          </label>
+          <input
+            type="text"
+            formControlName="description"
+            class="field-input"
+            placeholder="Ej: Venta de novillos a feria..."
+          />
+          @if (form.get('description')?.invalid && form.get('description')?.touched) {
+            <span class="field-error">Campo requerido</span>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field-label">Costos de venta</label>
+          <div class="input-prefix">
+            <span>$</span>
+            <input
+              type="number"
+              formControlName="sale_costs"
+              class="field-input"
+              min="0"
+              step="1000"
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Notas</label>
+          <textarea
+            formControlName="notes"
+            class="field-input"
+            rows="2"
+            placeholder="Observaciones..."
+          ></textarea>
+        </div>
+
+      </form>
+    </section>
+
+  </div><!-- /drawer-body -->
+
+  <!-- Footer fijo con acciones -->
+  <div class="drawer-footer">
+    <button type="button" class="btn btn-ghost" (click)="onCancel()">
+      Cancelar
+    </button>
+    <button
+      type="button"
+      class="btn btn-primary"
+      [disabled]="form.invalid || saving() || !hasAnimals()"
+      (click)="submit()"
+    >
+      @if (saving()) {
+        <span class="spinner"></span>
+        Guardando...
+      } @else {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Registrar venta
+      }
+    </button>
+  </div>
+
+</aside>
+
+<!-- Weight import modal -->
+@if (showWeightModal()) {
+  <app-weight-bulk-import
+    mode="selection"
+    title="Cargar pesajes para venta"
+    (animalsSelected)="onWeightAnimalsSelected($event)"
+    (close)="showWeightModal.set(false)"
+  />
+}
