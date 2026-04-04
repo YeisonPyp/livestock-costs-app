@@ -7,3 +7,10 @@ export interface AuthResponse {
     refresh: string;
   };
 }
+
+export interface RefreshTokenResponse {
+  tokens: {
+    access: string;
+    refresh?: string; // Opcional si el backend rota el refresh token
+  };
+}

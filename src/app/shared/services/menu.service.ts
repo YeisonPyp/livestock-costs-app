@@ -51,77 +51,6 @@ export class MenuService {
       color: 'orange',
       path: '/cattle/animals',
     },
-    // {
-    //   label: 'Gestión de Costos',
-    //   icon: 'dollar-sign',
-    //   color: 'green',
-    //   children: [
-    //     {
-    //       label: 'Registro de Costos',
-    //       icon: 'list',
-    //       path: '/costs/costs',
-    //     },
-    //     {
-    //       label: 'Reportes',
-    //       icon: 'file-text',
-    //       path: '/costs/reports',
-    //     },
-    //   ],
-    // },
-    // {
-    //   label: 'Ganado',
-    //   icon: 'plus-circle',
-    //   color: 'purple',
-    //   children: [
-    //     {
-    //       label: 'Lotes',
-    //       icon: 'users',
-    //       path: '/cattle/lots',
-    //     },
-    //     {
-    //       label: 'Animales',
-    //       icon: 'briefcase',
-    //       path: '/cattle/animals',
-    //     },
-    //     {
-    //       label: 'Salud',
-    //       icon: 'shopping-cart',
-    //       path: '/cattle/health',
-    //     },
-    //     {
-    //       label: 'Reportes',
-    //       icon: 'file-text',
-    //       path: '/cattle/reports',
-    //     },
-    //   ]
-    // },
-    // {
-    //   label: 'Inversiones',
-    //   icon: 'trending-up',
-    //   color: 'purple',
-    //   children: [
-    //     {
-    //       label: 'Inversiones',
-    //       icon: 'briefcase',
-    //       path: '/investments/investments',
-    //     },
-    //     {
-    //       label: 'Ventas',
-    //       icon: 'shopping-cart',
-    //       path: '/investments/sales',
-    //     },
-    //     {
-    //       label: 'Decisiones',
-    //       icon: 'check-circle',
-    //       path: '/investments/decisions',
-    //     },
-    //     {
-    //       label: 'Reportes',
-    //       icon: 'file-text',
-    //       path: '/investments/reports',
-    //     },
-    //   ],
-    // },
     {
       label: 'Inversiones',
       icon: 'trending-up',
@@ -134,6 +63,13 @@ export class MenuService {
       color: 'green',
       path: '/investments/sales',
     },
+    // {
+    //   label: 'Dashboard Inversionista',
+    //   icon: 'bar-chart-2',
+    //   color: 'blue',
+    //   path: '/investments/dashboard-investors',
+    // }
+
   ]);
 
   getMenuItems() {

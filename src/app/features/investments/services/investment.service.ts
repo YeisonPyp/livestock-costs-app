@@ -37,6 +37,10 @@ export class InvestmentService {
     return this.api.get(`/investments/investors/${id}/summary/`);
   }
 
+  getMyInvestorSummary(): Observable<ApiResponse<InvestorSummary>> {
+    return this.api.get(`/investments/investors/me/summary/`);
+  }
+
   getInvestorStatement(id: string, params?: { start_date?: string; end_date?: string }): Observable<ApiResponse<InvestorStatement>> {
     return this.api.get(`/investments/investors/${id}/statement/`, params);
   }

@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, tap, catchError, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { User } from '../models/user.interface';
 import { LoginRequest } from '../models/login-request.interface';
 import { AuthResponse } from '../models/auth-response.interface';
 import { environment } from '../../../../environments/environment';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -13,10 +14,14 @@ import { environment } from '../../../../environments/environment';
 export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$: Observable<User | null> = this.currentUserSubject.asObservable();
+  
+  private isRefreshing = false;
+  private refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
   constructor(
     private apiService: ApiService,
-    private router: Router
+    private router: Router,
+    private http: HttpClient
   ) {
     this.loadUserFromStorage();
   }
@@ -27,6 +32,42 @@ export class AuthService {
         if (response.success && response.data) {
           this.setSession(response.data);
         }
+      })
+    );
+  }
+
+  /**
+   * Refrescar el access token usando el refresh token
+   */
+  refreshToken(): Observable<AuthResponse> {
+    const refreshToken = this.getRefreshToken();
+    
+    if (!refreshToken) {
+      this.logout();
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    return this.http.post<any>(`${environment.apiUrl}/auth/refresh/`, {
+      refresh: refreshToken
+    }).pipe(
+      tap(response => {
+        if (response.success && response.data) {
+          // Actualizamos solo el access token
+          localStorage.setItem(environment.tokenKey, response.data.tokens.access);
+          
+          // Si el backend devuelve un nuevo refresh token, lo actualizamos también
+          if (response.data.tokens.refresh) {
+            localStorage.setItem(environment.refreshTokenKey, response.data.tokens.refresh);
+          }
+          
+          this.isRefreshing = false;
+          this.refreshTokenSubject.next(response.data.tokens.access);
+        }
+      }),
+      catchError(error => {
+        this.isRefreshing = false;
+        this.logout();
+        return throwError(() => error);
       })
     );
   }
@@ -46,16 +87,22 @@ export class AuthService {
         this.currentUserSubject.next(user);
       } catch (e) {
         console.error('Error parsing user from storage', e);
+        this.clearSession();
       }
     }
   }
 
   logout(): void {
+    this.clearSession();
+    this.router.navigate(['/auth/login']);
+  }
+
+  private clearSession(): void {
     localStorage.removeItem(environment.tokenKey);
     localStorage.removeItem(environment.refreshTokenKey);
     localStorage.removeItem('current_user');
     this.currentUserSubject.next(null);
-    this.router.navigate(['/auth/login']);
+    this.refreshTokenSubject.next(null);
   }
 
   getAccessToken(): string | null {
@@ -72,5 +119,18 @@ export class AuthService {
 
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
+  }
+
+  // Getters para el manejo del refresh
+  getIsRefreshing(): boolean {
+    return this.isRefreshing;
+  }
+
+  setIsRefreshing(value: boolean): void {
+    this.isRefreshing = value;
+  }
+
+  getRefreshTokenSubject(): BehaviorSubject<string | null> {
+    return this.refreshTokenSubject;
   }
 }

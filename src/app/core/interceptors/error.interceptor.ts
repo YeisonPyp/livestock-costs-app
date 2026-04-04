@@ -2,11 +2,9 @@ import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
-import { AuthService } from '../../features/auth/services/auth.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const notificationService = inject(NotificationService);
-  const authService = inject(AuthService);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -17,10 +15,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         errorMessage = `Error: ${error.error.message}`;
       } else {
         // Error del lado del servidor
-        if (error.status === 401) {
-          errorMessage = 'Sesión expirada. Por favor, inicie sesión nuevamente.';
-          authService.logout();
-        } else if (error.status === 403) {
+        // Ya no manejamos el 401 aquí, lo maneja el tokenRefreshInterceptor
+        if (error.status === 403) {
           errorMessage = 'No tiene permisos para realizar esta acción.';
         } else if (error.status === 404) {
           errorMessage = 'Recurso no encontrado.';
@@ -29,9 +25,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         } else if (error.error?.message) {
           errorMessage = error.error.message;
         }
+        
+        // Solo mostramos notificación si no es un 401
+        // (el 401 se maneja en el refresh interceptor)
+        if (error.status !== 401) {
+          notificationService.error(errorMessage);
+        }
       }
 
-      notificationService.error(errorMessage);
       return throwError(() => error);
     })
   );

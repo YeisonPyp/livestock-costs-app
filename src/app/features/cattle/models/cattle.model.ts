@@ -77,6 +77,7 @@ export interface AnimalListItem {
   age_months: number | null;
   weight_gain: string | null;
   daily_gain: string | null;
+  purchase_price: string;
   status: string;
   entry_date: string;
   last_weight_date: string | null;

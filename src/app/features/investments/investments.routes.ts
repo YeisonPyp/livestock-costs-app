@@ -66,6 +66,11 @@ export const INVESTMENTS_ROUTES: Routes = [
     loadComponent: () =>
       import('./pages/reports/reports.component').then(m => m.InvestmentReportsComponent),
   },
+  {
+    path: 'dashboard-investors',
+    loadComponent: () =>
+      import('./pages/investor-dashboard/investor-dashboard.component').then(m => m.InvestorDashboardComponent),
+  },
 
   // Default redirect
   { path: '', redirectTo: 'investors', pathMatch: 'full' },

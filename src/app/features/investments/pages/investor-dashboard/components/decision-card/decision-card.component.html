@@ -1,0 +1,24 @@
+<div class="decision-card" [class.urgent]="isUrgent()">
+    <div class="dec-header">
+    <div>
+        <div class="dec-title">{{ decision().sale_event_description }}</div>
+        <div class="dec-meta">
+        {{ decision().sale_event_date | date:'dd MMM yyyy':'':'es' }}
+        @if (decision().decision_deadline) {
+            · <span [class]="deadlineClass()">{{ deadlineLabel() }}</span>
+        }
+        </div>
+    </div>
+    </div>
+    <div class="dec-amount">{{ formatCOP(decision().investor_amount) }}</div>
+    <div class="dec-profit" [class.profit]="decision().profit_loss > 0"
+                            [class.loss]="decision().profit_loss < 0">
+    {{ decision().profit_loss > 0 ? '+' : '' }}{{ formatCOP(decision().profit_loss) }}
+    {{ decision().profit_loss > 0 ? 'ganancia' : 'pérdida' }}
+    </div>
+    <div class="dec-actions">
+    <button class="btn-primary" (click)="emit('reinvest')">Reinvertir todo</button>
+    <button class="btn-ghost"   (click)="emit('withdraw')">Retirar todo</button>
+    <button class="btn-ghost"   (click)="emit('partial')">Parcial</button>
+    </div>
+</div>
