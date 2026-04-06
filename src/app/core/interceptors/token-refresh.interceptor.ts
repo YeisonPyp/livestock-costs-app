@@ -5,7 +5,13 @@ import {
   HttpHandlerFn
 } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, switchMap, filter, take, throwError } from 'rxjs';
+import {
+  catchError,
+  switchMap,
+  filter,
+  take,
+  throwError
+} from 'rxjs';
 import { AuthService } from '../../features/auth/services/auth.service';
 
 export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
@@ -19,7 +25,7 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
         !req.url.includes('/auth/refresh') &&
         authService.getRefreshToken()
       ) {
-        return handleTokenRefresh(req, next, authService);
+        return handleRefresh(req, next, authService);
       }
 
       return throwError(() => error);
@@ -27,49 +33,45 @@ export const tokenRefreshInterceptor: HttpInterceptorFn = (req, next) => {
   );
 };
 
-function handleTokenRefresh(
+function handleRefresh(
   req: HttpRequest<unknown>,
   next: HttpHandlerFn,
   authService: AuthService
 ) {
-  if (!authService.getIsRefreshing()) {
-    authService.setIsRefreshing(true);
-    authService.getRefreshTokenSubject().next(null);
-
-    return authService.refreshToken().pipe(
-      switchMap((response) => {
-        const newToken = response.tokens.access;
-
-        authService.setIsRefreshing(false);
-        authService.getRefreshTokenSubject().next(newToken);
-
-        const clonedReq = req.clone({
-          setHeaders: {
-            Authorization: `Bearer ${newToken}`
-          }
-        });
-
-        return next(clonedReq);
-      }),
-      catchError((error) => {
-        authService.setIsRefreshing(false);
-        authService.logout();
-        return throwError(() => error);
+  if (authService.getIsRefreshing()) {
+    return authService.getRefreshTokenSubject().pipe(
+      filter((token): token is string => token !== null),
+      take(1),
+      switchMap((token) => {
+        return next(addToken(req, token));
       })
     );
   }
 
-  return authService.getRefreshTokenSubject().pipe(
-    filter((token): token is string => token !== null),
-    take(1),
-    switchMap((token) => {
-      const clonedReq = req.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+  authService.setIsRefreshing(true);
+  authService.getRefreshTokenSubject().next(null);
 
-      return next(clonedReq);
+  return authService.refreshToken().pipe(
+    switchMap((response) => {
+      const token = response.data.tokens.access;
+
+      authService.setIsRefreshing(false);
+      authService.getRefreshTokenSubject().next(token);
+
+      return next(addToken(req, token));
+    }),
+    catchError((error) => {
+      authService.setIsRefreshing(false);
+      authService.logout();
+      return throwError(() => error);
     })
   );
+}
+
+function addToken(req: HttpRequest<unknown>, token: string) {
+  return req.clone({
+    setHeaders: {
+      Authorization: `Bearer ${token}`
+    }
+  });
 }

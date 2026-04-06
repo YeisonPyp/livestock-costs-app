@@ -57,6 +57,7 @@ export class FarmListComponent implements OnInit {
   stats = signal({ totalFarms: 0, totalArea: 0, totalCattle: 0, availableCapacity: 0 });
 
   formatNumber = formatNumber;
+  
 
   ngOnInit(): void {
     this.search$.pipe(debounceTime(350)).subscribe(() => this.loadFarms());
@@ -90,7 +91,7 @@ export class FarmListComponent implements OnInit {
   private calculateStats(farms: Farm[]): void {
     this.stats.set({
       totalFarms:        farms.length,
-      totalArea:         farms.reduce((s, f) => s + +f.total_area, 0),
+      totalArea: farms.reduce((s, f) => s + Number(f.total_area || 0), 0),
       totalCattle:       farms.reduce((s, f) => s + f.current_cattle_count, 0),
       availableCapacity: farms.reduce((s, f) => s + f.available_capacity, 0),
     });

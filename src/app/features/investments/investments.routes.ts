@@ -24,6 +24,23 @@ export const INVESTMENTS_ROUTES: Routes = [
       import('./pages/investor-form/investor-form.component').then(m => m.InvestorFormComponent),
   },
 
+  // ── Contratos ──────────────────────────────────────────────────────────
+      {
+        path: 'contracts',
+        loadComponent: () => import('./pages/contract-list/contract-list.component')
+          .then(m => m.ContractListComponent),
+      },
+      // {
+      //   path: 'contracts/new',
+      //   loadComponent: () => import('./pages/contract-create/contract-create.component')
+      //     .then(m => m.ContractCreateComponent),
+      // },
+      {
+        path: 'contracts/:id',
+        loadComponent: () => import('./pages/contract-detail/contract-detail.component')
+          .then(m => m.ContractDetailComponent),
+      },
+
   // ── Inversiones ──────────────────────────────────────────────────────────
   {
     path: 'investments',

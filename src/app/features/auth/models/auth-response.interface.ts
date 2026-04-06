@@ -11,6 +11,6 @@ export interface AuthResponse {
 export interface RefreshTokenResponse {
   tokens: {
     access: string;
-    refresh?: string; // Opcional si el backend rota el refresh token
+    refresh: string;
   };
 }

@@ -13,8 +13,8 @@ export interface Farm {
   location?: string;
   latitude?: number;
   longitude?: number;
-  total_area: number;
-  usable_area?: number;
+  total_area: string;
+  usable_area?: string;
   cattle_capacity: number;
   current_cattle_count: number;
   occupancy_percentage: number;

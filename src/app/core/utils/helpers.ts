@@ -29,11 +29,12 @@ export function formatDate(date: string | Date): string {
   }).format(new Date(date));
 }
 
-export function formatNumber(value: number, decimals: number = 2): string {
+export function formatNumber(value: number | string | null | undefined, decimals: number = 2): string {
+  const num = parseDecimal(value);
   return new Intl.NumberFormat('es-CO', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals
-  }).format(value);
+  }).format(num);
 }
 
 export function parseDecimal(value: string | number | null | undefined): number {

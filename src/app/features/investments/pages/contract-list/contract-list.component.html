@@ -1,0 +1,236 @@
+<!-- contract-list.component.html -->
+
+<app-page-header [title]="pageTitle()">
+  <ng-container breadcrumb>
+    <a routerLink="/investments" class="bc-link">Inversiones</a>
+    <span class="bc-sep">/</span>
+    <span>Contratos</span>
+  </ng-container>
+  
+  <ng-container actions>
+    <button class="btn btn-outline btn-sm" (click)="refresh()" [disabled]="loading()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+      Actualizar
+    </button>
+    <button class="btn btn-primary btn-sm" (click)="createContract()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nuevo Contrato
+    </button>
+  </ng-container>
+</app-page-header>
+
+<!-- Filtro por inversionista activo -->
+@if (investorFilter()) {
+  <app-alert type="info" [dismissible]="true" (dismissed)="clearFilters()">
+    Mostrando contratos del inversionista seleccionado.
+    <a routerLink="/investments/investors" [queryParams]="{id: investorFilter()}" class="alert-link">
+      Ver inversionista →
+    </a>
+  </app-alert>
+}
+
+<!-- Stats Cards -->
+<div class="stats-grid">
+  <button 
+    class="stat-card" 
+    [class.active]="viewMode() === 'all'"
+    (click)="setViewMode('all')">
+    <span class="stat-value">{{ stats().total }}</span>
+    <span class="stat-label">Todos</span>
+  </button>
+  <button 
+    class="stat-card success" 
+    [class.active]="viewMode() === 'active'"
+    (click)="setViewMode('active')">
+    <span class="stat-value">{{ stats().active }}</span>
+    <span class="stat-label">Activos</span>
+  </button>
+  <button 
+    class="stat-card warning" 
+    [class.active]="viewMode() === 'expiring'"
+    (click)="setViewMode('expiring')">
+    <span class="stat-value">{{ stats().expiring }}</span>
+    <span class="stat-label">Por vencer</span>
+  </button>
+  <button 
+    class="stat-card danger" 
+    [class.active]="viewMode() === 'expired'"
+    (click)="setViewMode('expired')">
+    <span class="stat-value">{{ stats().expired }}</span>
+    <span class="stat-label">Vencidos</span>
+  </button>
+</div>
+
+<!-- Filtros -->
+<div class="filters-card">
+  <form [formGroup]="filterForm" class="filters-form">
+    <div class="filter-group">
+      <label class="filter-label">Buscar</label>
+      <input 
+        type="text" 
+        formControlName="search" 
+        placeholder="Número, inversionista..."
+        class="filter-input">
+    </div>
+    
+    <div class="filter-group">
+      <label class="filter-label">Estado</label>
+      <select formControlName="status" class="filter-select">
+        <option value="">Todos</option>
+        @for (status of statusOptions; track status.value) {
+          <option [value]="status.value">{{ status.label }}</option>
+        }
+      </select>
+    </div>
+    
+    <div class="filter-group">
+      <label class="filter-label">Tipo</label>
+      <select formControlName="contract_type" class="filter-select">
+        <option value="">Todos</option>
+        @for (type of typeOptions; track type.value) {
+          <option [value]="type.value">{{ type.label }}</option>
+        }
+      </select>
+    </div>
+    
+    <div class="filter-group">
+      <label class="filter-label">Inversionista</label>
+      <select formControlName="investor" class="filter-select">
+        <option value="">Todos</option>
+        @for (inv of investors(); track inv.id) {
+          <option [value]="inv.id">{{ inv.code }} - {{ inv.full_name }}</option>
+        }
+      </select>
+    </div>
+
+    @if (filterForm.dirty) {
+      <button type="button" class="btn btn-ghost btn-sm" (click)="clearFilters()">
+        Limpiar filtros
+      </button>
+    }
+  </form>
+</div>
+
+<!-- Loading -->
+@if (loading()) {
+  <app-loader [overlay]="false" type="spinner" text="Cargando contratos..." />
+}
+
+<!-- Empty State -->
+@else if (filteredContracts().length === 0) {
+  <app-empty-state
+    title="No hay contratos"
+    [message]="viewMode() === 'all' 
+      ? 'No se encontraron contratos con los filtros seleccionados.' 
+      : 'No hay contratos en esta categoría.'"
+    actionLabel="Crear Contrato"
+    (action)="createContract()">
+  </app-empty-state>
+}
+
+<!-- Table -->
+@else {
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Número</th>
+          <th>Inversionista</th>
+          <th>Tipo</th>
+          <th>Vigencia</th>
+          <th>Participación</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (contract of filteredContracts(); track contract.id) {
+          <tr 
+            (click)="viewContract(contract)" 
+            class="clickable-row"
+            [class.expiring]="contract.expires_soon"
+            [class.expired]="contract.status === 'expired'">
+            
+            <td>
+              <div class="contract-number">
+                <span class="number">{{ contract.contract_number }}</span>
+                <span class="version">v{{ contract.version }}</span>
+              </div>
+            </td>
+            
+            <td>
+              <div class="investor-cell">
+                <span class="investor-code">{{ contract.investor_code }}</span>
+                <span class="investor-name">{{ contract.investor_name }}</span>
+              </div>
+            </td>
+            
+            <td>
+              <app-badge [color]="'success'" size="sm">
+                <!-- <app-badge [color]="getTypeColor(contract.contract_type)" size="sm"> -->
+                {{ contract.contract_type_display }}
+              </app-badge>
+            </td>
+            
+            <td>
+              <div class="date-range">
+                <span>{{ contract.start_date | date:'shortDate' }}</span>
+                @if (contract.end_date) {
+                  <span class="date-separator">→</span>
+                  <span [class.text-danger]="contract.is_expired || contract.expires_soon">
+                    {{ contract.end_date | date:'shortDate' }}
+                  </span>
+                } @else {
+                  <span class="text-muted">Indefinido</span>
+                }
+              </div>
+            </td>
+            
+            <td>
+              <span class="percentage">
+                <!-- {{ contract.investor_percentage }}% / {{ contract.operator_percentage }}% -->
+              </span>
+            </td>
+            
+            <td>
+                <!-- <app-badge [color]="getStatusColor(contract.status)" size="sm"> -->
+              <app-badge [color]="'success'" size="sm">
+                {{ contract.status_display }}
+              </app-badge>
+              @if (contract.expires_soon) {
+                <span class="expires-soon-tag">⚠ Por vencer</span>
+              }
+            </td>
+            
+            <td>
+              <div class="actions">
+                <button 
+                  class="btn-icon-only" 
+                  title="Descargar PDF"
+                  (click)="downloadContract(contract, $event)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                </button>
+                <button 
+                  class="btn-icon-only" 
+                  title="Ver detalle"
+                  (click)="viewContract(contract); $event.stopPropagation()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

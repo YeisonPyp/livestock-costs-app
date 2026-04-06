@@ -21,6 +21,7 @@ import {
   MOVEMENT_TYPES, SALE_DECISION_TYPES,
 } from '../../models/investment.model';
 import { formatCurrency } from '../../../../core/utils/helpers';
+import { CreateContractDialogComponent } from '../../components/create-contract-dialog/create-contract-dialog.component';
 
 @Component({
   selector: 'app-investor-detail',
@@ -43,6 +44,7 @@ export class InvestorDetailComponent implements OnInit {
   loading     = signal(true);
 
   formatCurrency = formatCurrency;
+  router: any;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -74,4 +76,32 @@ export class InvestorDetailComponent implements OnInit {
     const map: Record<string, any> = { reinvest: 'success', withdraw: 'danger', partial: 'warning', pending: 'secondary' };
     return map[type] ?? 'secondary';
   }
+
+  // En investor-detail.component.ts - agregar estos métodos
+
+goToContracts(): void {
+  const investor = this.investor();
+  if (investor) {
+    this.router.navigate(['/investments/contracts'], {
+      queryParams: { investor: investor.id },
+    });
+  }
+}
+
+createContract(): void {
+  const investor = this.investor();
+  if (!investor) return;
+
+  const dialogRef = this.dialog.open(CreateContractDialogComponent, {
+    width: '600px',
+    data: { investor },
+  });
+
+  dialogRef.afterClosed().subscribe((result) => {
+    if (result) {
+      // Recargar datos para actualizar el estado del contrato
+      this.loading.set(true);
+    }
+  });
+}
 }
