@@ -50,7 +50,7 @@
 
   <!-- ── KPIs ─────────────────────────────────────────────────────────────── -->
   <div class="kpis-row">
-    <app-kpi-card label="Total del Período" [value]="totals()?.total ?? 0" format="currency" color="blue" icon="dollar-sign" />
+    <app-kpi-card label="Total del Período" [value]="totals()?.balance ?? 0" format="currency" color="blue" icon="dollar-sign" />
     <app-kpi-card label="Registros" [value]="totals()?.count ?? 0" format="number" color="purple" icon="file-text" />
     <app-kpi-card label="Promedio" [value]="totals()?.average ?? 0" format="currency" color="green" icon="trending-up" />
     <app-kpi-card label="Mayor Gasto" [value]="totals()?.max ?? 0" format="currency" color="red" icon="zap" />
@@ -76,13 +76,13 @@
               <div class="cat-info">
                 <div class="cat-head">
                   <span class="cat-name">{{ cat.category_name }}</span>
-                  <span class="cat-pct">{{ cat.percentage.toFixed(1) }}%</span>
+                  <span class="cat-pct">{{ parseDecimal(cat.percentage).toFixed(1) }}%</span>
                 </div>
-                <app-progress-bar [value]="cat.percentage" [max]="100" height="6" />
+                <app-progress-bar [value]="parseDecimal(cat.percentage)" [max]="100" height="6" />
                 <span class="cat-count">{{ cat.count }} registros</span>
               </div>
               <div class="cat-total">
-                <app-amount-display [amount]="cat.total" type="expense" size="sm" [showSign]="false" />
+                <app-amount-display [amount]="parseDecimal(cat.balance)" type="expense" size="sm" [showSign]="false" />
               </div>
             </div>
           }
@@ -152,7 +152,7 @@
         <!-- Grand total -->
         <div class="grand-total">
           <span>Total General</span>
-          <app-amount-display [amount]="totals()?.total ?? 0" type="expense" size="lg" [showSign]="false" />
+          <app-amount-display [amount]="parseDecimal(totals()?.balance ?? 0)" type="expense" size="lg" [showSign]="false" />
         </div>
       }
     </div>

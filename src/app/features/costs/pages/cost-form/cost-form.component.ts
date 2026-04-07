@@ -18,11 +18,11 @@ import { FarmService } from '../../../farms/services/farm.service';
 import {
   Cost,
   Category,
-  CostDetail,
-  SelectOption,
+  CostDetail
 } from '../../models/cost.model';
 import { FarmsSimple } from '../../../farms/models/farm.model';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { SelectOption } from '../../../../core/models/api-response.model';
 
 @Component({
   selector: 'app-cost-form',

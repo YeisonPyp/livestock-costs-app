@@ -17,6 +17,7 @@ import { CategoryService }     from '../../services/category.service';
 import {
   CostTotals, CategorySummary, MonthlySummary, Cost, Category,
 } from '../../models/cost.model';
+import { parseDecimal } from '../../../../core/utils/helpers';
 
 @Component({
   selector: 'app-cost-reports',
@@ -59,7 +60,9 @@ export class ReportsComponent implements OnInit {
     return [...map.entries()].sort((a, b) => b[0].localeCompare(a[0]));
   });
 
-  catMaxTotal = computed(() => Math.max(...this.byCat().map(c => c.total), 1));
+  parseDecimal = parseDecimal;
+
+  catMaxTotal = computed(() => Math.max(...this.byCat().map(c => Number(c.balance)), 1));
 
   ngOnInit(): void {
     // Default: current month
@@ -114,10 +117,6 @@ export class ReportsComponent implements OnInit {
   // ── Helpers ────────────────────────────────────────────────────────────────
   catName(id: string): string {
     return this.categories().find(c => c.id === id)?.name ?? '—';
-  }
-
-  catColor(id: string): string {
-    return this.categories().find(c => c.id === id)?.color ?? '#94a3b8';
   }
 
   monthLabel(key: string): string {

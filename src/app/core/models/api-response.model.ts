@@ -15,4 +15,9 @@ export interface Pagination {
   previous: string | null;
 }
 
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
 export type UUID = string;

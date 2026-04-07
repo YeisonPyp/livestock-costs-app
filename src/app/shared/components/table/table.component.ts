@@ -220,7 +220,7 @@ export class TableComponent implements OnInit, OnChanges, OnDestroy {
         this.columns.some((col) => {
           const value = row[col.key];
           return value?.toString().toLowerCase().includes(term);
-        })
+        }),
       );
     }
 
@@ -249,13 +249,19 @@ export class TableComponent implements OnInit, OnChanges, OnDestroy {
 
     const pageSize = this.config.pageSize || 10;
     // FIX: solo sobreescribir totalPages en modo cliente
-    this.totalPages = Math.max(1, Math.ceil(this.filteredData.length / pageSize));
+    this.totalPages = Math.max(
+      1,
+      Math.ceil(this.filteredData.length / pageSize),
+    );
 
     if (this.currentPage > this.totalPages) this.currentPage = this.totalPages;
     if (this.currentPage < 1) this.currentPage = 1;
 
     const startIndex = (this.currentPage - 1) * pageSize;
-    this.paginatedData = this.filteredData.slice(startIndex, startIndex + pageSize);
+    this.paginatedData = this.filteredData.slice(
+      startIndex,
+      startIndex + pageSize,
+    );
   }
 
   // ── Search ───────────────────────────────────────────────────────────────────
@@ -308,7 +314,8 @@ export class TableComponent implements OnInit, OnChanges, OnDestroy {
 
   onRowClick(row: any, event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    if (target.closest('.table-actions') || target.closest('.checkbox-cell')) return;
+    if (target.closest('.table-actions') || target.closest('.checkbox-cell'))
+      return;
     this.rowClick.emit(row);
   }
 
@@ -392,11 +399,13 @@ export class TableComponent implements OnInit, OnChanges, OnDestroy {
     } else if (this.currentPage >= this.totalPages - 2) {
       pages.push(1);
       pages.push(-1);
-      for (let i = this.totalPages - 3; i <= this.totalPages; i++) pages.push(i);
+      for (let i = this.totalPages - 3; i <= this.totalPages; i++)
+        pages.push(i);
     } else {
       pages.push(1);
       pages.push(-1);
-      for (let i = this.currentPage - 1; i <= this.currentPage + 1; i++) pages.push(i);
+      for (let i = this.currentPage - 1; i <= this.currentPage + 1; i++)
+        pages.push(i);
       pages.push(-1);
       pages.push(this.totalPages);
     }
@@ -417,9 +426,10 @@ export class TableComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   get displayedTotal(): number {
-    return this.config.serverPagination ? this.totalItems : this.filteredData.length;
+    return this.config.serverPagination
+      ? this.totalItems
+      : this.filteredData.length;
   }
-
   // ── Format ────────────────────────────────────────────────────────────────────
 
   formatCellValue(column: TableColumn, value: any): string {
@@ -431,10 +441,22 @@ export class TableComponent implements OnInit, OnChanges, OnDestroy {
           style: 'currency',
           currency: 'COP',
         }).format(value || 0);
+
       case 'number':
         return new Intl.NumberFormat('es-CO').format(value || 0);
+
       case 'date':
-        return value ? new Date(value).toLocaleDateString('es-CO') : '-';
+        if (!value) return '-';
+
+        // Evita error de zona horaria en fechas YYYY-MM-DD
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+          const [year, month, day] = value.split('-').map(Number);
+
+          return new Date(year, month - 1, day).toLocaleDateString('es-CO');
+        }
+
+        return new Date(value).toLocaleDateString('es-CO');
+
       default:
         return value?.toString() || '-';
     }

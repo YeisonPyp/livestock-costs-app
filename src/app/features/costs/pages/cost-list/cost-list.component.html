@@ -35,35 +35,38 @@
   <!-- KPIs -->
 <div class="kpis-row">
   <app-kpi-card
-    label="Total general"
-    [value]="totals()?.total ?? 0"
+    label="Ingresos"
+    [value]="totals()?.income_total ?? 0"
+    format="currency"
+    color="green"
+    icon="trending-up"
+    [loading]="loadingKpis()"
+  />
+
+  <app-kpi-card
+    label="Egresos"
+    [value]="totals()?.expense_total ?? 0"
+    format="currency"
+    color="red"
+    icon="trending-down"
+    [loading]="loadingKpis()"
+  />
+
+  <app-kpi-card
+    label="Balance"
+    [value]="totals()?.balance ?? 0"
     format="currency"
     color="blue"
     icon="dollar-sign"
     [loading]="loadingKpis()"
   />
+
   <app-kpi-card
     label="Registros"
     [value]="totals()?.count ?? 0"
     format="number"
     color="purple"
     icon="file-text"
-    [loading]="loadingKpis()"
-  />
-  <app-kpi-card
-    label="Promedio por registro"
-    [value]="totals()?.average ?? 0"
-    format="currency"
-    color="green"
-    icon="trending-up"
-    [loading]="loadingKpis()"
-  />
-  <app-kpi-card
-    label="Total del año"
-    [value]="totals()?.current_year_total ?? 0"
-    format="currency"
-    color="yellow"
-    icon="zap"
     [loading]="loadingKpis()"
   />
 </div>
@@ -206,14 +209,18 @@
       <div class="detail-item">
         <label>Fecha</label>
         <span>
-          {{ selectedCost.date | date:'mediumDate' }}
+          {{ selectedCost.date | safeDate:'date':'long' }}
         </span>
       </div>
 
       <div class="detail-item">
         <label>Monto</label>
-        <span class="amount">
-          $ {{ selectedCost.amount | number:'1.0-2' }}
+        <span
+          class="amount"
+          [class.amount-income]="selectedCost.is_income"
+          [class.amount-expense]="selectedCost.is_expense"
+        >
+          $ {{ selectedCost.signed_amount | number:'1.0-2' }}
         </span>
       </div>
 
@@ -247,12 +254,12 @@
 
       <div>
         <label>Creado el </label>
-        <span>{{ selectedCost.created_at | date:'medium' }}</span>
+        <span>{{ selectedCost.created_at | safeDate:'datetime' }}</span>
       </div>
 
       <div>
         <label>Actualizado </label>
-        <span>{{ selectedCost.updated_at | date:'medium' }}</span>
+        <span>{{ selectedCost.updated_at | safeDate:'datetime' }}</span>
       </div>
 
     </div>

@@ -2,7 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 import { ApiResponse } from '../../../core/models/api-response.model';
-import { SelectOption } from '../models/cost.model';
+import { SelectOption } from '../../../core/models/api-response.model';
+
 
 @Injectable({ providedIn: 'root' })
 export class ChoiceService {

@@ -41,7 +41,7 @@
   <div class="kpis-grid">
     <app-kpi-card
       label="Total del Mes"
-      [value]="(totals()?.total ?? 0)"
+      [value]="(totals()?.balance ?? 0)"
       format="currency"
       color="blue"
       icon="dollar-sign"
@@ -116,21 +116,21 @@
               <div class="cat-detail">
                 <div class="cat-name-row">
                   <span class="cat-name">{{ cat.category_name }}</span>
-                  <span class="cat-pct">{{ cat.percentage | number:'1.0-1' }}%</span>
+                  <span class="cat-pct">{{ parseDecimal(cat.percentage) | number:'1.0-1' }}%</span>
                 </div>
-                <app-progress-bar [value]="cat.percentage" [max]="100" />
+                <app-progress-bar [value]="parseDecimal(cat.percentage)" [max]="100" />
               </div>
               <div class="cat-amount">
-                <app-amount-display [amount]="cat.total" type="expense" size="sm" [showSign]="false" />
+                <app-amount-display [amount]="parseDecimal(cat.balance)" type="expense" size="sm" [showSign]="false" />
               </div>
             </div>
           }
         </div>
 
-        @if (totals()?.total) {
+        @if (totals()?.balance) {
           <div class="total-row">
             <span class="total-label">Total del mes</span>
-            <app-amount-display [amount]="totals()!.total" type="expense" size="lg" [showSign]="false" />
+            <app-amount-display [amount]="parseDecimal(totals()!.balance)" type="expense" size="lg" [showSign]="false" />
           </div>
         }
       }
@@ -151,13 +151,13 @@
       } @else {
         <div class="trend-chart">
           @for (m of trendMonths(); track m.month) {
-            <div class="trend-col" [title]="m.month_label + ': ' + formatCOP(m.total)">
+            <div class="trend-col" [title]="m.month_name + ': ' + formatCOP(m.balance)">
               <div class="trend-bar-wrap">
-                <div class="trend-bar" [style.height.%]="trendBarHeight(m.total)"
+                <div class="trend-bar" [style.height.%]="trendBarHeight(parseDecimal(m.balance))"
                   [class.current]="m.year === activeMonth().year && m.month === activeMonth().month">
                 </div>
               </div>
-              <span class="trend-label">{{ m.month_label }}</span>
+              <span class="trend-label">{{ m.month_name }}</span>
             </div>
           }
         </div>

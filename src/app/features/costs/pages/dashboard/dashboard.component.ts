@@ -16,6 +16,7 @@ import {
   CostTotals, MonthlyReport, MonthlyReportCategory,
   MonthlySummary, CategorySummary,
 } from '../../models/cost.model';
+import { parseDecimal } from '../../../../core/utils/helpers';
 
 interface MonthOption { label: string; year: number; month: number; }
 
@@ -51,6 +52,8 @@ export class DashboardComponent implements OnInit {
   loading     = signal(true);
   loadingKpis = signal(true);
 
+  parseDecimal = parseDecimal;
+
   // ── Derived ────────────────────────────────────────────────────────────────
 
   groupByParent(categories: CategorySummary[]): CategorySummary[] {
@@ -62,20 +65,24 @@ export class DashboardComponent implements OnInit {
       if (!map.has(key)) {
         map.set(key, {
           category_id: key,
+          category_code: '',
           category_name: key,
-          total: 0,
+          category_type: 'expense',
+          income_total: '0',
+          expense_total: '0',
+          balance: '0',
           count: 0,
-          percentage: 0,
+          percentage: '0',
         } as any);
       }
 
       const parent = map.get(key)!;
-      parent.total += cat.total;
+      parent.balance += cat.balance;
       parent.count += cat.count;
       parent.percentage += cat.percentage;
     });
 
-    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+    return Array.from(map.values()).sort((a, b) => parseDecimal(b.balance) - parseDecimal(a.balance));
   }
 
   topCategories = computed(() => {
@@ -89,9 +96,9 @@ export class DashboardComponent implements OnInit {
     const others = {
       category_id: 'others',
       category_name: 'Otros',
-      total: rest.reduce((sum, c) => sum + c.total, 0),
+      balance: rest.reduce((sum, c) => sum + parseDecimal(c.balance), 0),
       count: rest.reduce((sum, c) => sum + c.count, 0),
-      percentage: rest.reduce((sum, c) => sum + c.percentage, 0),
+      percentage: rest.reduce((sum, c) => sum + parseDecimal(c.percentage), 0),
     };
 
     return [...top, others];
@@ -106,14 +113,14 @@ export class DashboardComponent implements OnInit {
   }
 
   yoyChange = computed((): number | null => {
-    const c = this.totals()?.total;
-    const p = this.prevTotals()?.total;
+    const c = parseDecimal(this.totals()?.balance);
+    const p = parseDecimal(this.prevTotals()?.balance);
     if (!p || p === 0) return null;
-    return ((c! - p) / p) * 100;
+    return ((c - p) / p) * 100;
   });
 
   trendMax = computed(() =>
-    Math.max(...this.trendMonths().map(m => m.total), 1)
+    Math.max(...this.trendMonths().map(m => parseDecimal(m.balance)), 1)
   );
 
   ngOnInit(): void { this.loadAll(); }
@@ -215,12 +222,12 @@ export class DashboardComponent implements OnInit {
   }
 
   categoryBarWidth(total: number): number {
-    const max = this.topCategories()[0]?.total ?? 1;
+    const max = parseDecimal(this.topCategories()[0]?.count) ?? 1;
     return Math.max((total / max) * 100, 2);
   }
 
-  formatCOP(n: number): string {
-    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
+  formatCOP(n: number |string): string {
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(n));
   }
 
   capitalize(s: string): string { return s.charAt(0).toUpperCase() + s.slice(1); }

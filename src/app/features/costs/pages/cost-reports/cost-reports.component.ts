@@ -1,16 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { CostReportService } from '../../services/cost-report.service';
-import { MonthlyReport } from '../../models/monthly-report.interface';
+import { FormsModule } from '@angular/forms'; 
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { TableComponent, TableColumn, TableConfig } from '../../../../shared/components/table/table.component';
-
-interface ApiResponse {
-  success: boolean;
-  message: string;
-  data: MonthlyReport[];
-}
+import { ApiResponse } from '../../../../core/models/api-response.model';
+import { MonthlyReport } from '../../models/cost.model';
 
 @Component({
   selector: 'app-cost-reports',
@@ -79,7 +73,7 @@ export class CostReportsComponent implements OnInit {
     compact: false
   };
 
-  constructor(private reportService: CostReportService) {}
+  constructor(private reportService: CostService) {}
 
   ngOnInit(): void {
     this.setDefaultDates();
@@ -133,7 +127,7 @@ export class CostReportsComponent implements OnInit {
     
     this.reportService.getMonthlyReport(this.startDate, this.endDate)
       .subscribe({
-        next: (response: ApiResponse) => {
+        next: (response: ApiResponse<MonthlyReport[]>) => {
           if (response.success) {
             this.reports = response.data || [];
             
@@ -145,9 +139,9 @@ export class CostReportsComponent implements OnInit {
             this.reports = [];
           }
         },
-        error: (error) => {
+        error: (error: Blob) => {
           console.error('Error al generar reporte:', error);
-          this.errorMessage = error.error?.message || 'Error al generar el reporte. Por favor intenta de nuevo.';
+          this.errorMessage = 'Error al generar el reporte. Por favor intenta de nuevo.';
           this.reports = [];
           this.loading = false;
         },
@@ -169,11 +163,11 @@ export class CostReportsComponent implements OnInit {
 
     this.reportService.downloadPdf(this.startDate, this.endDate)
       .subscribe({
-        next: (blob) => {
+        next: (blob: Blob) => {
           const filename = `reporte_gastos_${this.startDate}_${this.endDate}.pdf`;
           this.downloadFile(blob, filename);
         },
-        error: (error) => {
+        error: (error: Blob) => {
           console.error('Error al descargar PDF:', error);
           this.errorMessage = 'Error al descargar el PDF. Por favor intenta de nuevo.';
         }
@@ -192,11 +186,11 @@ export class CostReportsComponent implements OnInit {
 
     this.reportService.downloadExcel(this.startDate, this.endDate)
       .subscribe({
-        next: (blob) => {
+        next: (blob: Blob) => {
           const filename = `reporte_gastos_${this.startDate}_${this.endDate}.xlsx`;
           this.downloadFile(blob, filename);
         },
-        error: (error) => {
+        error: (error: Blob) => {
           console.error('Error al descargar Excel:', error);
           this.errorMessage = 'Error al descargar el Excel. Por favor intenta de nuevo.';
         }
@@ -247,14 +241,14 @@ export class CostReportsComponent implements OnInit {
    * Calcula el total de entradas de todos los meses
    */
   get totalEntries(): number {
-    return this.reports.reduce((sum, report) => sum + (report.entries?.length || 0), 0);
+    return this.reports.reduce((sum, report) => sum + (report.categories?.length || 0), 0);
   }
 
   /**
    * Retorna todas las entradas de todos los meses
    */
   getAllEntries(): any[] {
-    return this.reports.flatMap(report => report.entries || []);
+    return this.reports.flatMap(report => report.categories || []);
   }
 
   /**

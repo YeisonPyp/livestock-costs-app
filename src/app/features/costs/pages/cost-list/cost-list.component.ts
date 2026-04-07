@@ -8,7 +8,6 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
 import { KpiCardComponent } from '../../../../shared/components/display/kpi-card/kpi-card.component';
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 import { CostService } from '../../services/cost.service';
@@ -19,6 +18,7 @@ import {
   CostTotals,
   CostFilters,
   CostDetail,
+  CategoryType,
 } from '../../models/cost.model';
 import {
   TableComponent,
@@ -28,6 +28,7 @@ import {
 } from '../../../../shared/components/table/table.component';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import { SafeDatePipe } from '../../../../shared/pipes/safe-date.pipe';
 
 const PAGE_SIZE = 10; // fuente única de verdad
 
@@ -43,6 +44,7 @@ const PAGE_SIZE = 10; // fuente única de verdad
     PageHeaderComponent,
     KpiCardComponent,
     TableComponent,
+    SafeDatePipe,
   ],
   templateUrl: './cost-list.component.html',
   styleUrl: './cost-list.component.scss',
@@ -97,16 +99,26 @@ export class CostListComponent implements OnInit {
   };
 
   columns: TableColumn[] = [
-    { key: 'date', label: 'Fecha', sortable: true, type: 'date' },
-    { key: 'category_name', label: 'Categoría' },
-    { key: 'description', label: 'Descripción' },
     {
-      key: 'amount',
-      label: 'Monto',
+      key: 'date',
+      label: 'Fecha',
       sortable: true,
-      type: 'currency',
-      align: 'right',
+      type: 'date'
     },
+    {
+      key: 'category_name',
+      label: 'Categoría'
+    },
+    {
+      key: 'description',
+      label: 'Descripción'
+    },
+    {
+      key: 'signed_amount',
+      label: 'Valor',
+      type: 'currency',
+      align: 'right'
+    }
   ];
 
   // ── Lifecycle ───────────────────────────────────────────────────────────────
@@ -134,12 +146,8 @@ export class CostListComponent implements OnInit {
 
   private loadTotals(): void {
     this.loadingKpis.set(true);
-    const filters: Partial<CostFilters> = {};
-    if (this.startDate) filters.start_date = this.startDate;
-    if (this.endDate) filters.end_date = this.endDate;
-    if (this.categoryFilter) filters.category = this.categoryFilter;
 
-    this.costSvc.getTotals(filters).subscribe({
+    this.costSvc.getTotals(this.activeFilters()).subscribe({
       next: (r) => {
         if (r.success) this.totals.set(r.data);
         this.loadingKpis.set(false);
@@ -149,30 +157,27 @@ export class CostListComponent implements OnInit {
   }
 
   loadCosts(page = this.currentPage): void {
-    this.loading.set(true);
-    this.currentPage = page;
+  this.loading.set(true);
+  this.currentPage = page;
 
-    const filters: CostFilters = {
-      page,
-      page_size: PAGE_SIZE,
-      ordering: this.ordering,
-    };
-    if (this.searchTerm) filters.search = this.searchTerm;
-    if (this.categoryFilter) filters.category = this.categoryFilter;
-    if (this.startDate) filters.start_date = this.startDate;
-    if (this.endDate) filters.end_date = this.endDate;
+  const filters: CostFilters = {
+    ...this.activeFilters(),
+    page,
+    page_size: PAGE_SIZE,
+    ordering: this.ordering,
+  };
 
-    this.costSvc.getAll(filters).subscribe({
-      next: (r) => {
-        if (r.success) {
-          this.costs.set(r.data);
-          this.pagination.set(r.pagination ?? null);
-        }
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
-  }
+  this.costSvc.getAll(filters).subscribe({
+    next: (r) => {
+      if (r.success) {
+        this.costs.set(r.data);
+        this.pagination.set(r.pagination ?? null);
+      }
+      this.loading.set(false);
+    },
+    error: () => this.loading.set(false),
+  });
+}
 
   // ── Table events ────────────────────────────────────────────────────────────
 
@@ -279,6 +284,16 @@ export class CostListComponent implements OnInit {
     this.onFilterChange();
   }
 
+  private downloadFile(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+
+    window.URL.revokeObjectURL(url);
+  }
   // ── Export ──────────────────────────────────────────────────────────────────
   exportExcel(): void {
     this.costSvc.exportExcel(this.activeFilters()).subscribe((blob) => {
@@ -307,21 +322,20 @@ export class CostListComponent implements OnInit {
     });
   }
   
-  private activeFilters(): Partial<CostFilters> {
-    const f: Partial<CostFilters> = {};
-    if (this.startDate) f.start_date = this.startDate;
-    if (this.endDate) f.end_date = this.endDate;
-    if (this.categoryFilter) f.category = this.categoryFilter;
-    return f;
-  }
+  activeFilters = computed<Partial<CostFilters>>(() => {
+    const filters: Partial<CostFilters> = {};
+
+    if (this.searchTerm) filters.search = this.searchTerm;
+    if (this.categoryFilter) filters.category = this.categoryFilter;
+    if (this.startDate) filters.start_date = this.startDate;
+    if (this.endDate) filters.end_date = this.endDate;
+
+    return filters;
+  });
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
   catName(id: string): string {
     return this.categories().find((x) => x.id === id)?.name ?? '—';
-  }
-
-  catColor(id: string): string {
-    return this.categories().find((x) => x.id === id)?.color ?? '#94a3b8';
   }
 
   get paginationStart(): number {
