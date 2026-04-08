@@ -27,7 +27,7 @@
 .investor-name  { margin: $space-1 0 2px; font-size: $font-md; font-weight: $weight-bold; color: $slate-900; @include truncate; }
 .investor-contact { font-size: $font-xs; color: $slate-400; @include truncate; display: block; }
 
-.investor-card-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: $space-2; padding: $space-4 $space-5; text-align: center; }
+.investor-card-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: $space-2; padding: $space-4 $space-5; text-align: center; }
 .inv-stat { display: flex; flex-direction: column; gap: 2px; }
 .inv-stat-value { font-size: $font-sm; font-weight: $weight-bold; color: $slate-900; }
 .inv-stat-label { font-size: $font-xs; color: $slate-400; }

@@ -191,7 +191,7 @@
           <div class="preview-row">
             <span class="preview-label">Fecha</span>
             <span class="preview-value">
-              {{ form.value.date | date: "mediumDate" }}
+              {{ form.value.date | safeDate:'date':'long' }}
             </span>
           </div>
           @if (form.value.category) {

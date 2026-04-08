@@ -20,11 +20,14 @@
     <app-form-card title="Configuración" subtitle="Parámetros de vinculación y comportamiento">
       <div class="form-grid">
         <app-input-field
-          label="Fecha de Vinculación *"
-          type="text"
+          label="Fecha de Vinculación"
+          [required]="true"
+          type="date"
           formControlName="joined_date"
           [control]="f['joined_date']"
           placeholder="AAAA-MM-DD"
+          [max]="today"
+          errorMessage="La fecha es requerida"
         ></app-input-field>
 
         <app-select-field
@@ -35,13 +38,15 @@
         ></app-select-field>
 
         <app-input-field
-          label="Porcentaje de Ganacia Inversionista *"
+          label="Porcentaje de Ganacia Inversionista"
+          [required]="true"
           type="number"
           formControlName="investor_percentage"
           [control]="f['investor_percentage']"
           placeholder="60"
           min=0
           max=100
+          errorMessage="El porcentaje de ganancia del inversionista es requerido y debe ser entre 0 y 100"
         ></app-input-field>
 
         <app-input-field

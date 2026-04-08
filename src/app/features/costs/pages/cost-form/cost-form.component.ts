@@ -23,12 +23,14 @@ import {
 import { FarmsSimple } from '../../../farms/models/farm.model';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { SelectOption } from '../../../../core/models/api-response.model';
+import { SafeDatePipe } from '../../../../shared/pipes/safe-date.pipe';
 
 @Component({
   selector: 'app-cost-form',
   standalone: true,
   imports: [
     CommonModule,
+    SafeDatePipe,
     ReactiveFormsModule,
     RouterLink,
     PageHeaderComponent,
@@ -68,7 +70,7 @@ export class CostFormComponent implements OnInit {
     return this.editId !== null;
   }
 
-  today = new Date().toISOString().split('T')[0];
+  today = new Date().toLocaleDateString('en-CA');
 
   // ── Form ───────────────────────────────────────────────────────────────────
   form = this.fb.nonNullable.group({

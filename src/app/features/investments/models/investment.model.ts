@@ -281,3 +281,4 @@ export interface MakeDecisionPayload {
   reinvest_amount?: number;
   withdraw_amount?: number;
 }
+

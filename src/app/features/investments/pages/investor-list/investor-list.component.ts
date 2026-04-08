@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { debounceTime, Subject } from 'rxjs';
 
 import { PageHeaderComponent }  from '../../../../shared/components/page-header/page-header.component';
@@ -17,6 +16,7 @@ import { AvatarComponent }       from '../../../../shared/components/display/ava
 import { InvestmentService } from '../../services/investment.service';
 import { Investor } from '../../models/investment.model';
 import { formatCurrency } from '../../../../core/utils/helpers';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-investor-list',
@@ -27,7 +27,9 @@ import { formatCurrency } from '../../../../core/utils/helpers';
 })
 export class InvestorListComponent implements OnInit {
   private svc      = inject(InvestmentService);
-  private snackBar = inject(MatSnackBar);
+  private notSvc   = inject(NotificationService);
+
+  // ── State ───────────────────────────────────────────────────────────────────
 
   investors   = signal<Investor[]>([]);
   loading     = signal(true);
@@ -59,15 +61,14 @@ export class InvestorListComponent implements OnInit {
           this.stats.set({
             total:            res.data.length,
             active:           res.data.filter(i => i.is_active).length,
-            totalCapital:     res.data.reduce((s, i) => s + Number(i.total_capital ?? 0),
-  0
-),
+            totalCapital:     res.data.reduce((s, i) => s + Number(i.total_capital ?? 0) , 0),
             pendingDecisions: 0,
           });
         }
+        console.log(this.stats());
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); this.snackBar.open('Error al cargar inversionistas', 'Cerrar', { duration: 3000 }); },
+      error: () => { this.loading.set(false); this.notSvc.error('Error al cargar inversionistas',); },
     });
   }
 

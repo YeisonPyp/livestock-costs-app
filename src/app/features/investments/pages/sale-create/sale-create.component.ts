@@ -9,7 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 
 import { AlertComponent } from '../../../../shared/components/display/alert/alert.component';
 import { AmountDisplayComponent } from '../../../../shared/components/bills/amount-display/amount-display.component';
-import { AnimalSelectionModalComponent } from '../animal-selection-modal/animal-selection-modal.component';
+import { AnimalSelectionModalComponent } from '../../components/animal-selection-modal/animal-selection-modal.component';
 import { WeightBulkImportComponent } from '../../../cattle/pages/weights/weight-bulk-import/weight-bulk-import.component';
 
 import { InvestmentService } from '../../services/investment.service';

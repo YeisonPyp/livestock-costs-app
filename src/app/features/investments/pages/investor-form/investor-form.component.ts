@@ -43,6 +43,8 @@ export class InvestorFormComponent implements OnInit {
 
   defaultDecisionOptions: SelectOption[] = SALE_DECISION_TYPES.map(d => ({ label: d.label, value: d.value }));
 
+  today = new Date().toLocaleDateString('en-CA');
+
   get f() { return this.form.controls; }
 
   ngOnInit(): void {
@@ -76,7 +78,7 @@ export class InvestorFormComponent implements OnInit {
     this.form = this.fb.group({
       // person UUID — in real app this would be a person-selector component
       person_id:              ['', Validators.required],
-      joined_date:            [this.today(), Validators.required],
+      joined_date:            [this.today, Validators.required],
       investor_percentage:    [60, [Validators.required, Validators.min(0), Validators.max(100)]],
       operator_percentage:    [{ value: 40, disabled: true }],
       notify_sales:           [true],
@@ -114,6 +116,4 @@ export class InvestorFormComponent implements OnInit {
       },
     });
   }
-
-  private today(): string { return new Date().toISOString().split('T')[0]; }
 }
