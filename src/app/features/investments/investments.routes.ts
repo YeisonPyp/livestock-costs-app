@@ -77,17 +77,17 @@ export const INVESTMENTS_ROUTES: Routes = [
       import('./pages/sale/sale-decision-detail/sale-decision-detail.component').then(m => m.SaleDecisionDetailComponent),
   },
 
-  // ── Reportes ─────────────────────────────────────────────────────────────
-  {
-    path: 'reports',
-    loadComponent: () =>
-      import('./pages/reports/reports.component').then(m => m.InvestmentReportsComponent),
-  },
-  {
-    path: 'dashboard-investors',
-    loadComponent: () =>
-      import('./pages/investor/investor-dashboard/investor-dashboard.component').then(m => m.InvestorDashboardComponent),
-  },
+  // // ── Reportes ─────────────────────────────────────────────────────────────
+  // {
+  //   path: 'reports',
+  //   loadComponent: () =>
+  //     import('./pages/reports/reports.component').then(m => m.InvestmentReportsComponent),
+  // },
+  // {
+  //   path: 'dashboard-investors',
+  //   loadComponent: () =>
+  //     import('./pages/investor/investor-dashboard/investor-dashboard.component').then(m => m.InvestorDashboardComponent),
+  // },
 
   // Default redirect
   { path: '', redirectTo: 'investors', pathMatch: 'full' },

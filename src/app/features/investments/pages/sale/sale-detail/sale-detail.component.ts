@@ -13,9 +13,9 @@ import { KpiCardComponent }        from '../../../../../shared/components/displa
 import { ConfirmDialogComponent }  from '../../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 
-import { InvestmentService } from '../../../services/investment.service';
+import { SaleService } from '../../../services';
 import { SaleEvent, SaleDecision, SALE_DECISION_TYPES } from '../../../models/investment.model';
-import { formatCurrency } from '../../../../../core/utils/helpers';
+import { formatCurrency, parseDecimal } from '../../../../../core/utils/helpers';
 
 @Component({
   selector: 'app-sale-detail',
@@ -26,7 +26,7 @@ import { formatCurrency } from '../../../../../core/utils/helpers';
 })
 export class SaleDetailComponent implements OnInit {
   private route    = inject(ActivatedRoute);
-  private svc      = inject(InvestmentService);
+  private saleSvc      = inject(SaleService);
   private dialog   = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
@@ -36,6 +36,7 @@ export class SaleDetailComponent implements OnInit {
   finalizing = signal(false);
 
   formatCurrency = formatCurrency;
+  parseDecimal = parseDecimal;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -44,7 +45,7 @@ export class SaleDetailComponent implements OnInit {
 
   private loadAll(id: string): void {
     this.loading.set(true);
-    this.svc.getSale(id).subscribe({
+    this.saleSvc.getSaleEvent(id).subscribe({
       next: (res) => {
         if (res.success) {
           this.sale.set(res.data);
@@ -57,7 +58,7 @@ export class SaleDetailComponent implements OnInit {
   }
 
   private loadDecisions(id: string): void {
-    this.svc.getSaleDecisions(id).subscribe({ next: (r) => { if (r.success) this.decisions.set(r.data); } });
+    this.saleSvc.getSaleEventDecisions(id).subscribe({ next: (r) => { if (r.success) this.decisions.set(r.data); } });
   }
 
   confirmFinalize(): void {
@@ -78,7 +79,7 @@ export class SaleDetailComponent implements OnInit {
 
   private finalizeSale(id: string): void {
     this.finalizing.set(true);
-    this.svc.finalizeSale(id).subscribe({
+    this.saleSvc.finalizeSaleEvent(id).subscribe({
       next: () => {
         this.finalizing.set(false);
         this.snackBar.open('Venta finalizada exitosamente', 'Cerrar', { duration: 3000 });

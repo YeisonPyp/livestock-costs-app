@@ -115,10 +115,10 @@
                 @for (inv of investments(); track inv.id) {
                   <tr>
                     <td>{{ inv.start_date }}</td>
-                    <td><app-amount-display [amount]="inv.initial_capital" type="neutral" size="sm"></app-amount-display></td>
-                    <td><app-amount-display [amount]="inv.current_capital" type="neutral" size="sm"></app-amount-display></td>
-                    <td><app-amount-display [amount]="inv.total_profits"   [type]="inv.total_profits >= 0 ? 'income' : 'expense'" size="sm"></app-amount-display></td>
-                    <td [class.positive]="(inv.roi ?? 0) > 0" [class.negative]="(inv.roi ?? 0) < 0">{{ (inv.roi ?? 0).toFixed(1) }}%</td>
+                    <td><app-amount-display [amount]="parseDecimal(inv.initial_capital)" type="neutral" size="sm"></app-amount-display></td>
+                    <td><app-amount-display [amount]="parseDecimal(inv.current_capital)" type="neutral" size="sm"></app-amount-display></td>
+                    <td><app-amount-display [amount]="parseDecimal(inv.total_profits)"   [type]="parseDecimal(inv.total_profits) >= 0 ? 'income' : 'expense'" size="sm"></app-amount-display></td>
+                    <td [class.positive]="(parseDecimal(inv.roi) ?? 0) > 0" [class.negative]="(parseDecimal(inv.roi) ?? 0) < 0">{{ (parseDecimal(inv.roi) ?? 0).toFixed(1) }}%</td>
                     <td><app-badge [color]="inv.status === 'active' ? 'success' : 'secondary'">{{ inv.status_display ?? inv.status }}</app-badge></td>
                     <td><a [routerLink]="['/investments/investments', inv.id]" class="btn-link">Ver →</a></td>
                   </tr>
@@ -143,9 +143,9 @@
                     <td>{{ own.ownership_type_display ?? own.ownership_type }}</td>
                     <td>{{ own.animal_tag ?? own.lot_code ?? '—' }}</td>
                     <td>{{ own.quantity }}</td>
-                    <td><app-amount-display [amount]="own.purchase_value" type="neutral" size="sm"></app-amount-display></td>
-                    <td><app-amount-display [amount]="own.current_value ?? 0" type="neutral" size="sm"></app-amount-display></td>
-                    <td [class.positive]="(own.weight_gain ?? 0) > 0">{{ own.weight_gain ? own.weight_gain.toFixed(1) + ' kg' : '—' }}</td>
+                    <td><app-amount-display [amount]="parseDecimal(own.purchase_value)" type="neutral" size="sm"></app-amount-display></td>
+                    <td><app-amount-display [amount]="parseDecimal(own.current_value) ?? 0" type="neutral" size="sm"></app-amount-display></td>
+                    <td [class.positive]="(parseDecimal(own.weight_gain) ?? 0) > 0">{{ own.weight_gain ? parseDecimal(own.weight_gain).toFixed(1) + ' kg' : '—' }}</td>
                     <td><app-badge [color]="own.status === 'active' ? 'success' : own.status === 'sold' ? 'info' : 'secondary'">{{ own.status }}</app-badge></td>
                   </tr>
                 }
@@ -166,9 +166,9 @@
               <tbody>
                 @for (d of decisions(); track d.id) {
                   <tr>
-                    <td>{{ d.sale_description ?? d.sale_event }}</td>
-                    <td><app-amount-display [amount]="d.investor_amount" type="income" size="sm"></app-amount-display></td>
-                    <td><app-amount-display [amount]="d.profit_loss" [type]="d.profit_loss >= 0 ? 'income' : 'expense'" size="sm"></app-amount-display></td>
+                    <td>{{ d.sale_event_description ?? d.sale_event }}</td>
+                    <td><app-amount-display [amount]="parseDecimal(d.investor_amount)" type="income" size="sm"></app-amount-display></td>
+                    <td><app-amount-display [amount]="parseDecimal(d.profit_loss)" [type]="parseDecimal(d.profit_loss) >= 0 ? 'income' : 'expense'" size="sm"></app-amount-display></td>
                     <td><app-badge [color]="decisionBadgeColor(d.decision_type)">{{ d.decision_type_display ?? d.decision_type }}</app-badge></td>
                     <td>{{ d.decision_deadline ?? '—' }}</td>
                     <td><a [routerLink]="['/investments/decisions', d.id]" class="btn-link">Decidir →</a></td>

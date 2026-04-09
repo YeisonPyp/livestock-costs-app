@@ -13,7 +13,7 @@ import { KpiCardComponent }      from '../../../../../shared/components/display/
 import { BadgeComponent }        from '../../../../../shared/components/display/badge/badge.component';
 import { AvatarComponent }       from '../../../../../shared/components/display/avatar/avatar.component';
 
-import { InvestmentService } from '../../../services/investment.service';
+import { InvestorService } from '../../../services';
 import { Investor } from '../../../models/investment.model';
 import { formatCurrency } from '../../../../../core/utils/helpers';
 import { NotificationService } from '../../../../../core/services/notification.service';
@@ -26,7 +26,7 @@ import { NotificationService } from '../../../../../core/services/notification.s
   styleUrl: './investor-list.component.scss',
 })
 export class InvestorListComponent implements OnInit {
-  private svc      = inject(InvestmentService);
+  private svc      = inject(InvestorService);
   private notSvc   = inject(NotificationService);
 
   // ── State ───────────────────────────────────────────────────────────────────
@@ -53,7 +53,7 @@ export class InvestorListComponent implements OnInit {
     if (this.searchTerm)   params['search']    = this.searchTerm;
     if (!this.showInactive) params['is_active'] = true;
 
-    this.svc.getInvestors(params).subscribe({
+    this.svc.getAll(params).subscribe({
       next: (res) => {
         if (res.success) {
           this.investors.set(res.data);

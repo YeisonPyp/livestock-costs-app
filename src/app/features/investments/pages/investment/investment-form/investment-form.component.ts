@@ -7,25 +7,108 @@ import {
   OnDestroy,
   signal,
   computed,
+  effect,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
   Validators,
   ReactiveFormsModule,
+  AbstractControl,
+  ValidationErrors,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+import { 
+  Subject, 
+  takeUntil, 
+  debounceTime, 
+  distinctUntilChanged,
+  finalize,
+} from 'rxjs';
 
-import { Investor, Investment } from '../../../models/investment.model';
-import { InvestmentService } from '../../../services/investment.service';
-
-// ─── Shared UI components ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// SHARED COMPONENTS
+// ═══════════════════════════════════════════════════════════════════════════
 import { FormCardComponent } from '../../../../../shared/components/forms/form-card/form-card.component';
 import { InputFieldComponent } from '../../../../../shared/components/forms/input-field/input-field.component';
 import { SelectFieldComponent, SelectOption } from '../../../../../shared/components/forms/select-field/select-field.component';
+import { AlertComponent } from '../../../../../shared/components/display/alert/alert.component';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODULE IMPORTS
+// ═══════════════════════════════════════════════════════════════════════════
+import { 
+  InvestorService,
+  InvestmentService,
+} from '../../../services';
+
+import { 
+  Investor, 
+  Investment,
+  CreateInvestmentPayload,
+} from '../../../models/investment.model';
+import { formatCurrency, parseDecimal } from '../../../../../core/utils/helpers';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TIPOS
+// ═══════════════════════════════════════════════════════════════════════════
 
 export type InvestmentFormMode = 'create' | 'edit';
+
+interface InvestorSelectOption extends SelectOption {
+  investor: Investor;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VALIDADORES PERSONALIZADOS
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Validador que verifica que el monto sea un número válido mayor a 0.
+ */
+function positiveAmountValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  
+  if (value === null || value === undefined || value === '') {
+    return null; // Dejar que `required` maneje esto
+  }
+
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  
+  if (isNaN(num)) {
+    return { invalidAmount: true };
+  }
+  
+  if (num <= 0) {
+    return { minAmount: { min: 0.01, actual: num } };
+  }
+  
+  return null;
+}
+
+/**
+ * Validador para fecha no futura (opcional).
+ */
+function notFutureDateValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  
+  if (!value) return null;
+  
+  const inputDate = new Date(value);
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  
+  if (inputDate > today) {
+    return { futureDate: true };
+  }
+  
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COMPONENTE
+// ═══════════════════════════════════════════════════════════════════════════
 
 @Component({
   selector: 'app-investment-form',
@@ -36,80 +119,187 @@ export type InvestmentFormMode = 'create' | 'edit';
     FormCardComponent,
     InputFieldComponent,
     SelectFieldComponent,
+    AlertComponent,
   ],
   templateUrl: './investment-form.component.html',
   styleUrl: './investment-form.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InvestmentFormComponent implements OnInit, OnDestroy {
-  // ─── Inputs ───────────────────────────────────────────────────────────────
-  /** Pasar un Investment pre-cargado activa el modo edición */
-  investment    = input<Investment | null>(null);
-  /** Pre-seleccionar un inversor (útil al abrir desde la ficha del inversor) */
-  preselectedInvestorId = input<string | null>(null);
-  loading       = input<boolean>(false);
 
-  // ─── Outputs ──────────────────────────────────────────────────────────────
-  formSubmit = output<Record<string, any>>();
-  formCancel = output<void>();
+  // ═══════════════════════════════════════════════════════════════════════════
+  // INPUTS
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  /** Inversión existente para modo edición (actualmente no soportado) */
+  readonly investment = input<Investment | null>(null);
+  
+  /** ID del inversionista preseleccionado */
+  readonly preselectedInvestorId = input<string | null>(null);
+  
+  /** Estado de carga externo (del componente padre) */
+  readonly loading = input<boolean>(false);
 
-  // ─── Services ─────────────────────────────────────────────────────────────
-  private fb                = inject(FormBuilder);
-  private investmentService = inject(InvestmentService);
-  private destroy$          = new Subject<void>();
+  // ═══════════════════════════════════════════════════════════════════════════
+  // OUTPUTS
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  /** Emite el payload cuando se envía el formulario */
+  readonly formSubmit = output<CreateInvestmentPayload>();
+  
+  /** Emite cuando se cancela */
+  readonly formCancel = output<void>();
 
-  // ─── State ────────────────────────────────────────────────────────────────
-  form!: FormGroup;
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SERVICIOS
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  private readonly fb = inject(FormBuilder);
+  private readonly investorService = inject(InvestorService);
+  private readonly investmentService = inject(InvestmentService);
 
-  investors        = signal<Investor[]>([]);
-  loadingInvestors = signal(false);
-  submitting       = signal(false);
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SUBJECTS
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  private readonly destroy$ = new Subject<void>();
+  private readonly searchTerm$ = new Subject<string>();
 
-  // Búsqueda en el select de inversores
-  investorSearch  = signal('');
-
-  // ─── Computed ─────────────────────────────────────────────────────────────
-  isEditMode = computed(() => !!this.investment());
-
-  investorOptions = computed<SelectOption[]>(() => {
-    const q = this.investorSearch().toLowerCase();
-    return this.investors()
-      .filter(i => i.is_active)
-      .filter(i =>
-        !q ||
-        i.full_name.toLowerCase().includes(q) ||
-        i.document_number.includes(q) ||
-        i.code.toLowerCase().includes(q)
-      )
-      .map(i => ({
-        label: `${i.full_name} · ${i.document_number}`,
-        value: i.id,
-      }));
+  // ═══════════════════════════════════════════════════════════════════════════
+  // STATE
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  /** Formulario reactivo */
+  readonly form: FormGroup = this.fb.group({
+    investor_id: ['', [Validators.required]],
+    initial_capital: [null, [Validators.required, positiveAmountValidator]],
+    start_date: ['', [Validators.required, notFutureDateValidator]],
+    notes: ['', [Validators.maxLength(1000)]],
   });
 
-  selectedInvestor = computed(() => {
-    const id = this.form?.get('investor_id')?.value;
-    return id ? this.investors().find(i => i.id === id) ?? null : null;
+  /** Lista de inversionistas disponibles */
+  readonly investors = signal<Investor[]>([]);
+  
+  /** Estado de carga de inversionistas */
+  readonly isLoadingInvestors = signal(false);
+  
+  /** Error al cargar inversionistas */
+  readonly investorsError = signal<string | null>(null);
+  
+  /** Término de búsqueda */
+  readonly searchTerm = signal('');
+  
+  /** Indica si hay una inversión activa para el inversionista seleccionado */
+  readonly hasActiveInvestment = signal(false);
+  
+  /** Verificando si tiene inversión activa */
+  readonly isCheckingActiveInvestment = signal(false);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COMPUTED
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  /** Modo de edición */
+  readonly isEditMode = computed(() => !!this.investment());
+
+  /** Opciones filtradas para el select de inversionistas */
+  readonly investorOptions = computed<SelectOption[]>(() => {
+    const term = this.searchTerm().toLowerCase().trim();
+    const list = this.investors();
+    
+    // Filtrar solo activos
+    let filtered = list.filter(inv => inv.is_active);
+    
+    // Aplicar búsqueda si hay término
+    if (term) {
+      filtered = filtered.filter(inv => 
+        inv.full_name.toLowerCase().includes(term) ||
+        inv.code.toLowerCase().includes(term) ||
+        inv.document_number.includes(term) ||
+        (inv.email && inv.email.toLowerCase().includes(term))
+      );
+    }
+    
+    // Mapear a opciones de select
+    return filtered.map(inv => ({
+      value: inv.id,
+      label: `${inv.code} - ${inv.full_name}`,
+      sublabel: inv.document_number,
+      disabled: false,
+    }));
   });
 
-  // ─── Control accessors ────────────────────────────────────────────────────
-  get ctrl() {
+  /** Inversionista seleccionado actualmente */
+  readonly selectedInvestor = computed<Investor | null>(() => {
+    const id = this.form.get('investor_id')?.value;
+    if (!id) return null;
+    return this.investors().find(inv => inv.id === id) ?? null;
+  });
+
+  /** Preview del capital formateado */
+  readonly capitalPreview = computed(() => {
+    const value = this.form.get('initial_capital')?.value;
+    if (!value || isNaN(Number(value))) return '';
+    return formatCurrency(value);
+  });
+
+  /** Indica si se puede enviar el formulario */
+  readonly canSubmit = computed(() => {
+    return this.form.valid && 
+           !this.loading() && 
+           !this.isLoadingInvestors() &&
+           !this.isCheckingActiveInvestment() &&
+           !this.hasActiveInvestment();
+  });
+
+  /** Texto del botón submit */
+  readonly submitLabel = computed(() => {
+    if (this.loading()) return 'Guardando...';
+    if (this.isCheckingActiveInvestment()) return 'Verificando...';
+    return this.isEditMode() ? 'Actualizar inversión' : 'Crear inversión';
+  });
+
+  /** Mensaje de ayuda para el capital */
+  readonly capitalHelpText = computed(() => {
+    const preview = this.capitalPreview();
+    if (preview) {
+      return `Equivale a ${preview}`;
+    }
+    return 'Ingrese el monto inicial de la inversión';
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ACCESSORS
+  // ═══════════════════════════════════════════════════════════════════════════
+  
+  /** Acceso rápido a los controles del formulario */
+  get controls() {
     return {
-      investor_id:     this.form.get('investor_id'),
-      initial_capital: this.form.get('initial_capital'),
-      start_date:      this.form.get('start_date'),
-      notes:           this.form.get('notes'),
+      investor_id: this.form.get('investor_id')!,
+      initial_capital: this.form.get('initial_capital')!,
+      start_date: this.form.get('start_date')!,
+      notes: this.form.get('notes')!,
     };
   }
 
-  get submitLabel(): string {
-    if (this.submitting()) return 'Guardando...';
-    return this.isEditMode() ? 'Actualizar inversión' : 'Crear inversión';
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONSTRUCTOR & LIFECYCLE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  constructor() {
+    // Effect para verificar inversión activa cuando cambia el inversionista
+    effect(() => {
+      const investor = this.selectedInvestor();
+      if (investor && !this.isEditMode()) {
+        this.checkActiveInvestment(investor.id);
+      }
+    });
   }
 
-  // ─── Lifecycle ────────────────────────────────────────────────────────────
   ngOnInit(): void {
-    this.buildForm();
+    this.setupSearchDebounce();
     this.loadInvestors();
+    this.setDefaultDate();
   }
 
   ngOnDestroy(): void {
@@ -117,88 +307,272 @@ export class InvestmentFormComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // ─── Form setup ───────────────────────────────────────────────────────────
-  private buildForm(): void {
-    this.form = this.fb.group({
-      investor_id:     ['', Validators.required],
-      initial_capital: ['', [Validators.required, Validators.min(1)]],
-      start_date:      ['', Validators.required],
-      notes:           [''],
-    });
-  }
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SETUP
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  private patchForm(inv: Investment): void {
-    this.form.patchValue({
-      investor_id:     inv.investor,
-      initial_capital: inv.initial_capital,
-      start_date:      inv.start_date,
-      notes:           inv.notes ?? '',
-    });
-  }
-
-  // ─── Investors ────────────────────────────────────────────────────────────
-  private loadInvestors(): void {
-    this.loadingInvestors.set(true);
-    this.investmentService.getInvestors({ is_active: true })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (res) => {
-          this.investors.set(res.data ?? []);
-          this.loadingInvestors.set(false);
-
-          // Aplicar preselección o datos de edición
-          const pre = this.preselectedInvestorId();
-          const inv = this.investment();
-          if (inv) {
-            this.patchForm(inv);
-          } else if (pre) {
-            this.form.get('investor_id')!.setValue(pre);
-          }
-
-          // Fecha de hoy por defecto en creación
-          if (!inv && !this.form.get('start_date')!.value) {
-            this.form.get('start_date')!.setValue(this.todayIso());
-          }
-        },
-        error: () => this.loadingInvestors.set(false),
+  /**
+   * Configura el debounce para la búsqueda.
+   */
+  private setupSearchDebounce(): void {
+    this.searchTerm$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$),
+      )
+      .subscribe(term => {
+        this.searchTerm.set(term);
       });
   }
 
-  // ─── Submit ───────────────────────────────────────────────────────────────
+  /**
+   * Establece la fecha de hoy como valor por defecto.
+   */
+  private setDefaultDate(): void {
+    if (!this.investment()) {
+      this.controls.start_date.setValue(this.today);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DATA LOADING
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Carga la lista de inversionistas activos.
+   */
+  private loadInvestors(): void {
+    this.isLoadingInvestors.set(true);
+    this.investorsError.set(null);
+
+    this.investorService
+      .getActive()
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isLoadingInvestors.set(false)),
+      )
+      .subscribe({
+        next: (res) => {
+          if (res.success && res.data) {
+            this.investors.set(res.data);
+            this.applyInitialValues();
+          } else {
+            this.investorsError.set('No se pudieron cargar los inversionistas');
+          }
+        },
+        error: (err) => {
+          console.error('Error loading investors:', err);
+          this.investorsError.set('Error al cargar los inversionistas');
+        },
+      });
+  }
+
+  /**
+   * Aplica los valores iniciales (preselección o modo edición).
+   */
+  private applyInitialValues(): void {
+    const investment = this.investment();
+    const preselectedId = this.preselectedInvestorId();
+
+    if (investment) {
+      // Modo edición
+      this.patchFormForEdit(investment);
+    } else if (preselectedId) {
+      // Preselección de inversionista
+      this.controls.investor_id.setValue(preselectedId);
+    }
+  }
+
+  /**
+   * Rellena el formulario para modo edición.
+   */
+  private patchFormForEdit(investment: Investment): void {
+    this.form.patchValue({
+      investor_id: investment.investor,
+      initial_capital: this.parseDecimal(investment.initial_capital),
+      start_date: investment.start_date,
+      notes: investment.notes ?? '',
+    });
+
+    // En modo edición, deshabilitar campos que no se pueden cambiar
+    this.controls.investor_id.disable();
+    this.controls.initial_capital.disable();
+    this.controls.start_date.disable();
+  }
+
+  /**
+   * Verifica si el inversionista ya tiene una inversión activa.
+   */
+  private checkActiveInvestment(investorId: string): void {
+    this.isCheckingActiveInvestment.set(true);
+    this.hasActiveInvestment.set(false);
+
+    this.investmentService
+      .getByInvestor(investorId)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.isCheckingActiveInvestment.set(false)),
+      )
+      .subscribe({
+        next: (res) => {
+          if (res.success && res.data) {
+            // Verificar si hay alguna inversión activa
+            const activeInvestment = res.data.find(inv => inv.status === 'active');
+            this.hasActiveInvestment.set(!!activeInvestment);
+          }
+        },
+        error: (err) => {
+          console.error('Error checking active investment:', err);
+          // En caso de error, permitir continuar
+          this.hasActiveInvestment.set(false);
+        },
+      });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // EVENT HANDLERS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Maneja el cambio en el campo de búsqueda.
+   */
+  onSearchChange(term: string): void {
+    this.searchTerm$.next(term);
+  }
+
+  /**
+   * Maneja el cambio de inversionista seleccionado.
+   */
+  onInvestorChange(investorId: string): void {
+    this.controls.investor_id.setValue(investorId);
+    this.controls.investor_id.markAsTouched();
+  }
+
+  /**
+   * Envía el formulario.
+   */
   onSubmit(): void {
-    if (this.form.invalid || this.submitting()) return;
-    const raw = this.form.getRawValue();
+    // Marcar todos los campos como touched para mostrar errores
+    this.form.markAllAsTouched();
 
-    const payload: Record<string, any> = {
-      investor_id:     raw.investor_id,
-      initial_capital: String(raw.initial_capital),   // la API espera string decimal
-      start_date:      raw.start_date,                 // "YYYY-MM-DD"
+    if (!this.canSubmit()) {
+      return;
+    }
+
+    const formValue = this.form.getRawValue();
+
+    const payload: CreateInvestmentPayload = {
+      investor_id: formValue.investor_id,
+      initial_capital: formValue.initial_capital,
+      start_date: formValue.start_date,
+      notes: formValue.notes?.trim() || undefined,
     };
-
-    if (raw.notes?.trim()) payload['notes'] = raw.notes.trim();
 
     this.formSubmit.emit(payload);
   }
 
-  onCancel(): void { this.formCancel.emit(); }
-
-  // ─── Helpers ──────────────────────────────────────────────────────────────
-  private todayIso(): string {
-    return new Date().toISOString().split('T')[0];
+  /**
+   * Cancela el formulario.
+   */
+  onCancel(): void {
+    this.formCancel.emit();
   }
 
-  /** Formatea número como moneda COP para la preview */
-  formatCOP(value: string | number): string {
-    const n = Number(value);
-    if (!n || isNaN(n)) return '';
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      maximumFractionDigits: 0,
-    }).format(n);
+  /**
+   * Recarga los inversionistas.
+   */
+  onRetryLoadInvestors(): void {
+    this.loadInvestors();
   }
 
-  get capitalPreview(): string {
-    return this.formatCOP(this.form?.get('initial_capital')?.value ?? '');
+  // ═══════════════════════════════════════════════════════════════════════════
+  // HELPERS PARA TEMPLATE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /**
+   * Verifica si un campo tiene error específico.
+   */
+  hasError(fieldName: keyof typeof this.controls, errorType: string): boolean {
+    const control = this.controls[fieldName];
+    return control.hasError(errorType) && control.touched;
   }
+
+  /**
+   * Verifica si un campo tiene cualquier error.
+   */
+  isInvalid(fieldName: keyof typeof this.controls): boolean {
+    const control = this.controls[fieldName];
+    return control.invalid && control.touched;
+  }
+
+  /**
+   * Obtiene el mensaje de error para un campo.
+   */
+  getErrorMessage(fieldName: keyof typeof this.controls): string {
+    const control = this.controls[fieldName];
+    
+    if (!control.errors || !control.touched) {
+      return '';
+    }
+
+    const errors = control.errors;
+
+    // Mapeo de errores a mensajes
+    const errorMessages: Record<string, string> = {
+      required: 'Este campo es requerido',
+      minAmount: 'El monto debe ser mayor a 0',
+      invalidAmount: 'Ingrese un monto válido',
+      futureDate: 'La fecha no puede ser futura',
+      maxlength: `Máximo ${errors['maxlength']?.requiredLength} caracteres`,
+    };
+
+    // Retornar el primer error encontrado
+    for (const errorKey of Object.keys(errors)) {
+      if (errorMessages[errorKey]) {
+        return errorMessages[errorKey];
+      }
+    }
+
+    return 'Campo inválido';
+  }
+
+  /**
+   * Formatea un valor como moneda.
+   */
+  formatCurrency = formatCurrency;
+  parseDecimal = parseDecimal;
+  
+  today = new Date().toLocaleDateString('en-CA');
+
+  /**
+   * Obtiene información adicional del inversionista seleccionado.
+   */
+  getInvestorInfo(): string {
+    const investor = this.selectedInvestor();
+    if (!investor) return '';
+
+    const parts: string[] = [];
+    
+    if (investor.email) {
+      parts.push(investor.email);
+    }
+    
+    if (investor.phone) {
+      parts.push(investor.phone);
+    }
+
+    return parts.join(' • ');
+  }
+
+  /**
+   * Obtiene los porcentajes del inversionista seleccionado.
+   */
+  getInvestorPercentages(): string {
+    const investor = this.selectedInvestor();
+    if (!investor) return '';
+
+    return `Participación: ${investor.investor_percentage}% inversionista / ${investor.operator_percentage}% operador`;
+  }
+  
 }

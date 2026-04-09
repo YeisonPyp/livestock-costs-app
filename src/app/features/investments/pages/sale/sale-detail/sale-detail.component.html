@@ -90,19 +90,19 @@
                   <span>{{ d.investor_name ?? '—' }}</span>
                 </div>
               </td>
-              <td><app-amount-display [amount]="d.investor_amount" type="income" size="sm"></app-amount-display></td>
-              <td><app-amount-display [amount]="d.profit_loss" [type]="d.profit_loss >= 0 ? 'income' : 'expense'" size="sm"></app-amount-display></td>
+              <td><app-amount-display [amount]="parseDecimal(d.investor_amount)" type="income" size="sm"></app-amount-display></td>
+              <td><app-amount-display [amount]="parseDecimal(d.profit_loss)" [type]="parseDecimal(d.profit_loss) >= 0 ? 'income' : 'expense'" size="sm"></app-amount-display></td>
               <td>
                 <app-badge [color]="decisionColor(d.decision_type)">{{ decisionLabel(d.decision_type) }}</app-badge>
               </td>
               <td>
-                @if (d.reinvest_amount > 0) {
-                  <app-amount-display [amount]="d.reinvest_amount" type="income" size="sm"></app-amount-display>
+                @if (parseDecimal(d.reinvest_amount) > 0) {
+                  <app-amount-display [amount]="parseDecimal(d.reinvest_amount)" type="income" size="sm"></app-amount-display>
                 } @else { <span class="muted">—</span> }
               </td>
               <td>
-                @if (d.withdraw_amount > 0) {
-                  <app-amount-display [amount]="d.withdraw_amount" type="expense" size="sm"></app-amount-display>
+                @if (parseDecimal(d.withdraw_amount) > 0) {
+                  <app-amount-display [amount]="parseDecimal(d.withdraw_amount)" type="expense" size="sm"></app-amount-display>
                 } @else { <span class="muted">—</span> }
               </td>
               <td class="center">

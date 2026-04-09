@@ -1,115 +1,333 @@
-<app-page-header title="Inversiones" subtitle="Capital y movimientos por inversionista">
-  <app-button variant="primary" icon="plus" (clicked)="openCreate()">Nueva inversión</app-button>
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     HEADER
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<app-page-header 
+  title="Inversiones" 
+  subtitle="Capital y movimientos por inversionista"
+>
+  <app-button 
+    variant="primary" 
+    icon="plus" 
+    (clicked)="openCreateModal()"
+    aria-label="Crear nueva inversión"
+  >
+    Nueva inversión
+  </app-button>
 </app-page-header>
 
-<!-- ── Modal crear ── -->
-@if (isModalOpen()) {
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MODAL CREAR
+     ═══════════════════════════════════════════════════════════════════════════ -->
+@if (isCreateModalOpen()) {
   <app-modal
     [isOpen]="true"
     title="Nueva inversión"
     size="lg"
     [showFooter]="false"
-    (close)="closeModal()"
+    (close)="closeCreateModal()"
   >
     <app-investment-form
       [preselectedInvestorId]="preselectedInvestorId()"
       [loading]="isSubmitting()"
-      (formSubmit)="onCreate($event)"
-      (formCancel)="closeModal()"
+      (formSubmit)="onCreateSubmit($event)"
+      (formCancel)="closeCreateModal()"
     />
   </app-modal>
 }
 
-<!-- KPIs -->
-<div class="kpi-grid">
-  <app-kpi-card label="Total Inversiones" [value]="stats().total.toString()" color="blue">
-    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-  </app-kpi-card>
-  <app-kpi-card label="Activas" [value]="stats().active.toString()" color="green">
-    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-  </app-kpi-card>
-  <app-kpi-card label="Capital Total" [value]="formatCurrency(stats().totalCapital)" color="yellow">
-    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-  </app-kpi-card>
-  <app-kpi-card label="Ganancias Totales" [value]="formatCurrency(stats().totalProfits)" [color]="stats().totalProfits >= 0 ? 'green' : 'red'">
-    <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>
-  </app-kpi-card>
-</div>
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     KPIs
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="kpi-section" aria-label="Resumen de inversiones">
+  <div class="kpi-grid">
+    <app-kpi-card 
+      label="Total Inversiones" 
+      [value]="stats().total.toString()" 
+      [loading]="stats().isLoading"
+      color="blue"
+    >
+      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="3" width="20" height="14" rx="2"/>
+        <line x1="8" y1="21" x2="16" y2="21"/>
+        <line x1="12" y1="17" x2="12" y2="21"/>
+      </svg>
+    </app-kpi-card>
 
-<!-- Filters -->
-<div class="filters-card">
-  <div class="filters-row">
-    <div class="filter-item">
-      <label class="filter-label">Estado</label>
-      <select class="native-select" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
-        @for (o of statusOptions; track o.value) { <option [value]="o.value">{{ o.label }}</option> }
-      </select>
-    </div>
-    <div class="filter-item">
-      <label class="filter-label">Inversionista (ID)</label>
-      <input type="text" class="native-input" placeholder="UUID del inversionista..."
-        [(ngModel)]="investorFilter" (ngModelChange)="onFilterChange()" />
+    <app-kpi-card 
+      label="Activas" 
+      [value]="stats().active.toString()" 
+      [loading]="stats().isLoading"
+      color="green"
+    >
+      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+        <polyline points="16 7 22 7 22 13"/>
+      </svg>
+    </app-kpi-card>
+
+    <app-kpi-card 
+      label="Capital Total" 
+      [value]="formatCurrency(stats().totalCapital)" 
+      [loading]="stats().isLoading"
+      color="yellow"
+    >
+      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="1" x2="12" y2="23"/>
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+    </app-kpi-card>
+
+    <app-kpi-card 
+      label="Ganancia Neta" 
+      [value]="formatCurrency(stats().netProfit)" 
+      [loading]="stats().isLoading"
+      [color]="stats().netProfit >= 0 ? 'green' : 'red'"
+    >
+      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/>
+      </svg>
+    </app-kpi-card>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     FILTROS
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="filters-section" aria-label="Filtros">
+  <div class="filters-card">
+    <div class="filters-row">
+      <!-- Status -->
+      <div class="filter-item">
+        <label for="status-filter" class="filter-label">Estado</label>
+        <select 
+          id="status-filter"
+          class="native-select" 
+          [ngModel]="filters().status"
+          (ngModelChange)="onStatusChange($event)"
+        >
+          @for (opt of statusOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Search -->
+      <div class="filter-item filter-item--grow">
+        <label for="search-filter" class="filter-label">Buscar</label>
+        <div class="search-wrapper">
+          <input 
+            id="search-filter"
+            type="text" 
+            class="native-input" 
+            placeholder="Código o nombre del inversionista..."
+            [ngModel]="filters().search"
+            (ngModelChange)="onSearchChange($event)"
+          />
+          @if (filters().search) {
+            <button 
+              type="button" 
+              class="search-clear" 
+              (click)="onSearchChange('')"
+              aria-label="Limpiar búsqueda"
+            >
+              ×
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Clear filters -->
+      @if (hasActiveFilters()) {
+        <div class="filter-item filter-item--action">
+          <button 
+            type="button" 
+            class="btn btn-sm btn-ghost"
+            (click)="clearFilters()"
+          >
+            Limpiar filtros
+          </button>
+        </div>
+      }
     </div>
   </div>
-</div>
+</section>
 
-<!-- Table -->
-@if (loading()) {
-  <app-loader [overlay]="false" type="spinner" />
-} @else if (investments().length === 0) {
-  <app-empty-state title="Sin inversiones" message="No hay inversiones que coincidan con los filtros."></app-empty-state>
-} @else {
-  <div class="table-card">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Inversionista</th>
-          <th>Capital Inicial</th>
-          <th>Capital Actual</th>
-          <th>Aportes</th>
-          <th>Ganancias</th>
-          <th>ROI</th>
-          <th>Ganado</th>
-          <th>Estado</th>
-          <th>Inicio</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (inv of investments(); track inv.id) {
-          <tr>
-            <td>
-              <div class="investor-cell">
-                <span class="investor-code">{{ inv.investor_code ?? '—' }}</span>
-                <span class="investor-name">{{ inv.investor_name ?? '—' }}</span>
-              </div>
-            </td>
-            <td><app-amount-display [amount]="inv.initial_capital" type="neutral" size="sm"></app-amount-display></td>
-            <td><app-amount-display [amount]="inv.current_capital" type="neutral" size="sm"></app-amount-display></td>
-            <td><app-amount-display [amount]="inv.total_contributions" type="income" size="sm"></app-amount-display></td>
-            <td><app-amount-display [amount]="inv.total_profits" [type]="inv.total_profits >= 0 ? 'income' : 'expense'" size="sm"></app-amount-display></td>
-            <td [class]="roiColor(inv.roi ?? 0)">
-              <strong>{{ (inv.roi ?? 0).toFixed(1) }}%</strong>
-            </td>
-            <td class="center">{{ inv.cattle_count ?? 0 }}</td>
-            <td>
-              <app-badge [color]="statusColor(inv.status)">{{ inv.status_display ?? inv.status }}</app-badge>
-            </td>
-            <td class="date-cell">{{ inv.start_date }}</td>
-            <td>
-              <a [routerLink]="[inv.id]" class="btn-link">Ver →</a>
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  </div>
-
-  @if (totalPages() > 1) {
-    <div class="pagination">
-      <button class="btn btn-sm btn-outline" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">← Anterior</button>
-      <span class="page-info">{{ currentPage() }} / {{ totalPages() }}</span>
-      <button class="btn btn-sm btn-outline" [disabled]="currentPage() === totalPages()" (click)="goToPage(currentPage() + 1)">Siguiente →</button>
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     CONTENIDO
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="content-section" aria-label="Lista de inversiones">
+  
+  <!-- Loading -->
+  @if (isLoading()) {
+    <app-loader [overlay]="false" type="spinner" />
+  } 
+  
+  <!-- Error -->
+  @else if (hasError()) {
+    <app-empty-state 
+      title="Error al cargar" 
+      message="No se pudieron cargar las inversiones."
+      icon="alert-circle"
+    >
+      <button class="btn btn-primary" (click)="loadInvestments()">
+        Reintentar
+      </button>
+    </app-empty-state>
+  } 
+  
+  <!-- Empty -->
+  @else if (investments().length === 0) {
+    <app-empty-state 
+      title="Sin inversiones" 
+      [message]="emptyMessage()"
+      icon="trending-up"
+    >
+      @if (hasActiveFilters()) {
+        <app-button variant="outline" (clicked)="clearFilters()">
+          Limpiar filtros
+        </app-button>
+      } @else {
+        <app-button variant="primary" (clicked)="openCreateModal()">
+          Crear primera inversión
+        </app-button>
+      }
+    </app-empty-state>
+  } 
+  
+  <!-- Data -->
+  @else {
+    <div class="table-card">
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Inversionista</th>
+              <th class="text-right">Capital Inicial</th>
+              <th class="text-right">Capital Actual</th>
+              <th class="text-right">Aportes</th>
+              <th class="text-right">Ganancias</th>
+              <th class="text-center">ROI</th>
+              <th class="text-center">Ganado</th>
+              <th class="text-center">Estado</th>
+              <th>Inicio</th>
+              <th class="text-center"><span class="sr-only">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (inv of investments(); track trackById($index, inv)) {
+              <tr [class.row-inactive]="inv.status !== 'active'">
+                <!-- Inversionista -->
+                <td>
+                  <div class="investor-cell">
+                    <span class="investor-code">{{ inv.investor_code ?? '—' }}</span>
+                    <span class="investor-name">{{ inv.investor_name ?? '—' }}</span>
+                  </div>
+                </td>
+                
+                <!-- Capital Inicial -->
+                <td class="text-right">
+                  <app-amount-display 
+                    [amount]="parseDecimal(inv.initial_capital)" 
+                    type="neutral" 
+                    size="sm"
+                  />
+                </td>
+                
+                <!-- Capital Actual -->
+                <td class="text-right">
+                  <app-amount-display 
+                    [amount]="parseDecimal(inv.current_capital)" 
+                    type="neutral" 
+                    size="sm"
+                  />
+                </td>
+                
+                <!-- Aportes -->
+                <td class="text-right">
+                  <app-amount-display 
+                    [amount]="parseDecimal(inv.total_contributions)" 
+                    type="income" 
+                    size="sm"
+                  />
+                </td>
+                
+                <!-- Ganancias -->
+                <td class="text-right">
+                  <app-amount-display 
+                    [amount]="parseDecimal(inv.total_profits)" 
+                    [type]="parseFloat(inv.total_profits) >= 0 ? 'income' : 'expense'" 
+                    size="sm"
+                  />
+                </td>
+                
+                <!-- ROI -->
+                <td class="text-center">
+                  <span class="roi-badge" [class]="getRoiClass(inv.roi ?? '0')">
+                    {{ formatRoi(inv.roi ?? '0') }}
+                  </span>
+                </td>
+                
+                <!-- Ganado -->
+                <td class="text-center">
+                  <span class="cattle-badge">{{ inv.cattle_count ?? 0 }}</span>
+                </td>
+                
+                <!-- Estado -->
+                <td class="text-center">
+                  <app-badge [color]="getStatusColor(inv.status)">
+                    {{ getStatusLabel(inv.status) }}
+                  </app-badge>
+                </td>
+                
+                <!-- Fecha -->
+                <td class="date-cell">{{ formatDate(inv.start_date) }}</td>
+                
+                <!-- Acciones -->
+                <td class="text-center">
+                  <a 
+                    [routerLink]="[inv.id]" 
+                    class="btn-link"
+                    [attr.aria-label]="'Ver inversión ' + (inv.investor_code ?? '')"
+                  >
+                    Ver →
+                  </a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
+
+    <!-- Pagination -->
+    @if (showPagination()) {
+      <nav class="pagination" aria-label="Paginación">
+        <span class="pagination-info">
+          Mostrando {{ investments().length }} de {{ pagination().totalItems }}
+        </span>
+        
+        <div class="pagination-controls">
+          <button 
+            class="btn btn-sm btn-outline" 
+            [disabled]="!canGoPrevious()" 
+            (click)="previousPage()"
+          >
+            ← Anterior
+          </button>
+          
+          <span class="pagination-page">
+            {{ pagination().currentPage }} / {{ pagination().totalPages }}
+          </span>
+          
+          <button 
+            class="btn btn-sm btn-outline" 
+            [disabled]="!canGoNext()" 
+            (click)="nextPage()"
+          >
+            Siguiente →
+          </button>
+        </div>
+      </nav>
+    }
   }
-}
+</section>

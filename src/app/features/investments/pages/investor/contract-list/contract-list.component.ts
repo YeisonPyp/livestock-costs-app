@@ -16,7 +16,7 @@ import { AlertComponent } from '../../../../../shared/components/display/alert/a
 import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 import { ContractService, ContractFilters } from '../../../services/contract.service';
-import { InvestmentService } from '../../../services/investment.service';
+import { InvestorService } from '../../../services';
 import {
   ContractListItem,
   CONTRACT_STATUS_OPTIONS,
@@ -48,7 +48,7 @@ export class ContractListComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private contractService = inject(ContractService);
-  private investmentService = inject(InvestmentService);
+  private investorService = inject(InvestorService);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
@@ -129,7 +129,7 @@ export class ContractListComponent implements OnInit, OnDestroy {
   }
 
   private loadInvestors(): void {
-    this.investmentService.getInvestors({ is_active: true })
+    this.investorService.getAll({ is_active: true })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {

@@ -15,7 +15,7 @@ import { AmountDisplayComponent } from '../../../../../shared/components/bills/a
 import { AlertComponent } from '../../../../../shared/components/display/alert/alert.component';
 
 import { WeightBulkImportComponent } from '../../../../cattle/pages/weights/weight-bulk-import/weight-bulk-import.component';
-import { InvestmentService } from '../../../services/investment.service';
+import { SaleService } from '../../../services';
 import { SaleEvent } from '../../../models/investment.model';
 import { formatCurrency } from '../../../../../core/utils/helpers';
 import { SaleCreateComponent } from '../sale-create/sale-create.component';
@@ -50,7 +50,7 @@ interface AnimalSelection {
   styleUrl: './sale-list.component.scss',
 })
 export class SaleListComponent implements OnInit {
-  private svc = inject(InvestmentService);
+  private saleSvc = inject(SaleService);
   private fb = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
@@ -92,7 +92,7 @@ export class SaleListComponent implements OnInit {
       params['is_finalized'] = this.filterFinalized;
     }
 
-    this.svc.getSales(params).subscribe({
+    this.saleSvc.getSaleEvents(params).subscribe({
       next: (res) => {
         if (res.success) {
           this.sales.set(res.data);

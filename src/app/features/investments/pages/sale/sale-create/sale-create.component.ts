@@ -12,7 +12,7 @@ import { AmountDisplayComponent } from '../../../../../shared/components/bills/a
 import { AnimalSelectionModalComponent } from '../../../components/animal-selection-modal/animal-selection-modal.component';
 import { WeightBulkImportComponent } from '../../../../cattle/pages/weights/weight-bulk-import/weight-bulk-import.component';
 
-import { InvestmentService } from '../../../services/investment.service';
+import { SaleService } from '../../../services';
 import { WeightedAnimal } from '../../../../cattle/models/cattle.model';
 import { formatCurrency } from '../../../../../core/utils/helpers';
 
@@ -41,7 +41,7 @@ interface AnimalSelection {
 })
 export class SaleCreateComponent implements OnInit {
 
-  private svc      = inject(InvestmentService);
+  private saleSvc      = inject(SaleService);
   private fb       = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private dialog   = inject(MatDialog);
@@ -194,7 +194,7 @@ export class SaleCreateComponent implements OnInit {
       })),
     };
 
-    this.svc.createSale(payload).subscribe({
+    this.saleSvc.createSaleEvent(payload).subscribe({
       next: () => {
         this.saving.set(false);
         this.snackBar.open('Venta registrada exitosamente', 'Cerrar', { duration: 3000 });

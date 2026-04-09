@@ -27,13 +27,13 @@
     <div class="amounts-row">
       <div class="amount-block">
         <span class="amount-label">Monto de la Venta</span>
-        <app-amount-display [amount]="decision()!.investor_amount" type="income" size="xl"></app-amount-display>
+        <app-amount-display [amount]="parseDecimal(decision()!.investor_amount)" type="income" size="xl"></app-amount-display>
       </div>
       <div class="amount-block">
         <span class="amount-label">Ganancia / Pérdida</span>
         <app-amount-display
-          [amount]="decision()!.profit_loss"
-          [type]="decision()!.profit_loss >= 0 ? 'income' : 'expense'"
+          [amount]="parseDecimal(decision()!.profit_loss)"
+          [type]="parseDecimal(decision()!.profit_loss) >= 0 ? 'income' : 'expense'"
           [showSign]="true"
           size="lg"
         ></app-amount-display>
@@ -51,8 +51,8 @@
   @if (isAlreadyDecided) {
     <app-alert type="success" [dismissible]="false">
       Ya se registró una decisión para esta venta: <strong>{{ decision()!.decision_type_display ?? decision()!.decision_type }}</strong>.
-      @if (decision()!.reinvest_amount > 0) { Se reinvertirán {{ formatCurrency(decision()!.reinvest_amount) }}. }
-      @if (decision()!.withdraw_amount > 0) { Se retirarán {{ formatCurrency(decision()!.withdraw_amount) }}. }
+      @if (parseDecimal(decision()!.reinvest_amount) > 0) { Se reinvertirán {{ formatCurrency(parseDecimal(decision()!.reinvest_amount)) }}. }
+      @if (parseDecimal(decision()!.withdraw_amount) > 0) { Se retirarán {{ formatCurrency(parseDecimal(decision()!.withdraw_amount)) }}. }
     </app-alert>
 
     <a [routerLink]="['/investments/sales', decision()!.sale_event]" class="btn btn-outline">

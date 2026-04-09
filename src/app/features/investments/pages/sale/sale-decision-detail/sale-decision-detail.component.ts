@@ -10,9 +10,9 @@ import { BadgeComponent }          from '../../../../../shared/components/displa
 import { AlertComponent }          from '../../../../../shared/components/display/alert/alert.component';
 import { AmountDisplayComponent }  from '../../../../../shared/components/bills/amount-display/amount-display.component';
 
-import { InvestmentService } from '../../../services/investment.service';
+import { SaleService } from '../../../services';
 import { SaleDecision, SALE_DECISION_TYPES } from '../../../models/investment.model';
-import { formatCurrency } from '../../../../../core/utils/helpers';
+import { formatCurrency, parseDecimal } from '../../../../../core/utils/helpers';
 
 @Component({
   selector: 'app-sale-decision-detail',
@@ -25,7 +25,7 @@ export class SaleDecisionDetailComponent implements OnInit {
   private route    = inject(ActivatedRoute);
   private router   = inject(Router);
   private fb       = inject(FormBuilder);
-  private svc      = inject(InvestmentService);
+  private saleSvc      = inject(SaleService);
   private snackBar = inject(MatSnackBar);
 
   decision = signal<SaleDecision | null>(null);
@@ -35,7 +35,9 @@ export class SaleDecisionDetailComponent implements OnInit {
   selectedType = signal<'reinvest' | 'withdraw' | 'partial' | null>(null);
   partialForm!: FormGroup;
 
+
   formatCurrency = formatCurrency;
+  parseDecimal = parseDecimal;
   SALE_DECISION_TYPES = SALE_DECISION_TYPES;
 
   ngOnInit(): void {
@@ -57,7 +59,7 @@ export class SaleDecisionDetailComponent implements OnInit {
 
   private loadDecision(id: string): void {
     this.loading.set(true);
-    this.svc.getSaleDecision(id).subscribe({
+    this.saleSvc.getDecision(id).subscribe({
       next: (res) => {
         if (res.success) this.decision.set(res.data);
         this.loading.set(false);
@@ -94,7 +96,7 @@ export class SaleDecisionDetailComponent implements OnInit {
     }
 
     this.saving.set(true);
-    this.svc.makeDecision(id, payload).subscribe({
+    this.saleSvc.makeDecision(id, payload).subscribe({
       next: () => {
         this.saving.set(false);
         this.snackBar.open('Decisión registrada exitosamente', 'Cerrar', { duration: 3000 });

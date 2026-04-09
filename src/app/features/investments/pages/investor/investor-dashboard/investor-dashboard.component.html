@@ -244,7 +244,7 @@
                 <td>{{ d.sale_event_description }}</td>
                 <td>{{ d.decision_type | titlecase }}</td>
                 <td class="num credit">{{ formatCOP(d.reinvest_amount) }}</td>
-                <td class="num">{{ d.withdraw_amount > 0 ? formatCOP(d.withdraw_amount) : '—' }}</td>
+                <td class="num">{{ parseDecimal(d.withdraw_amount) > 0 ? formatCOP(d.withdraw_amount) : '—' }}</td>
                 <td><app-badge color="success" size="sm">Procesada</app-badge></td>
               </tr>
             }

@@ -9,7 +9,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import Chart from 'chart.js/auto';
 
-import { InvestmentService } from '../../../services/investment.service';
+import { InvestorService, SaleService } from '../../../services';
 import { SaleDecision, InvestorSummary } from '../../../models/investment.model';
 import { LoaderComponent } from '../../../../../shared/components/loader/loader.component';
 import { BadgeComponent } from '../../../../../shared/components/display/badge/badge.component';
@@ -17,6 +17,7 @@ import { AlertComponent } from '../../../../../shared/components/display/alert/a
 import { AmountDisplayComponent } from '../../../../../shared/components/bills/amount-display/amount-display.component';
 import { DecisionCardComponent } from './components/decision-card/decision-card.component';
 import { PartialDecisionModalComponent } from './components/partial-decision-modal/partial-decision-modal.component';
+import { parseDecimal } from '../../../../../core/utils/helpers';
 
 
 type Tab = 'resumen' | 'ganado' | 'movimientos' | 'decisiones';
@@ -42,7 +43,8 @@ type Tab = 'resumen' | 'ganado' | 'movimientos' | 'decisiones';
 export class InvestorDashboardComponent
   implements OnInit, AfterViewInit, OnDestroy {
 
-  private svc     = inject(InvestmentService);
+  private investorSvc = inject(InvestorService);
+  private saleSvc = inject(SaleService);
   private snack   = inject(MatSnackBar);
   private dialog  = inject(MatDialog);
 
@@ -54,6 +56,9 @@ export class InvestorDashboardComponent
   error     = signal('');
   activeTab = signal<Tab>('resumen');
   summary   = signal<InvestorSummary | null>(null);
+
+
+  parseDecimal = parseDecimal;
 
   private capitalChart?:   Chart;
   private portfolioChart?: Chart;
@@ -127,7 +132,7 @@ export class InvestorDashboardComponent
     this.loading.set(true);
     this.error.set('');
 
-    this.svc.getMyInvestorSummary().subscribe({
+    this.investorSvc.getMySummary().subscribe({
       next: (res) => {
         if (res.success) {
           this.summary.set(res.data);
@@ -190,7 +195,7 @@ export class InvestorDashboardComponent
       payload.withdraw_amount = withdrawAmount;
     }
 
-    this.svc.makeDecision(decisionId, payload).subscribe({
+    this.saleSvc.makeDecision(decisionId, payload).subscribe({
       next: () => {
         this.snack.open('Decisión registrada exitosamente', 'Cerrar', {
           duration: 3000,

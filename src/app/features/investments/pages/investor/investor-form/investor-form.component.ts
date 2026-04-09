@@ -13,7 +13,7 @@ import { CheckboxToggleComponent } from '../../../../../shared/components/forms/
 import { PersonSearchComponent } from '../../../../users/components/person-search/person-search.component'
 import { PersonSimple } from "../../../../users/models/user.model"
 
-import { InvestmentService } from '../../../services/investment.service';
+import { InvestorService } from '../../../services';
 import { SALE_DECISION_TYPES } from '../../../models/investment.model';
 
 @Component({
@@ -32,7 +32,7 @@ export class InvestorFormComponent implements OnInit {
   private fb      = inject(FormBuilder);
   private router  = inject(Router);
   private route   = inject(ActivatedRoute);
-  private svc     = inject(InvestmentService);
+  private svc     = inject(InvestorService);
   private snack   = inject(MatSnackBar);
 
   form!: FormGroup;
@@ -91,7 +91,7 @@ export class InvestorFormComponent implements OnInit {
 
   private loadInvestor(id: string): void {
     this.loading.set(true);
-    this.svc.getInvestor(id).subscribe({
+    this.svc.getById(id).subscribe({
       next: (res) => { if (res.success) this.form.patchValue(res.data); this.loading.set(false); },
       error: () => { this.loading.set(false); this.snack.open('Error al cargar el inversionista', 'Cerrar', { duration: 3000 }); this.router.navigate(['/investments/investors']); },
     });
@@ -101,8 +101,8 @@ export class InvestorFormComponent implements OnInit {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     this.saving.set(true);
     const req$ = this.isEdit()
-      ? this.svc.updateInvestor(this.investorId()!, this.form.getRawValue())
-      : this.svc.createInvestor(this.form.getRawValue());
+      ? this.svc.update(this.investorId()!, this.form.getRawValue())
+      : this.svc.create(this.form.getRawValue());
 
     req$.subscribe({
       next: () => {

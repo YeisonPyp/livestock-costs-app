@@ -15,12 +15,12 @@ import { AmountDisplayComponent } from '../../../../../shared/components/bills/a
 import { AlertComponent }         from '../../../../../shared/components/display/alert/alert.component';
 import { EmptyStateComponent }    from '../../../../../shared/components/empty-state/empty-state.component';
 
-import { InvestmentService } from '../../../services/investment.service';
+import { InvestorService, InvestmentService, CattleOwnershipService, SaleService } from '../../../services';
 import {
   Investor, InvestorSummary, Investment, CattleOwnership, SaleDecision,
   MOVEMENT_TYPES, SALE_DECISION_TYPES,
 } from '../../../models/investment.model';
-import { formatCurrency } from '../../../../../core/utils/helpers';
+import { formatCurrency, parseDecimal } from '../../../../../core/utils/helpers';
 import { CreateContractDialogComponent } from '../../../components/create-contract-dialog/create-contract-dialog.component';
 
 @Component({
@@ -32,7 +32,10 @@ import { CreateContractDialogComponent } from '../../../components/create-contra
 })
 export class InvestorDetailComponent implements OnInit {
   private route    = inject(ActivatedRoute);
-  private svc      = inject(InvestmentService);
+  private invSvc   = inject(InvestorService);
+  private invstSvc = inject(InvestmentService);
+  private cattleSvc = inject(CattleOwnershipService);
+  private saleSvc  = inject(SaleService);
   private dialog   = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
@@ -44,6 +47,7 @@ export class InvestorDetailComponent implements OnInit {
   loading     = signal(true);
 
   formatCurrency = formatCurrency;
+  parseDecimal = parseDecimal;
   router: any;
 
   ngOnInit(): void {
@@ -53,20 +57,21 @@ export class InvestorDetailComponent implements OnInit {
 
   private loadAll(id: string): void {
     this.loading.set(true);
-    this.svc.getInvestor(id).subscribe({
+    this.invSvc.getById(id).subscribe({
       next: (res) => {
         if (res.success) {
           this.investor.set(res.data);
-          this.svc.getInvestorSummary(id).subscribe(r => { if (r.success) this.summary.set(r.data); });
-          this.svc.getInvestments({ investor: id }).subscribe(r => { if (r.success) this.investments.set(r.data); });
-          this.svc.getCattleOwnerships({ 'investment__investor': id }).subscribe(r => { if (r.success) this.cattle.set(r.data); });
-          this.svc.getSaleDecisionsList({ 'investment__investor': id, is_processed: false }).subscribe(r => { if (r.success) this.decisions.set(r.data); });
+          this.invSvc.getSummary(id).subscribe(r => { if (r.success) this.summary.set(r.data); });
+          this.invstSvc.getByInvestor(id).subscribe(r => { if (r.success) this.investments.set(r.data); });
+          this.cattleSvc.getByInvestor(id).subscribe(r => { if (r.success) this.cattle.set(r.data); });
+          this.saleSvc.getDecisionsByInvestor(id).subscribe(r => { if (r.success) this.decisions.set(r.data); });
         }
         this.loading.set(false);
       },
       error: () => { this.loading.set(false); this.snackBar.open('Error al cargar el inversionista', 'Cerrar', { duration: 3000 }); },
     });
   }
+
 
   movementColor(type: string): string {
     return MOVEMENT_TYPES.find(m => m.value === type)?.color ?? 'secondary';
