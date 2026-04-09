@@ -7,7 +7,6 @@ import {
   OnDestroy,
   signal,
   computed,
-  effect,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import {
@@ -195,6 +194,8 @@ export class InvestmentFormComponent implements OnInit, OnDestroy {
   /** Verificando si tiene inversión activa */
   readonly isCheckingActiveInvestment = signal(false);
 
+  readonly formValid = signal(false);
+
   // ═══════════════════════════════════════════════════════════════════════════
   // COMPUTED
   // ═══════════════════════════════════════════════════════════════════════════
@@ -245,12 +246,13 @@ export class InvestmentFormComponent implements OnInit, OnDestroy {
 
   /** Indica si se puede enviar el formulario */
   readonly canSubmit = computed(() => {
-    return this.form.valid && 
-           !this.loading() && 
-           !this.isLoadingInvestors() &&
-           !this.isCheckingActiveInvestment() &&
-           !this.hasActiveInvestment();
+    return this.formValid() &&
+          !this.loading() &&
+          !this.isLoadingInvestors() &&
+          !this.isCheckingActiveInvestment() &&
+          !this.hasActiveInvestment();
   });
+  
 
   /** Texto del botón submit */
   readonly submitLabel = computed(() => {
@@ -286,20 +288,19 @@ export class InvestmentFormComponent implements OnInit, OnDestroy {
   // CONSTRUCTOR & LIFECYCLE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  constructor() {
-    // Effect para verificar inversión activa cuando cambia el inversionista
-    effect(() => {
-      const investor = this.selectedInvestor();
-      if (investor && !this.isEditMode()) {
-        this.checkActiveInvestment(investor.id);
-      }
-    });
-  }
-
   ngOnInit(): void {
     this.setupSearchDebounce();
     this.loadInvestors();
     this.setDefaultDate();
+
+    this.form.statusChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.formValid.set(this.form.valid);
+      });
+
+    // valor inicial
+    this.formValid.set(this.form.valid);
   }
 
   ngOnDestroy(): void {
@@ -405,6 +406,12 @@ export class InvestmentFormComponent implements OnInit, OnDestroy {
    * Verifica si el inversionista ya tiene una inversión activa.
    */
   private checkActiveInvestment(investorId: string): void {
+    if (!investorId) {
+      this.hasActiveInvestment.set(false);
+      this.isCheckingActiveInvestment.set(false);
+      return;
+    }
+
     this.isCheckingActiveInvestment.set(true);
     this.hasActiveInvestment.set(false);
 
@@ -412,19 +419,18 @@ export class InvestmentFormComponent implements OnInit, OnDestroy {
       .getByInvestor(investorId)
       .pipe(
         takeUntil(this.destroy$),
-        finalize(() => this.isCheckingActiveInvestment.set(false)),
+        finalize(() => {
+          this.isCheckingActiveInvestment.set(false);
+        })
       )
       .subscribe({
         next: (res) => {
-          if (res.success && res.data) {
-            // Verificar si hay alguna inversión activa
-            const activeInvestment = res.data.find(inv => inv.status === 'active');
-            this.hasActiveInvestment.set(!!activeInvestment);
-          }
+          const activeInvestment =
+            res?.data?.find((inv) => inv.status === 'active');
+
+          this.hasActiveInvestment.set(!!activeInvestment);
         },
-        error: (err) => {
-          console.error('Error checking active investment:', err);
-          // En caso de error, permitir continuar
+        error: () => {
           this.hasActiveInvestment.set(false);
         },
       });
@@ -447,6 +453,10 @@ export class InvestmentFormComponent implements OnInit, OnDestroy {
   onInvestorChange(investorId: string): void {
     this.controls.investor_id.setValue(investorId);
     this.controls.investor_id.markAsTouched();
+
+    if (!this.isEditMode() && investorId) {
+      this.checkActiveInvestment(investorId);
+    }
   }
 
   /**
