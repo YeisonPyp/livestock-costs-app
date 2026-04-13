@@ -63,12 +63,12 @@ export class MenuService {
       color: 'green',
       path: '/investments/sales',
     },
-    // {
-    //   label: 'Dashboard Inversionista',
-    //   icon: 'bar-chart-2',
-    //   color: 'blue',
-    //   path: '/investments/dashboard-investors',
-    // }
+    {
+      label: 'Dashboard Inversionista',
+      icon: 'bar-chart-2',
+      color: 'blue',
+      path: '/investments/dashboard-investors',
+    }
 
   ]);
 

@@ -1,6 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SaleDecision } from '../../../../../models/investment.model';
+import { formatCurrency, parseDecimal } from '../../../../../../../core/utils/helpers';
 
 @Component({
   selector: 'app-decision-card',
@@ -12,6 +13,9 @@ import { SaleDecision } from '../../../../../models/investment.model';
 export class DecisionCardComponent {
   decision = input.required<SaleDecision>();
   decide   = output<{ decision: SaleDecision; type: 'reinvest' | 'withdraw' | 'partial' }>();
+
+  formatCurrency = formatCurrency;
+  parseDecimal = parseDecimal;
 
   emit(type: 'reinvest' | 'withdraw' | 'partial'): void {
     this.decide.emit({ decision: this.decision(), type });
@@ -41,12 +45,5 @@ export class DecisionCardComponent {
     if (days <= 0)  return 'Vence hoy';
     if (days === 1) return 'Vence mañana';
     return `${days} días restantes`;
-  }
-
-  formatCOP(v: number): string {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency', currency: 'COP',
-      maximumFractionDigits: 0,
-    }).format(v);
   }
 }

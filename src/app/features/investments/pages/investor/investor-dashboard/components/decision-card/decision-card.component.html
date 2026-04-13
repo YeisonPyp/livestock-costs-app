@@ -10,11 +10,11 @@
         </div>
     </div>
     </div>
-    <div class="dec-amount">{{ formatCOP(decision().investor_amount) }}</div>
-    <div class="dec-profit" [class.profit]="decision().profit_loss > 0"
-                            [class.loss]="decision().profit_loss < 0">
-    {{ decision().profit_loss > 0 ? '+' : '' }}{{ formatCOP(decision().profit_loss) }}
-    {{ decision().profit_loss > 0 ? 'ganancia' : 'pérdida' }}
+    <div class="dec-amount">{{ formatCurrency(decision().investor_amount) }}</div>
+    <div class="dec-profit" [class.profit]="parseDecimal(decision().profit_loss) > 0"
+                            [class.loss]="parseDecimal(decision().profit_loss) < 0">
+    {{ parseDecimal(decision().profit_loss) > 0 ? '+' : '' }}{{ formatCurrency(parseDecimal(decision().profit_loss)) }}
+    {{ parseDecimal(decision().profit_loss) > 0 ? 'ganancia' : 'pérdida' }}
     </div>
     <div class="dec-actions">
     <button class="btn-primary" (click)="emit('reinvest')">Reinvertir todo</button>

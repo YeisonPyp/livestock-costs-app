@@ -82,6 +82,15 @@ export class NavbarComponent implements OnInit {
     this.userMenuOpen = false;
   }
 
+  getRoleLabel(role: string): string {
+    switch (role) {
+      case 'admin': return 'Administrador';
+      case 'investor': return 'Inversionista';
+      case 'user': return 'Usuario';
+      default: return role;
+    }
+  }
+
   getInitials(fullName: string): string {
     if (!fullName) return 'U';
     const names = fullName.split(' ');

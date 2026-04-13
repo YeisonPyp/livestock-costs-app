@@ -37,7 +37,7 @@
             </div>
             <div class="user-info">
               <span class="user-name">{{ user.full_name }}</span>
-              <span class="user-role">Administrador</span>
+              <span class="user-role">{{ getRoleLabel(user.roles[0]) }}</span>
             </div>
             <svg class="dropdown-arrow" [class.open]="userMenuOpen" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

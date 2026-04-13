@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
+import { roleGuard } from './core/guards/role.guard';
+import { InvestorLayoutComponent } from './layout/investor-layout/investor-layout.component';
 
 export const routes: Routes = [
   {
@@ -15,7 +17,8 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayoutComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin', 'admin'] }, 
     children: [
       {
         path: 'dashboard',
@@ -37,6 +40,20 @@ export const routes: Routes = [
         path: 'cattle',
         loadChildren: () => import('./features/cattle/cattle.routes').then(m => m.CATTLE_ROUTES)
       }
+    ]
+  },
+  {
+    path: 'investor',
+    component: InvestorLayoutComponent,   // layout limpio, sin sidebar
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['investor'] },
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./features/investments/pages/investor/investor-dashboard/investor-dashboard.component')
+          .then(m => m.InvestorDashboardComponent)
+      },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
   {
