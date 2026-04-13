@@ -65,14 +65,6 @@
       [loading]="loadingKpis()"
     />
     <app-kpi-card
-      label="Categorías Activas"
-      [value]="activeCatCount()"
-      format="number"
-      color="yellow"
-      icon="tag"
-      [loading]="loadingKpis()"
-    />
-    <app-kpi-card
       label="Promedio por Registro"
       [value]="totals()?.average ?? 0"
       format="currency"
