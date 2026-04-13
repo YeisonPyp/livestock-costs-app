@@ -168,4 +168,20 @@ export class AuthService {
   getRefreshTokenSubject(): BehaviorSubject<string | null> {
     return this.refreshTokenSubject;
   }
+
+
+  // Agrega esto al AuthService, antes del cierre de la clase
+
+  hasRole(role: string): boolean {
+    return this.getCurrentUser()?.roles.includes(role) ?? false;
+  }
+
+  isAdmin(): boolean {
+    const adminRoles = ['super_admin', 'admin'];
+    return this.getCurrentUser()?.roles.some(r => adminRoles.includes(r)) ?? false;
+  }
+
+  isInvestor(): boolean {
+    return this.hasRole('investor');
+  }
 }

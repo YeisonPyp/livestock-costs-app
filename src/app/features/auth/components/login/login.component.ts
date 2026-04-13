@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { LoginRequest } from '../../models/login-request.interface'; // ← tu interface
 
 @Component({
   selector: 'app-login',
@@ -26,7 +27,7 @@ export class LoginComponent {
   ) {
     this.loginForm = this.fb.group({
       identifier: ['', [Validators.required]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password:   ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
@@ -38,14 +39,22 @@ export class LoginComponent {
     }
 
     this.loading = true;
-    this.authService.login(this.loginForm.value).subscribe({
-      next: (response) => {
+
+    // Armamos el objeto LoginRequest tal como lo espera tu service
+    const credentials: LoginRequest = {
+      identifier: this.loginForm.value.identifier,
+      password:   this.loginForm.value.password
+    };
+
+    this.authService.login(credentials).subscribe({
+      next: () => {
         this.notificationService.success('¡Bienvenido! Inicio de sesión exitoso');
-        this.router.navigate(['/dashboard']);
+        this.redirectByRole();
       },
       error: (error) => {
         this.loading = false;
-        const errorMessage = error?.error?.message || 'Credenciales incorrectas. Por favor verifica tus datos.';
+        const errorMessage = error?.error?.message
+          || 'Credenciales incorrectas. Por favor verifica tus datos.';
         this.notificationService.error(errorMessage);
       },
       complete: () => {
@@ -54,21 +63,24 @@ export class LoginComponent {
     });
   }
 
+  private redirectByRole(): void {
+    if (this.authService.isInvestor()) {
+      this.router.navigate(['/investor/dashboard']);
+    } else {
+      this.router.navigate(['/dashboard']); // admin, super_admin, etc.
+    }
+  }
+
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
   }
 
   onPasswordKeyPress(event: KeyboardEvent): void {
-    this.capsLockOn = event.getModifierState && event.getModifierState('CapsLock');
+    this.capsLockOn = event.getModifierState?.('CapsLock') ?? false;
   }
 
-  get identifier() {
-    return this.loginForm.get('identifier');
-  }
-
-  get password() {
-    return this.loginForm.get('password');
-  }
+  get identifier()  { return this.loginForm.get('identifier'); }
+  get password()    { return this.loginForm.get('password'); }
 
   get identifierHasError(): boolean {
     return !!(this.identifier?.invalid && this.identifier?.touched);
