@@ -62,12 +62,6 @@ export class MenuService {
       icon: 'shopping-cart',
       color: 'green',
       path: '/investments/sales',
-    },
-    {
-      label: 'Dashboard Inversionista',
-      icon: 'bar-chart-2',
-      color: 'blue',
-      path: '/investments/dashboard-investors',
     }
 
   ]);

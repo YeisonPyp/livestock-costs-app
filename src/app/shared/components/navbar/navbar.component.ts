@@ -86,6 +86,7 @@ export class NavbarComponent implements OnInit {
     switch (role) {
       case 'admin': return 'Administrador';
       case 'investor': return 'Inversionista';
+      case 'super_admin': return 'Super Admin';
       case 'user': return 'Usuario';
       default: return role;
     }
