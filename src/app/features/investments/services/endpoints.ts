@@ -6,10 +6,26 @@ export const INVESTMENT_ENDPOINTS = {
   // Investors
   INVESTORS: '/investments/investors/',
   INVESTOR: (id: string) => `/investments/investors/${id}/`,
+  INVESTOR_DESACTIVATE: (id: string) => `/investments/investors/${id}/deactivate/`,
+  INVESTOR_REACTIVATE: (id: string) => `/investments/investors/${id}/reactivate/`,
+  INVESTOR_DESACTIVATION_STATUS: (id: string) => `/investments/investors/${id}/deactivation-status/`,
   INVESTOR_SUMMARY: (id: string) => `/investments/investors/${id}/summary/`,
   INVESTOR_STATEMENT: (id: string) => `/investments/investors/${id}/statement/`,
+  INVESTOR_CONTRACTS: (id: string) => `/investments/investors/${id}/contracts/`,
   MY_SUMMARY: '/investments/investors/me/summary/',
 
+  // contracts
+  CONTRACTS: '/investments/contracts/',
+  CONTRACT: (id: string) => `/investments/contracts/${id}/`,
+  CONTRACT_ACTIVATE: (id: string) => `/investments/contracts/${id}/activate/`,
+  CONTRACT_TERMINATE: (id: string) => `/investments/contracts/${id}/terminate/`,
+  CONTRACT_RENEW: (id: string) => `/investments/contracts/${id}/renew/`,
+  CONTRACT_DOWNLOAD: (id: string) => `/investments/contracts/${id}/download/`,
+  CONTRACTS_ACTIVE: '/investments/contracts/active/',
+  CONTRACTS_EXPIRING: '/investments/contracts/expiring/',
+  CONTRACTS_EXPIRIED: '/investments/contracts/expired/',
+
+  
   // Investments
   INVESTMENTS: '/investments/investments/',
   INVESTMENT: (id: string) => `/investments/investments/${id}/`,

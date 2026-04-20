@@ -150,6 +150,7 @@ export interface CostFilters {
   category?: string;
   start_date?: string;
   end_date?: string;
+  category_type?: CategoryType;
   min_amount?: number;
   max_amount?: number;
   search?: string;

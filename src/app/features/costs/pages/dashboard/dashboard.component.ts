@@ -46,6 +46,8 @@ export class DashboardComponent implements OnInit {
   ytd           = signal<{ total: number; count: number } | null>(null);
   monthReport   = signal<MonthlyReport | null>(null);
   summaryByCat  = signal<CategorySummary[]>([]);
+  summaryIncome = signal<CategorySummary[]>([]);
+  summaryExpense = signal<CategorySummary[]>([]);
   trendMonths   = signal<MonthlySummary[]>([]);
   activeCatCount = signal(0);
 
@@ -77,6 +79,8 @@ export class DashboardComponent implements OnInit {
       }
 
       const parent = map.get(key)!;
+      parent.income_total += cat.income_total;
+      parent.expense_total += cat.expense_total;
       parent.balance += cat.balance;
       parent.count += cat.count;
       parent.percentage += cat.percentage;
@@ -85,8 +89,8 @@ export class DashboardComponent implements OnInit {
     return Array.from(map.values()).sort((a, b) => parseDecimal(b.balance) - parseDecimal(a.balance));
   }
 
-  topCategories = computed(() => {
-    const grouped = this.groupByParent(this.summaryByCat());
+  private buildTopCategories(data: any[]) {
+    const grouped = this.groupByParent(data);
 
     if (grouped.length <= 5) return grouped;
 
@@ -96,13 +100,25 @@ export class DashboardComponent implements OnInit {
     const others = {
       category_id: 'others',
       category_name: 'Otros',
+      income_total: rest.reduce((sum, c) => sum + parseDecimal(c.income_total), 0),
+      expense_total: rest.reduce((sum, c) => sum + parseDecimal(c.expense_total), 0),
       balance: rest.reduce((sum, c) => sum + parseDecimal(c.balance), 0),
       count: rest.reduce((sum, c) => sum + c.count, 0),
       percentage: rest.reduce((sum, c) => sum + parseDecimal(c.percentage), 0),
     };
 
     return [...top, others];
+  }
+
+  topIncomes = computed(() => 
+    this.buildTopCategories(this.summaryIncome())
+  );
+
+  // Computed específico para el panel de Egresos
+  topExpenses = computed(() => {
+    return this.buildTopCategories(this.summaryExpense());
   });
+
 
   normalizeCategories(data: any[]): CategorySummary[] {
     return data.map(item => ({
@@ -166,6 +182,28 @@ export class DashboardComponent implements OnInit {
         }
       }
     });
+    this.costSvc.getSummaryByCategory({
+      start_date: this.firstDay(year, month),
+      end_date:   this.lastDay(year, month),
+      category_type: 'income',
+    }).subscribe({
+      next: (r) => {
+        if (r.success) {
+          this.summaryIncome.set(this.normalizeCategories(r.data));
+        }
+      }
+    });
+    this.costSvc.getSummaryByCategory({
+      start_date: this.firstDay(year, month),
+      end_date:   this.lastDay(year, month),
+      category_type: 'expense',
+    }).subscribe({
+      next: (r) => {
+        if (r.success) {
+          this.summaryExpense.set(this.normalizeCategories(r.data));
+        }
+      }
+    });
 
     // 12-month trend
     this.costSvc.getSummaryByMonth({ start_date: this.firstDay(year - 1, month + 1), end_date: this.lastDay(year, month) }).subscribe({
@@ -219,11 +257,6 @@ export class DashboardComponent implements OnInit {
 
   trendBarHeight(total: number): number {
     return Math.max((total / this.trendMax()) * 100, 2);
-  }
-
-  categoryBarWidth(total: number): number {
-    const max = parseDecimal(this.topCategories()[0]?.count) ?? 1;
-    return Math.max((total / max) * 100, 2);
   }
 
   formatCOP(n: number |string): string {
