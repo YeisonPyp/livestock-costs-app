@@ -1,146 +1,99 @@
+// services/cattle-ownership.service.ts
+
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { ApiService } from '../../../core/services/api.service';
 import { ApiResponse } from '../../../core/models/api-response.model';
+import { ENDPOINTS } from './endpoints';
 
-import { INVESTMENT_ENDPOINTS } from './endpoints';
 import {
   CattleOwnership,
-  AssignCattlePayload,
+  CattleOwnershipFilters,
   CattleOwnershipStatus,
-} from '../models/investment.model';
+  AssignCattlePayload,
+  RecordWeightPayload,
+  WeightRecord,
+} from '../models';
 
-// ═══════════════════════════════════════════════════════════════════════════
-// TIPOS
-// ═══════════════════════════════════════════════════════════════════════════
+import {
+  toCattleOwnership,
+  toWeightRecord,
+  assignCattleToFormData,
+} from '../mappers/investment.mapper';
 
-export interface CattleOwnershipSearchParams {
-  page?: number;
-  page_size?: number;
-  investment?: string;
-  investor?: string;
-  status?: CattleOwnershipStatus | '';
-  animal?: string;
-  lot?: string;
-  ordering?: string;
-}
-
-export interface RecordWeightPayload {
-  weight: number;
-  price_per_kg?: number;
-  record_date?: string;
-  notes?: string;
-}
-
-export interface WeightRecordResponse {
-  id: string;
-  weight: string;
-  price_per_kg: string | null;
-  estimated_value: string | null;
-  record_date: string;
-  created_at: string;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// SERVICIO
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Servicio para gestión de propiedad de ganado.
- * 
- * Maneja la relación entre inversiones y animales/lotes.
- */
 @Injectable({ providedIn: 'root' })
 export class CattleOwnershipService {
   private readonly api = inject(ApiService);
 
-  // ─── CRUD ────────────────────────────────────────────────────────────────
+  // ── CRUD ──────────────────────────────────────────────────────────
 
-  /**
-   * Obtiene listado de propiedades de ganado.
-   */
-  getAll(params?: CattleOwnershipSearchParams): Observable<ApiResponse<CattleOwnership[]>> {
-    return this.api.get<CattleOwnership[]>(INVESTMENT_ENDPOINTS.CATTLE_OWNERSHIPS, params);
+  list(filters?: CattleOwnershipFilters): Observable<ApiResponse<CattleOwnership[]>> {
+    return this.api.get<any[]>(ENDPOINTS.CATTLE_OWNERSHIPS, this.toParams(filters)).pipe(
+      map(res => ({ ...res, data: res.data.map(toCattleOwnership) }))
+    );
   }
 
-  /**
-   * Obtiene una propiedad por ID.
-   */
   getById(id: string): Observable<ApiResponse<CattleOwnership>> {
-    return this.api.get<CattleOwnership>(INVESTMENT_ENDPOINTS.CATTLE_OWNERSHIP(id));
+    return this.api.get<any>(ENDPOINTS.CATTLE_OWNERSHIP(id)).pipe(
+      map(res => ({ ...res, data: toCattleOwnership(res.data) }))
+    );
   }
 
-  /**
-   * Asigna ganado a una inversión.
-   */
   assign(payload: AssignCattlePayload): Observable<ApiResponse<CattleOwnership>> {
-    return this.api.post<CattleOwnership>(
-      INVESTMENT_ENDPOINTS.CATTLE_OWNERSHIPS,
-      payload
+    return this.api.post<any>(ENDPOINTS.CATTLE_OWNERSHIPS, assignCattleToFormData(payload as any)).pipe(
+      map(res => ({ ...res, data: toCattleOwnership(res.data) }))
     );
   }
 
-  /**
-   * Actualiza una propiedad de ganado.
-   */
   update(id: string, payload: Partial<AssignCattlePayload>): Observable<ApiResponse<CattleOwnership>> {
-    return this.api.patch<CattleOwnership>(
-      INVESTMENT_ENDPOINTS.CATTLE_OWNERSHIP(id),
-      payload
+    return this.api.patch<any>(ENDPOINTS.CATTLE_OWNERSHIP(id), assignCattleToFormData(payload as any)).pipe(
+      map(res => ({ ...res, data: toCattleOwnership(res.data) }))
     );
   }
 
-  // ─── OPERACIONES ─────────────────────────────────────────────────────────
+  // ── Operaciones ───────────────────────────────────────────────────
 
-  /**
-   * Registra un peso para el animal asociado.
-   */
-  recordWeight(id: string, payload: RecordWeightPayload): Observable<ApiResponse<WeightRecordResponse>> {
-    return this.api.post<WeightRecordResponse>(
-      INVESTMENT_ENDPOINTS.CATTLE_OWNERSHIP_RECORD_WEIGHT(id),
-      payload
+  recordWeight(id: string, payload: RecordWeightPayload): Observable<ApiResponse<WeightRecord>> {
+    return this.api.post<any>(ENDPOINTS.CATTLE_OWNERSHIP_WEIGHT(id), {
+      weight: payload.weight,
+      price_per_kg: payload.pricePerKg,
+      record_date: payload.recordDate,
+      notes: payload.notes,
+    }).pipe(
+      map(res => ({ ...res, data: toWeightRecord(res.data) }))
     );
   }
 
-  // ─── CONSULTAS ESPECÍFICAS ───────────────────────────────────────────────
+  // ── Consultas específicas ─────────────────────────────────────────
 
-  /**
-   * Obtiene propiedades activas de una inversión.
-   */
   getByInvestment(investmentId: string): Observable<ApiResponse<CattleOwnership[]>> {
-    return this.getAll({
-      investment: investmentId,
-      status: 'active',
-    });
+    return this.list({ investment: investmentId, status: CattleOwnershipStatus.ACTIVE });
   }
 
-  /**
-   * Obtiene todas las propiedades de un inversionista.
-   */
   getByInvestor(investorId: string): Observable<ApiResponse<CattleOwnership[]>> {
-    return this.getAll({ investor: investorId });
+    return this.list({ investor: investorId });
   }
 
-  /**
-   * Obtiene propiedades activas solamente.
-   */
-  getActive(params?: Omit<CattleOwnershipSearchParams, 'status'>): Observable<ApiResponse<CattleOwnership[]>> {
-    return this.getAll({ ...params, status: 'active' });
+  getActive(filters?: Omit<CattleOwnershipFilters, 'status'>): Observable<ApiResponse<CattleOwnership[]>> {
+    return this.list({ ...filters, status: CattleOwnershipStatus.ACTIVE });
   }
 
-  /**
-   * Verifica si un animal ya está asignado a alguna inversión activa.
-   */
-  isAnimalAssigned(animalId: string): Observable<boolean> {
-    return new Observable(observer => {
-      this.getAll({ animal: animalId, status: 'active' }).subscribe({
-        next: (res) => {
-          observer.next((res.data?.length ?? 0) > 0);
-          observer.complete();
-        },
-        error: (err) => observer.error(err),
-      });
-    });
+  // ── Helpers ───────────────────────────────────────────────────────
+
+  private toParams(filters?: CattleOwnershipFilters): Record<string, any> | undefined {
+    if (!filters) return undefined;
+    return {
+      status: filters.status,
+      ownership_type: filters.ownershipType,
+      investment: filters.investment,
+      investor: filters.investor,
+      animal: filters.animal,
+      lot: filters.lot,
+      ordering: filters.ordering,
+      page: filters.page,
+      page_size: filters.pageSize,
+    };
   }
 }

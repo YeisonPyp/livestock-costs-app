@@ -1,0 +1,37 @@
+<div class="decision-card" [class.urgent]="isUrgent()">
+  <div class="dec-header">
+    <div>
+      <div class="dec-title">{{ decision().saleEventId }}</div>
+      <div class="dec-meta">
+        {{ decision().saleDate }}
+        @if (decision().decisionDeadline) {
+          · <span [class]="deadlineClass()">{{ deadlineLabel() }}</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="dec-amount">{{ fmt(decision().investorAmount) }}</div>
+
+  <div
+    class="dec-profit"
+    [class.profit]="pd(decision().profitLoss) > 0"
+    [class.loss]="pd(decision().profitLoss) < 0"
+  >
+    {{ pd(decision().profitLoss) > 0 ? "+" : ""
+    }}{{ fmt(decision().profitLoss) }}
+    {{ pd(decision().profitLoss) > 0 ? "ganancia" : "pérdida" }}
+  </div>
+
+  <div class="dec-actions">
+    <button class="btn-primary" (click)="emit(SaleDecisionType.REINVEST)">
+      Reinvertir todo
+    </button>
+    <button class="btn-ghost" (click)="emit(SaleDecisionType.WITHDRAW)">
+      Retirar todo
+    </button>
+    <button class="btn-ghost" (click)="emit(SaleDecisionType.PARTIAL)">
+      Parcial
+    </button>
+  </div>
+</div>

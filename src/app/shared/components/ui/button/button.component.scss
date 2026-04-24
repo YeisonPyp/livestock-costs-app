@@ -1,0 +1,157 @@
+@use '../../../../styles/variables' as *;
+@use "sass:color";
+
+// ─── Host ─────────────────────────────────────────────────────────────────────
+:host {
+  display: inline-block;
+
+  &.full-width {
+    display: block;
+    width: 100%;
+  }
+}
+
+// ─── Base ─────────────────────────────────────────────────────────────────────
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  font-family: $font-family;
+  font-weight: $weight-semibold;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  white-space: nowrap;
+  border-radius: $border-radius;
+  @include transition(background-color, color, border-color, transform, box-shadow, opacity);
+  @include focus-ring;
+
+  &.btn-rounded { border-radius: $border-radius-full; }
+  &.btn-full-width { width: 100%; }
+
+  &:active:not(:disabled) { transform: scale(0.97); }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  // Ripple
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(255,255,255,.28) 0%, transparent 70%);
+    opacity: 0;
+    transform: scale(0);
+    transition: opacity .4s, transform .4s;
+  }
+  &:active::before { opacity: 1; transform: scale(2); transition: none; }
+}
+
+.btn-loading { pointer-events: none; .btn-content { opacity: .7; } }
+
+// ─── Sizes ────────────────────────────────────────────────────────────────────
+.btn-xs  { padding: .375rem .75rem;  font-size: $font-xs;   gap: .375rem; .btn-icon svg { width:14px; height:14px; } }
+.btn-sm  { padding: .5rem 1rem;      font-size: $font-sm;   gap: .375rem; .btn-icon svg { width:16px; height:16px; } }
+.btn-md  { padding: .625rem 1.25rem; font-size: $font-base; gap: $space-2;.btn-icon svg { width:18px; height:18px; } }
+.btn-lg  { padding: .75rem 1.5rem;   font-size: $font-md;   gap: $space-2;.btn-icon svg { width:20px; height:20px; } }
+.btn-xl  { padding: 1rem 2rem;       font-size: $font-lg;   gap: .625rem; .btn-icon svg { width:24px; height:24px; } }
+
+// ─── Solid Variants ───────────────────────────────────────────────────────────
+@mixin solid-variant($bg, $bg-hover, $bg-light: null) {
+  background: if($bg-light, linear-gradient(135deg, $bg, $bg-hover), $bg);
+  color: $white;
+  box-shadow: 0 2px 4px rgba($bg, .2);
+
+  &:hover:not(:disabled) {
+    background: if($bg-light, linear-gradient(135deg, $bg-light, $bg), $bg-hover);
+    box-shadow: 0 4px 10px rgba($bg, .3);
+    transform: translateY(-1px);
+  }
+  @include focus-ring($bg);
+}
+
+.btn-primary   { @include solid-variant($primary,   $primary-hover,  $primary-light); }
+.btn-secondary { @include solid-variant($secondary, $secondary-hover); }
+.btn-success   { @include solid-variant($success,   $success-hover); }
+.btn-danger    { @include solid-variant($danger,    $danger-hover); }
+.btn-warning   { @include solid-variant($warning,   $warning-hover); }
+.btn-info      { @include solid-variant($info,      $info-hover,     $primary-light); }
+
+.btn-ghost {
+  background: transparent;
+  color: $gray-700;
+  &:hover:not(:disabled) { background: $gray-100; }
+  @include focus-ring($gray-700);
+}
+
+// ─── Outline Variants ─────────────────────────────────────────────────────────
+@mixin outline-variant($color, $color-hover: color.adjust($color, $lightness: -10%)) {
+  background: transparent;
+  color: $color;
+  border: 2px solid $color;
+  box-shadow: none;
+  &:hover:not(:disabled) { background: $color; color: $white; transform: translateY(-1px); }
+  @include focus-ring($color);
+}
+
+.btn-outline                     { @include outline-variant($primary); }
+.btn-outline.btn-secondary       { @include outline-variant($secondary); }
+.btn-outline.btn-success         { @include outline-variant($success); }
+.btn-outline.btn-danger          { @include outline-variant($danger); }
+.btn-outline.btn-warning         { @include outline-variant($warning-hover, $warning); }
+
+// ─── Inner elements ───────────────────────────────────────────────────────────
+.btn-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+}
+
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  svg { width: 18px; height: 18px; }
+}
+
+// ─── Spinner ──────────────────────────────────────────────────────────────────
+.btn-spinner { display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+.spinner-icon {
+  width: 18px;
+  height: 18px;
+  animation: btn-spin 1s linear infinite;
+}
+
+.spinner-track { opacity: .3; fill: none; }
+.spinner-head  { fill: none; }
+
+@keyframes btn-spin { to { transform: rotate(360deg); } }
+
+// ─── Icon-only button ─────────────────────────────────────────────────────────
+.btn:not(:has(.btn-content:not(:empty))) {
+  padding: .625rem;
+  aspect-ratio: 1;
+  &.btn-xs { padding: .375rem; }
+  &.btn-sm { padding: .5rem;   }
+  &.btn-md { padding: .625rem; }
+  &.btn-lg { padding: .75rem;  }
+  &.btn-xl { padding: 1rem;    }
+}
+
+// ─── Accessibility ────────────────────────────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+  .btn, .btn::before, .spinner-icon {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}

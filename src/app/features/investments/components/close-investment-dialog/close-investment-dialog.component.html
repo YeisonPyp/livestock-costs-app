@@ -1,0 +1,65 @@
+<app-modal
+  [isOpen]="true"
+  title="Cerrar Inversión"
+  size="md"
+  (close)="cancelled.emit()"
+>
+  <div class="close-body">
+    <p class="close-desc">
+      ¿Estás seguro de que quieres cerrar esta inversión? Esta acción
+      <strong>no se puede deshacer</strong>.
+    </p>
+
+    @if (closureStatus()?.summary; as s) {
+      <div class="closure-summary">
+        <div class="summary-row">
+          <span>Capital pendiente</span>
+          <app-amount-display
+            [amount]="parseDecimal(s.currentBalance)"
+            type="neutral"
+            size="sm"
+          />
+        </div>
+        <div class="summary-row">
+          <span>Ganado activo</span>
+          <span>{{ s.activeCattle }} cabezas</span>
+        </div>
+        @if (s.pendingDecisions > 0) {
+          <div class="summary-row warning">
+            <span>⚠ Decisiones pendientes</span>
+            <span>{{ s.pendingDecisions }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    @if (closureStatus()?.blocking?.length) {
+      <div class="blocking-list">
+        <p class="blocking-title">Bloqueos activos:</p>
+        @for (b of closureStatus()!.blocking; track b) {
+          <div class="blocking-item">⛔ {{ b }}</div>
+        }
+      </div>
+    }
+  </div>
+
+  <ng-container footer>
+    <button
+      class="btn btn-ghost"
+      (click)="cancelled.emit()"
+      [disabled]="loading()"
+    >
+      Cancelar
+    </button>
+    <button
+      class="btn btn-danger"
+      [disabled]="loading()"
+      (click)="confirmed.emit()"
+    >
+      @if (loading()) {
+        <span class="spinner"></span>
+      }
+      Confirmar Cierre
+    </button>
+  </ng-container>
+</app-modal>

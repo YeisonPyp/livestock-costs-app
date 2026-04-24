@@ -3,17 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDialog } from '@angular/material/dialog';
-
-import { PageHeaderComponent }   from '../../../../shared/components/page-header/page-header.component';
-import { LoaderComponent }        from '../../../../shared/components/loader/loader.component';
-import { StatsCardComponent }     from '../../../../shared/components/stats-card/stats-card.component';
-import { BadgeComponent }         from '../../../../shared/components/display/badge/badge.component';
-import { ProgressBarComponent }   from '../../../../shared/components/display/progress-bar/progress-bar.component';
-import { EmptyStateComponent }    from '../../../../shared/components/empty-state/empty-state.component';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { CostService } from '../../../costs/services/cost.service';
-import { TableComponent, TableColumn, TableConfig } from '../../../../shared/components/table/table.component';
-
 import {
   EmployeeFormDialogComponent,
   EmployeeDialogData,
@@ -23,6 +14,13 @@ import { FarmService } from '../../services/farm.service';
 import { Farm, FarmSummary, Employee, EMPLOYEE_ROLES,} from '../../models/farm.model';
 import { formatNumber } from '../../../../core/utils/helpers';
 import { CostFilters } from '../../../costs/models/cost.model';
+import { PageHeaderComponent } from '../../../../shared/components/navigation/page-header/page-header.component';
+import { LoaderComponent } from '../../../../shared/components/feedback/loader/loader.component';
+import { TableColumn, TableComponent, TableConfig } from '../../../../shared/components/data-display/table/table.component';
+import { EmptyStateComponent } from '../../../../shared/components/feedback/empty-state/empty-state.component';
+import { ProgressBarComponent } from '../../../../shared/components/ui/progress-bar/progress-bar.component';
+import { BadgeComponent } from '../../../../shared/components/ui/badge/badge.component';
+import { StatsCardComponent } from '../../../../shared/components/data-display/stats-card/stats-card.component';
 
 @Component({
   selector: 'app-farm-detail',

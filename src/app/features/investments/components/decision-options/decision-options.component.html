@@ -1,0 +1,76 @@
+<div class="options-grid">
+  <button
+    class="option-card"
+    [class.selected]="selectedType() === SaleDecisionType.REINVEST"
+    (click)="typeSelected.emit(SaleDecisionType.REINVEST)"
+  >
+    <div class="option-icon option-icon--success">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+      >
+        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+        <polyline points="16 7 22 7 22 13" />
+      </svg>
+    </div>
+    <div class="option-content">
+      <span class="option-title">Reinvertir Todo</span>
+      <span class="option-desc"
+        >El monto completo se reinvierte en la siguiente operación</span
+      >
+      <span class="option-amount success">{{ fmt(investorAmount()) }}</span>
+    </div>
+  </button>
+
+  <button
+    class="option-card"
+    [class.selected]="selectedType() === SaleDecisionType.WITHDRAW"
+    (click)="typeSelected.emit(SaleDecisionType.WITHDRAW)"
+  >
+    <div class="option-icon option-icon--danger">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+      >
+        <line x1="5" y1="12" x2="19" y2="12" />
+        <polyline points="12 5 19 12 12 19" />
+      </svg>
+    </div>
+    <div class="option-content">
+      <span class="option-title">Retirar Todo</span>
+      <span class="option-desc">El monto completo se acredita a tu cuenta</span>
+      <span class="option-amount danger">{{ fmt(investorAmount()) }}</span>
+    </div>
+  </button>
+
+  <button
+    class="option-card"
+    [class.selected]="selectedType() === SaleDecisionType.PARTIAL"
+    (click)="typeSelected.emit(SaleDecisionType.PARTIAL)"
+  >
+    <div class="option-icon option-icon--warning">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="16" />
+        <line x1="8" y1="12" x2="16" y2="12" />
+      </svg>
+    </div>
+    <div class="option-content">
+      <span class="option-title">Distribuir</span>
+      <span class="option-desc">Decide cuánto reinvertir y cuánto retirar</span>
+      <span class="option-amount warning">Personalizable</span>
+    </div>
+  </button>
+</div>

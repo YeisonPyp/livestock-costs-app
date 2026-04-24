@@ -25,7 +25,7 @@ import { PersonService } from '../../services/person.service';
 import { CatalogService } from '../../services/catalog.service';
 import { PersonSimple, Person, DocumentType, SearchFilters } from '../../models/user.model';
 import { PersonFormComponent } from '../../pages/person-form/person-form.component';
-import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import { ModalComponent } from '../../../../shared/components/overlays/modal/modal.component';
 
 interface PersonTypeOption {
   value: '' | 'N' | 'J';

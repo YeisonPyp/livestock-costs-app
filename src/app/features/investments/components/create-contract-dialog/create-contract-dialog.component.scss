@@ -1,0 +1,199 @@
+// create-contract-dialog.component.scss
+@use '../../../../styles/variables' as *;
+
+.dialog-container { width: 100%; max-width: 600px; }
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-4 $space-5;
+  border-bottom: 1px solid $border-color;
+
+  h2 { margin: 0; font-size: $font-lg; font-weight: $weight-bold; color: $slate-900; }
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: $slate-400;
+  line-height: 1;
+  padding: 0;
+  &:hover { color: $slate-600; }
+}
+
+.dialog-body {
+  padding: $space-5;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-3;
+  padding: $space-4 $space-5;
+  border-top: 1px solid $border-color;
+  background: $slate-50;
+}
+
+// ── Form elements ────────────────────────────────────────────────
+
+.form-group { margin-bottom: $space-4; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-4;
+
+  @include respond-below($bp-sm) { grid-template-columns: 1fr; }
+}
+
+.form-label {
+  display: block;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: $slate-700;
+  margin-bottom: $space-1;
+
+  &.required::after { content: ' *'; color: $danger; }
+}
+
+.optional { color: $slate-400; font-weight: $weight-normal; font-size: $font-xs; }
+
+.form-control {
+  width: 100%;
+  padding: $space-2 $space-3;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-family: $font-family;
+  color: $slate-800;
+  background: $white;
+  @include transition(border-color, box-shadow);
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+}
+
+.form-textarea { resize: vertical; }
+
+.error-text {
+  display: block;
+  color: $danger;
+  font-size: $font-xs;
+  margin-top: $space-1;
+}
+
+// ── Investor chip ────────────────────────────────────────────────
+
+.selected-investor {
+  display: flex;
+  gap: $space-2;
+  padding: $space-3;
+  background: $slate-50;
+  border-radius: $border-radius;
+  margin-bottom: $space-4;
+
+  .label { font-size: $font-sm; color: $slate-500; }
+  .value { font-weight: $weight-medium; color: $slate-800; }
+}
+
+// ── File upload ──────────────────────────────────────────────────
+
+.file-upload {
+  border: 2px dashed $border-color;
+  border-radius: $border-radius-md;
+  padding: $space-6;
+  text-align: center;
+  @include transition(border-color, background-color);
+
+  &:hover,
+  &.drag-over { border-color: $primary; background: rgba($primary, 0.02); }
+  &.has-file  { border-style: solid; background: $slate-50; padding: $space-4; }
+}
+
+.upload-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-2;
+  color: $slate-500;
+  font-size: $font-sm;
+}
+
+.upload-icon { width: 48px; height: 48px; color: $slate-300; }
+
+.browse-btn {
+  color: $primary;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  &:hover { text-decoration: underline; }
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
+
+.file-icon  { width: 24px; height: 24px; color: $danger; flex-shrink: 0; }
+.file-name  { font-weight: $weight-medium; color: $slate-800; }
+.file-size  { color: $slate-400; font-size: $font-xs; }
+.remove-file {
+  background: none;
+  border: none;
+  color: $slate-400;
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  margin-left: auto;
+  &:hover { color: $danger; }
+}
+
+// ── Buttons ──────────────────────────────────────────────────────
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-4;
+  border: none;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  @include transition(background-color, opacity);
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  &.btn-primary {
+    background: $primary;
+    color: $white;
+    &:hover:not(:disabled) { background: $primary-hover; }
+  }
+
+  &.btn-ghost {
+    background: transparent;
+    color: $slate-600;
+    &:hover { background: $slate-100; }
+  }
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

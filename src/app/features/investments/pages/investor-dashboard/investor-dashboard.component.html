@@ -1,0 +1,256 @@
+<!-- investor-dashboard.component.html -->
+
+@if (facade.loading()) {
+  <app-loader [overlay]="false" type="spinner" />
+}
+@else if (facade.error()) {
+  <app-alert type="danger" [message]="facade.error()" />
+}
+@else {
+
+<div class="dashboard">
+
+  <!-- Perfil -->
+  <div class="profile-row">
+    <div class="avatar">{{ facade.initials() }}</div>
+    <div class="profile-info">
+      <div class="profile-name">
+        {{ facade.investor()?.name }}
+        <app-badge color="success" size="sm">Activo</app-badge>
+      </div>
+      <div class="profile-meta">
+        {{ facade.investor()?.code }} · Inversionista desde
+        {{ facade.investor()?.joinedDate | date:'dd MMM yyyy':'':'es' }}
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Capital actual</div>
+      <div class="kpi-value">{{ facade.formatCOP(facade.kpis()?.currentCapital ?? 0) }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Ganancias totales</div>
+      <div class="kpi-value profit">{{ facade.formatCOP(facade.kpis()?.totalProfits ?? 0) }}</div>
+      <div class="kpi-sub">ROI: {{ (facade.kpis()?.roi ?? 0).toFixed(1) }}%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Cabezas activas</div>
+      <div class="kpi-value">{{ facade.kpis()?.activeHeads ?? 0 }}</div>
+      <div class="kpi-sub">Valor: {{ facade.formatCOP(facade.kpis()?.cattleValue ?? 0) }}</div>
+    </div>
+    <div class="kpi-card" [class.kpi-alert]="(facade.kpis()?.pendingDecisions ?? 0) > 0">
+      <div class="kpi-label">Decisiones pendientes</div>
+      <div class="kpi-value" [class.text-danger]="(facade.kpis()?.pendingDecisions ?? 0) > 0">
+        {{ facade.kpis()?.pendingDecisions ?? 0 }}
+      </div>
+      <div class="kpi-sub">
+        @if ((facade.kpis()?.pendingDecisions ?? 0) > 0) {
+          <span class="text-danger">Requieren tu atención</span>
+        } @else {
+          Al día
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs nav -->
+  <div class="tabs-nav">
+    <button class="tab-btn" [class.active]="facade.activeTab() === 'resumen'"
+      (click)="setTab('resumen')">Resumen</button>
+    <button class="tab-btn" [class.active]="facade.activeTab() === 'ganado'"
+      (click)="setTab('ganado')">
+      Ganado
+      <span class="tab-count">{{ facade.kpis()?.activeHeads ?? 0 }}</span>
+    </button>
+    <button class="tab-btn" [class.active]="facade.activeTab() === 'movimientos'"
+      (click)="setTab('movimientos')">Movimientos</button>
+    <button class="tab-btn" [class.active]="facade.activeTab() === 'decisiones'"
+      (click)="setTab('decisiones')">
+      Decisiones
+      @if (facade.pendingCount() > 0) {
+        <span class="tab-badge">{{ facade.pendingCount() }}</span>
+      }
+    </button>
+  </div>
+
+  <!-- TAB: Resumen -->
+  @if (facade.activeTab() === 'resumen') {
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Evolución del capital</div>
+        <div class="chart-wrap">
+          <canvas #capitalCanvas></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Distribución del portafolio</div>
+        <div class="chart-wrap">
+          <canvas #portfolioCanvas></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Últimos movimientos</div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Fecha</th><th>Tipo</th><th>Descripción</th>
+            <th class="num">Monto</th><th class="num">Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of facade.summary()?.movementsList?.slice(0, 5) ?? []; track m.date) {
+            <tr>
+              <td class="date">{{ m.date | date:'dd MMM yyyy':'':'es' }}</td>
+              <td>
+                <app-badge [color]="facade.movementColor(m.type)" size="sm">
+                  {{ m.type }}
+                </app-badge>
+              </td>
+              <td>{{ m.description }}</td>
+              <td class="num"
+                [class.credit]="facade.movementSign(m.type) === '+'"
+                [class.debit]="facade.movementSign(m.type) === '−'">
+                {{ facade.movementSign(m.type) }}{{ facade.formatCOP(m.amount) }}
+              </td>
+              <td class="num">{{ facade.formatCOP(m.balance) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- TAB: Ganado -->
+  @if (facade.activeTab() === 'ganado') {
+    <div class="card">
+      <div class="card-title">
+        Ganado activo — {{ facade.kpis()?.activeHeads ?? 0 }} cabezas
+      </div>
+      @if (!facade.summary()?.cattle) {
+        <p class="empty-msg">No tienes ganado activo actualmente.</p>
+      } @else {
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Animal / Lote</th><th>Tipo</th>
+                <th class="num">Valor Compra</th><th class="num">Valor Actual</th>
+                <th class="num">Ganancia Peso</th><th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Cattle viene de summary.cattle que es un objeto con stats, no lista.
+                   El detalle individual se cargaría via un endpoint específico del portal. -->
+              <tr>
+                <td colspan="6" class="empty-msg">
+                  Datos de ganado disponibles en el resumen financiero.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- TAB: Movimientos -->
+  @if (facade.activeTab() === 'movimientos') {
+    <div class="card">
+      <div class="card-title">Historial completo de movimientos</div>
+      @if (!(facade.summary()?.movementsList?.length)) {
+        <p class="empty-msg">No hay movimientos registrados.</p>
+      } @else {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Fecha</th><th>Tipo</th><th>Descripción</th>
+              <th class="num">Monto</th><th class="num">Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of facade.summary()?.movementsList ?? []; track m.date + m.type) {
+              <tr>
+                <td class="date">{{ m.date | date:'dd MMM yyyy':'':'es' }}</td>
+                <td>
+                  <app-badge [color]="facade.movementColor(m.type)" size="sm">
+                    {{ m.type }}
+                  </app-badge>
+                </td>
+                <td>{{ m.description }}</td>
+                <td class="num"
+                  [class.credit]="facade.movementSign(m.type) === '+'"
+                  [class.debit]="facade.movementSign(m.type) === '−'">
+                  {{ facade.movementSign(m.type) }}{{ facade.formatCOP(m.amount) }}
+                </td>
+                <td class="num">{{ facade.formatCOP(m.balance) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+
+  <!-- TAB: Decisiones -->
+  @if (facade.activeTab() === 'decisiones') {
+
+    @if (facade.pendingDecisions().length > 0) {
+      <div class="section-label">Pendientes de decisión</div>
+      @for (d of facade.pendingDecisions(); track d.id) {
+        <app-decision-card
+          [decision]="d"
+          (decide)="onDecide($event)" />
+      }
+    } @else {
+      <div class="card">
+        <p class="empty-msg">No tienes decisiones pendientes. ✓</p>
+      </div>
+    }
+
+    <!-- Modal parcial -->
+    @if (facade.partialModalOpen()) {
+      <app-partial-decision-modal
+        [totalAmount]="facade.parseDecimal(facade.pendingDecisionForPartial()?.investorAmount ?? '0')"
+        (submitted)="onPartialSubmit($event)"
+        (cancelled)="facade.closePartialModal()" />
+    }
+
+    <div class="card" style="margin-top:1.5rem">
+      <div class="card-title">Historial de decisiones</div>
+      @if (facade.processedDecisions().length === 0) {
+        <p class="empty-msg">No hay decisiones procesadas aún.</p>
+      } @else {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Fecha</th><th>Evento</th><th>Decisión</th>
+              <th class="num">Reinvertido</th><th class="num">Retirado</th><th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of facade.processedDecisions(); track d.id) {
+              <tr>
+                <td class="date">{{ d.decisionDate | date:'dd MMM yyyy':'':'es' }}</td>
+                <td>{{ d.saleEventId }}</td>
+                <td>{{ d.decisionType }}</td>
+                <td class="num credit">{{ facade.formatCOP(d.reinvestAmount) }}</td>
+                <td class="num">
+                  {{ facade.parseDecimal(d.withdrawAmount) > 0
+                    ? facade.formatCOP(d.withdrawAmount) : '—' }}
+                </td>
+                <td><app-badge color="success" size="sm">Procesada</app-badge></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+
+</div>
+}

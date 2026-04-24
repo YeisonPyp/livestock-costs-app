@@ -1,0 +1,189 @@
+// contract-detail.component.scss
+@use '../../../../../styles/variables' as *;
+
+.detail-card {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+}
+
+// ── Header ────────────────────────────────────────────────────────
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: $space-5;
+  border-bottom: 1px solid $border-color;
+  gap: $space-4;
+  flex-wrap: wrap;
+}
+
+.header-info { display: flex; flex-direction: column; gap: $space-3; }
+
+.contract-title { display: flex; align-items: baseline; gap: $space-3; }
+
+.contract-number {
+  font-size: $font-xl;
+  font-weight: $weight-bold;
+  color: $slate-900;
+}
+
+.contract-version {
+  font-size: $font-sm;
+  color: $slate-400;
+}
+
+.contract-badges { display: flex; gap: $space-2; flex-wrap: wrap; }
+
+.header-actions { display: flex; gap: $space-2; flex-wrap: wrap; align-items: center; }
+
+// ── Info grid ────────────────────────────────────────────────────
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0;
+  border-bottom: 1px solid $border-color;
+}
+
+.info-section {
+  padding: $space-5;
+  border-right: 1px solid $border-color;
+
+  &:last-child { border-right: none; }
+
+  h4 {
+    margin: 0 0 $space-3;
+    font-size: $font-sm;
+    font-weight: $weight-bold;
+    color: $slate-700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-2 0;
+  border-bottom: 1px solid rgba($border-color, .5);
+  &:last-child { border-bottom: none; }
+
+  &.clickable { cursor: pointer; &:hover .val.link { text-decoration: underline; } }
+}
+
+.lbl { font-size: $font-xs; color: $slate-400; }
+
+.val {
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: $slate-800;
+
+  &.link    { color: $primary; }
+  &.percentage { font-weight: $weight-bold; color: $primary; }
+}
+
+.text-danger  { color: $danger !important; }
+.text-warning { color: $warning !important; }
+.text-muted   { color: $slate-400; }
+
+// ── Notes ────────────────────────────────────────────────────────
+
+.notes-section {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  padding: $space-5;
+  border-bottom: 1px solid $border-color;
+}
+
+.note-block {
+  h4 {
+    margin: 0 0 $space-2;
+    font-size: $font-sm;
+    font-weight: $weight-semibold;
+    color: $slate-700;
+  }
+
+  p {
+    margin: 0;
+    font-size: $font-sm;
+    color: $slate-600;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+}
+
+// ── Audit ────────────────────────────────────────────────────────
+
+.audit-section {
+  padding: $space-5;
+
+  h4 {
+    margin: 0 0 $space-3;
+    font-size: $font-sm;
+    font-weight: $weight-bold;
+    color: $slate-700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+}
+
+.audit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: $space-4;
+}
+
+.audit-item {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+
+  &.full-width { grid-column: 1 / -1; }
+}
+
+.audit-label {
+  font-size: $font-xs;
+  color: $slate-400;
+  font-weight: $weight-medium;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.audit-value { font-size: $font-sm; color: $slate-700; }
+
+// ── Breadcrumb & buttons ─────────────────────────────────────────
+
+.bc-link { color: $primary; text-decoration: none; font-size: $font-sm; &:hover { text-decoration: underline; } }
+.bc-sep  { margin: 0 $space-2; color: $slate-400; font-size: $font-sm; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  border: 1.5px solid transparent;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  @include transition(background-color, border-color);
+
+  svg { width: 14px; height: 14px; }
+
+  &:disabled { opacity: .5; cursor: not-allowed; }
+
+  &.btn-outline { background: $white; border-color: $border-color; color: $slate-600; &:hover { border-color: $primary; color: $primary; } }
+  &.btn-success { background: $success; color: $white; &:hover:not(:disabled) { background: darken($success, 8%); } }
+  &.btn-primary { background: $primary; color: $white; &:hover:not(:disabled) { background: $primary-hover; } }
+  &.btn-danger  { background: $danger;  color: $white; &:hover:not(:disabled) { background: darken($danger, 8%); } }
+  &.btn-warning { background: $warning; color: $white; &:hover:not(:disabled) { background: $warning-hover; } }
+  &.btn-sm  { padding: $space-1 $space-3; font-size: $font-xs; }
+  .btn-icon { width: 14px; height: 14px; }
+}
+
+.ml-3 { margin-left: $space-3; }

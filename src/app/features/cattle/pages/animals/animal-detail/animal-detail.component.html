@@ -79,7 +79,7 @@
           <div class="dl-row"><dt>Arete</dt>        <dd class="mono">{{ animal()!.tag_number }}</dd></div>
           <div class="dl-row"><dt>Nombre</dt>       <dd>{{ animal()!.name || '—' }}</dd></div>
           <div class="dl-row"><dt>ID Electrónico</dt><dd class="mono">{{ animal()!.electronic_id || '—' }}</dd></div>
-          <div class="dl-row"><dt>Raza</dt>         <dd>{{ animal()!.breed?.name || '—' }}</dd></div>
+          <div class="dl-row"><dt>Raza</dt>         <dd>{{ animal()!.breed.name }}</dd></div>
           <div class="dl-row"><dt>Color</dt>
             <dd class="color-cell">
               @if (animal()!.color) {

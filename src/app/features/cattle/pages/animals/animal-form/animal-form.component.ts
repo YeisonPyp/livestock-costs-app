@@ -3,16 +3,15 @@ import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
-import { PageHeaderComponent }     from '../../../../../shared/components/page-header/page-header.component';
 import { FormCardComponent }       from '../../../../../shared/components/forms/form-card/form-card.component';
 import { InputFieldComponent }     from '../../../../../shared/components/forms/input-field/input-field.component';
 import { SelectFieldComponent }    from '../../../../../shared/components/forms/select-field/select-field.component';
-import { AlertComponent }          from '../../../../../shared/components/display/alert/alert.component';
-import { LoaderComponent }         from '../../../../../shared/components/loader/loader.component';
 
 import { CattleService } from '../../../services/cattle.service';
 import { Breed, Color, Lot } from '../../../models/cattle.model';
+import { PageHeaderComponent } from '../../../../../shared/components/navigation/page-header/page-header.component';
+import { AlertComponent } from '../../../../../shared/components/feedback/alert/alert.component';
+import { LoaderComponent } from '../../../../../shared/components/feedback/loader/loader.component';
 
 @Component({
   selector: 'app-animal-form',

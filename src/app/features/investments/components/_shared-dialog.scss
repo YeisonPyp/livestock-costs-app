@@ -1,0 +1,139 @@
+// components/_shared-dialog.scss
+// Estilos base compartidos por todos los diálogos de acción pequeños.
+@use '../../../styles/variables' as *;
+
+.dialog-sm { width: 100%; max-width: 480px; }
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-4 $space-5;
+  border-bottom: 1px solid $border-color;
+
+  h3 { margin: 0; font-size: $font-md; font-weight: $weight-bold; color: $slate-900; }
+}
+
+.close-btn {
+  background: none; border: none;
+  font-size: 22px; line-height: 1; padding: 0;
+  cursor: pointer; color: $slate-400;
+  &:hover { color: $slate-700; }
+}
+
+.dialog-body { padding: $space-5; }
+
+.dialog-desc {
+  font-size: $font-sm;
+  color: $slate-600;
+  margin: 0 0 $space-4;
+  line-height: 1.5;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-3;
+  padding-top: $space-5;
+  border-top: 1px solid $border-color;
+  margin-top: $space-4;
+}
+
+// ── Form ─────────────────────────────────────────────────────────
+
+.form-group { margin-bottom: $space-4; &:last-child { margin-bottom: 0; } }
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-4;
+}
+
+.form-label {
+  display: block;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: $slate-700;
+  margin-bottom: $space-1;
+  &.required::after { content: ' *'; color: $danger; }
+}
+
+.optional { color: $slate-400; font-weight: $weight-normal; font-size: $font-xs; }
+
+.form-control {
+  width: 100%;
+  padding: $space-2 $space-3;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-family: $font-family;
+  background: $white;
+  @include transition(border-color, box-shadow);
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+
+  &[rows] { resize: vertical; }
+}
+
+.error-text { display: block; color: $danger; font-size: $font-xs; margin-top: $space-1; }
+
+.hint { font-size: $font-xs; color: $slate-400; margin-top: -$space-2; margin-bottom: $space-4; }
+
+// ── File upload (mini) ────────────────────────────────────────────
+
+.file-upload {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  border: 2px dashed $border-color;
+  border-radius: $border-radius;
+  padding: $space-3 $space-4;
+  @include transition(border-color);
+
+  &:hover, &.has-file { border-color: $primary; }
+  &.has-file { border-style: solid; background: $slate-50; }
+}
+
+.file-name { font-size: $font-sm; font-weight: $weight-medium; color: $slate-800; flex: 1; }
+
+.remove-file {
+  background: none; border: none;
+  color: $slate-400; font-size: 18px; cursor: pointer; padding: 0;
+  &:hover { color: $danger; }
+}
+
+.browse-btn {
+  font-size: $font-sm;
+  color: $primary;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  &:hover { text-decoration: underline; }
+}
+
+// ── Buttons ──────────────────────────────────────────────────────
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-4;
+  border: none;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  @include transition(background-color, opacity);
+
+  &:disabled { opacity: .5; cursor: not-allowed; }
+
+  svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  &.btn-primary { background: $primary; color: $white; &:hover:not(:disabled) { background: $primary-hover; } }
+  &.btn-success { background: $success; color: $white; &:hover:not(:disabled) { background: darken($success, 8%); } }
+  &.btn-danger  { background: $danger;  color: $white; &:hover:not(:disabled) { background: darken($danger, 8%); } }
+  &.btn-ghost   { background: transparent; color: $slate-600; &:hover { background: $slate-100; } }
+}

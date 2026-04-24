@@ -1,63 +1,70 @@
+<!-- investor-form.component.html -->
+
 <app-page-header [title]="isEdit() ? 'Editar Inversionista' : 'Nuevo Inversionista'">
+  <ng-container breadcrumb>
+    <a routerLink="/investments/investors" class="bc-link">Inversionistas</a>
+    <span class="bc-sep">/</span>
+    <span>{{ isEdit() ? 'Editar' : 'Nuevo' }}</span>
+  </ng-container>
 </app-page-header>
 
-@if (loading()) {
+@if (facade.formLoading()) {
   <app-loader [overlay]="false" type="spinner" message="Cargando..." />
 } @else {
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-container">
 
-    @if (!isEdit()){
-      <!-- Persona -->
+    <!-- Persona (solo en creación) -->
+    @if (!isEdit()) {
       <app-form-card
         title="Persona"
-        subtitle="Vincula el inversionista con una persona registrada en el sistema"
-      >
-      <app-person-search (personSelected)="onPersonSelected($event)" />
+        subtitle="Vincula el inversionista con una persona registrada en el sistema">
+        <app-person-search (personSelected)="onPersonSelected($event)" />
       </app-form-card>
-
     }
+
     <!-- Configuración -->
-    <app-form-card title="Configuración" subtitle="Parámetros de vinculación y comportamiento">
+    <app-form-card
+      title="Configuración"
+      subtitle="Parámetros de vinculación y comportamiento">
       <div class="form-grid">
+
         <app-input-field
           label="Fecha de Vinculación"
           [required]="true"
           type="date"
-          formControlName="joined_date"
-          [control]="f['joined_date']"
-          placeholder="AAAA-MM-DD"
+          formControlName="joinedDate"
+          [control]="f['joinedDate']"
           [max]="today"
           errorMessage="La fecha es requerida"
-        ></app-input-field>
+        />
 
         <app-select-field
           label="Decisión por Defecto en Ventas"
-          formControlName="default_sale_decision"
+          formControlName="defaultSaleDecision"
           [options]="defaultDecisionOptions"
           hint="Se aplicará automáticamente si no toma una decisión a tiempo"
-        ></app-select-field>
+        />
 
         <app-input-field
-          label="Porcentaje de Ganacia Inversionista"
+          label="Porcentaje de Ganancia Inversionista"
           [required]="true"
           type="number"
-          formControlName="investor_percentage"
-          [control]="f['investor_percentage']"
+          formControlName="investorPercentage"
+          [control]="f['investorPercentage']"
           placeholder="60"
-          min=0
-          max=100
-          errorMessage="El porcentaje de ganancia del inversionista es requerido y debe ser entre 0 y 100"
-        ></app-input-field>
+          [min]="0"
+          [max]="100"
+          errorMessage="Debe ser un valor entre 0 y 100"
+        />
 
         <app-input-field
-          label="Porcentaje de Ganacia Operador"
+          label="Porcentaje de Ganancia Operador"
           type="number"
-          formControlName="operator_percentage"
+          formControlName="operatorPercentage"
+          [control]="f['operatorPercentage']"
           [disabled]="true"
-          [control]="f['operator_percentage']"
-          placeholder="40"
-        ></app-input-field>
-        
+        />
+
       </div>
 
       <div class="toggles-group">
@@ -65,27 +72,28 @@
           label="Inversionista activo"
           description="Los inversionistas inactivos no recibirán notificaciones ni aparecerán en reportes activos"
           mode="toggle"
-          formControlName="is_active"
-        ></app-checkbox-toggle>
+          formControlName="isActive"
+        />
       </div>
     </app-form-card>
 
     <!-- Notificaciones -->
-    <app-form-card title="Notificaciones" subtitle="Define qué eventos notificar a este inversionista">
+    <app-form-card
+      title="Notificaciones"
+      subtitle="Define qué eventos notificar a este inversionista">
       <div class="toggles-group">
         <app-checkbox-toggle
           label="Notificar ventas"
           description="Recibe alertas cuando se registra una venta de ganado que le corresponde"
           mode="toggle"
-          formControlName="notify_sales"
-        ></app-checkbox-toggle>
-
+          formControlName="notifySales"
+        />
         <app-checkbox-toggle
           label="Notificar ganancias de peso"
           description="Recibe reportes de evolución de peso del ganado en su propiedad"
           mode="toggle"
-          formControlName="notify_weight_gains"
-        ></app-checkbox-toggle>
+          formControlName="notifyWeightGains"
+        />
       </div>
     </app-form-card>
 
@@ -104,11 +112,16 @@
     <!-- Acciones -->
     <div class="form-actions">
       <a routerLink="/investments/investors" class="btn btn-ghost">Cancelar</a>
-      <button type="submit" class="btn btn-primary" [disabled]="form.invalid || saving()">
-        @if (saving()) {
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="form.invalid || facade.formSaving()">
+        @if (facade.formSaving()) {
           <span class="btn-spinner"></span> Guardando...
         } @else {
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
           {{ isEdit() ? 'Actualizar' : 'Crear Inversionista' }}
         }
       </button>

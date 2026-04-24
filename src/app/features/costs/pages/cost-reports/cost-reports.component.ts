@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; 
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { TableComponent, TableColumn, TableConfig } from '../../../../shared/components/table/table.component';
+import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
+import { TableComponent, TableColumn, TableConfig } from '../../../../shared/components/data-display/table/table.component';
 import { ApiResponse } from '../../../../core/models/api-response.model';
 import { MonthlyReport } from '../../models/cost.model';
+import { CostService } from '../../services/cost.service';
 
 @Component({
   selector: 'app-cost-reports',

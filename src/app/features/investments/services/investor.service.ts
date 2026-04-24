@@ -1,180 +1,151 @@
+// services/investor.service.ts
+
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { ApiService } from '../../../core/services/api.service';
 import { ApiResponse } from '../../../core/models/api-response.model';
+import { ENDPOINTS } from './endpoints';
 
-import { INVESTMENT_ENDPOINTS } from './endpoints';
 import {
-  Investor,
+  InvestorList,
+  InvestorDetail,
   InvestorSummary,
   InvestorStatement,
-} from '../models/investment.model';
+  InvestorFilters,
+  InvestorSummaryParams,
+  StatementParams,
+  CreateInvestorPayload,
+  UpdateInvestorPayload,
+  DeactivateInvestorPayload,
+  DeactivateInvestorResult,
+  DeactivationStatus,
+  ContractList,
+  ContractFilters,
+} from '../models';
 
-// ═══════════════════════════════════════════════════════════════════════════
-// TIPOS ESPECÍFICOS DEL SERVICIO
-// ═══════════════════════════════════════════════════════════════════════════
+import {
+  toInvestorList,
+  toInvestorDetail,
+  toInvestorSummary,
+  toInvestorStatement,
+  toDeactivateResult,
+  toDeactivationStatus,
+  toContractList,
+} from '../mappers/investment.mapper';
 
-/** Parámetros de búsqueda para inversionistas */
-export interface InvestorSearchParams {
-  page?: number;
-  page_size?: number;
-  search?: string;
-  is_active?: boolean;
-  has_active_contract?: boolean;
-  ordering?: string;
-}
-
-/** Payload para crear inversionista */
-export interface CreateInvestorPayload {
-  person_id: string;
-  investor_percentage?: number;
-  operator_percentage?: number;
-  notify_sales?: boolean;
-  notify_weight_gains?: boolean;
-  default_sale_decision?: string;
-  notes?: string;
-}
-
-/** Payload para actualizar inversionista */
-export interface UpdateInvestorPayload {
-  investor_percentage?: number;
-  operator_percentage?: number;
-  notify_sales?: boolean;
-  notify_weight_gains?: boolean;
-  default_sale_decision?: string;
-  notes?: string;
-  is_active?: boolean;
-}
-
-/** Parámetros para estado de cuenta */
-export interface StatementParams {
-  start_date?: string; // ISO date
-  end_date?: string;   // ISO date
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// SERVICIO
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Servicio para gestión de inversionistas.
- * 
- * @example
- * ```typescript
- * // Obtener listado
- * this.investorService.getAll({ is_active: true }).subscribe(...)
- * 
- * // Obtener resumen
- * this.investorService.getSummary(investorId).subscribe(...)
- * ```
- */
 @Injectable({ providedIn: 'root' })
 export class InvestorService {
   private readonly api = inject(ApiService);
 
-  // ─── CRUD ────────────────────────────────────────────────────────────────
+  // ── CRUD ──────────────────────────────────────────────────────────
 
-  /**
-   * Obtiene listado de inversionistas con filtros opcionales.
-   */
-  getAll(params?: InvestorSearchParams): Observable<ApiResponse<Investor[]>> {
-    return this.api.get<Investor[]>(INVESTMENT_ENDPOINTS.INVESTORS, params);
-  }
-
-  /**
-   * Obtiene un inversionista por ID.
-   */
-  getById(id: string): Observable<ApiResponse<Investor>> {
-    return this.api.get<Investor>(INVESTMENT_ENDPOINTS.INVESTOR(id));
-  }
-
-  /**
-   * Crea un nuevo inversionista.
-   */
-  create(payload: CreateInvestorPayload): Observable<ApiResponse<Investor>> {
-    return this.api.post<Investor>(INVESTMENT_ENDPOINTS.INVESTORS, payload);
-  }
-
-  /**
-   * Actualiza un inversionista existente.
-   */
-  update(id: string, payload: UpdateInvestorPayload): Observable<ApiResponse<Investor>> {
-    return this.api.patch<Investor>(INVESTMENT_ENDPOINTS.INVESTOR(id), payload);
-  }
-
-  /**
-   * Desactiva un inversionista (soft delete).
-   */
-  deactivate(id: string): Observable<ApiResponse<Investor>> {
-    return this.update(id, { is_active: false });
-  }
-
-  /**
-   * Reactiva un inversionista.
-   */
-  activate(id: string): Observable<ApiResponse<Investor>> {
-    return this.update(id, { is_active: true });
-  }
-
-  // ─── RESÚMENES Y REPORTES ────────────────────────────────────────────────
-
-  /**
-   * Obtiene el resumen completo de un inversionista.
-   * Incluye: datos personales, inversiones, ganado, decisiones pendientes.
-   */
-  getSummary(id: string): Observable<ApiResponse<InvestorSummary>> {
-    return this.api.get<InvestorSummary>(INVESTMENT_ENDPOINTS.INVESTOR_SUMMARY(id));
-  }
-
-  /**
-   * Obtiene el resumen del inversionista autenticado.
-   * Útil para el portal del inversionista.
-   */
-  getMySummary(): Observable<ApiResponse<InvestorSummary>> {
-    return this.api.get<InvestorSummary>(INVESTMENT_ENDPOINTS.MY_SUMMARY);
-  }
-
-  /**
-   * Obtiene el estado de cuenta de un inversionista.
-   * 
-   * @param id - ID del inversionista
-   * @param params - Rango de fechas (opcional)
-   */
-  getStatement(id: string, params?: StatementParams): Observable<ApiResponse<InvestorStatement>> {
-    return this.api.get<InvestorStatement>(
-      INVESTMENT_ENDPOINTS.INVESTOR_STATEMENT(id),
-      params
+  list(filters?: InvestorFilters): Observable<ApiResponse<InvestorList[]>> {
+    const params = filters ? this.toSnakeParams(filters) : undefined;
+    return this.api.get<any[]>(ENDPOINTS.INVESTORS, params).pipe(
+      map(res => ({ ...res, data: res.data.map(toInvestorList) }))
     );
   }
 
-  // ─── HELPERS ─────────────────────────────────────────────────────────────
-
-  /**
-   * Busca inversionistas por término (código o nombre).
-   */
-  search(term: string, limit: number = 10): Observable<ApiResponse<Investor[]>> {
-    return this.getAll({
-      search: term,
-      page_size: limit,
-      is_active: true,
-    });
+  getById(id: string): Observable<ApiResponse<InvestorDetail>> {
+    return this.api.get<any>(ENDPOINTS.INVESTOR(id)).pipe(
+      map(res => ({ ...res, data: toInvestorDetail(res.data) }))
+    );
   }
 
-  /**
-   * Obtiene solo inversionistas activos.
-   */
-  getActive(): Observable<ApiResponse<Investor[]>> {
-    return this.getAll({ is_active: true });
+  create(payload: CreateInvestorPayload): Observable<ApiResponse<InvestorDetail>> {
+    return this.api.post<any>(ENDPOINTS.INVESTORS, this.toSnakeCase(payload)).pipe(
+      map(res => ({ ...res, data: toInvestorDetail(res.data) }))
+    );
   }
 
-  /**
-   * Verifica si un inversionista tiene inversión activa.
-   */
-  hasActiveInvestment(id: string): Observable<boolean> {
-    return this.getSummary(id).pipe(
-      map(res => (res.data?.investments.count ?? 0) > 0)
+  update(id: string, payload: UpdateInvestorPayload): Observable<ApiResponse<InvestorDetail>> {
+    return this.api.patch<any>(ENDPOINTS.INVESTOR(id), this.toSnakeCase(payload)).pipe(
+      map(res => ({ ...res, data: toInvestorDetail(res.data) }))
+    );
+  }
+
+  // ── Activación ────────────────────────────────────────────────────
+
+  deactivate(
+    id: string,
+    payload: DeactivateInvestorPayload = {}
+  ): Observable<ApiResponse<DeactivateInvestorResult>> {
+    return this.api.post<any>(ENDPOINTS.INVESTOR_DEACTIVATE(id), payload).pipe(
+      map(res => ({ ...res, data: toDeactivateResult(res.data) }))
+    );
+  }
+
+  reactivate(id: string): Observable<ApiResponse<void>> {
+    return this.api.post<void>(ENDPOINTS.INVESTOR_REACTIVATE(id), {});
+  }
+
+  getDeactivationStatus(id: string): Observable<ApiResponse<DeactivationStatus>> {
+    return this.api.get<any>(ENDPOINTS.INVESTOR_DEACT_STATUS(id)).pipe(
+      map(res => ({ ...res, data: toDeactivationStatus(res.data) }))
+    );
+  }
+
+  // ── Resumen ───────────────────────────────────────────────────────
+
+  getSummary(id: string, params?: InvestorSummaryParams): Observable<ApiResponse<InvestorSummary>> {
+    const snakeParams = params ? {
+      include_decisions: params.includeDecisions,
+      include_movements: params.includeMovements,
+      include_cattle: params.includeCattle,
+    } : undefined;
+    return this.api.get<any>(ENDPOINTS.INVESTOR_SUMMARY(id), snakeParams).pipe(
+      map(res => ({ ...res, data: toInvestorSummary(res.data) }))
+    );
+  }
+
+  getMySummary(): Observable<ApiResponse<InvestorSummary>> {
+    return this.api.get<any>(ENDPOINTS.MY_SUMMARY).pipe(
+      map(res => ({ ...res, data: toInvestorSummary(res.data) }))
+    );
+  }
+
+  // ── Estado de cuenta ──────────────────────────────────────────────
+
+  getStatement(id: string, params?: StatementParams): Observable<ApiResponse<InvestorStatement>> {
+    const snakeParams = params ? {
+      date_from: params.dateFrom,
+      date_to: params.dateTo,
+    } : undefined;
+    return this.api.get<any>(ENDPOINTS.INVESTOR_STATEMENT(id), snakeParams).pipe(
+      map(res => ({ ...res, data: toInvestorStatement(res.data) }))
+    );
+  }
+
+  // ── Contratos ─────────────────────────────────────────────────────
+
+  getContracts(id: string, filters?: ContractFilters): Observable<ApiResponse<ContractList[]>> {
+    const params = filters ? this.toSnakeParams(filters) : undefined;
+    return this.api.get<any[]>(ENDPOINTS.INVESTOR_CONTRACTS(id), params).pipe(
+      map(res => ({ ...res, data: res.data.map(toContractList) }))
+    );
+  }
+
+  // ── Helpers privados ──────────────────────────────────────────────
+
+  private toSnakeCase(obj: Record<string, any>): Record<string, any> {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .filter(([, v]) => v !== undefined && v !== null)
+        .map(([k, v]) => [k.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`), v])
+    );
+  }
+
+  private toSnakeParams(filters: Record<string, any>): Record<string, any> {
+    const map: Record<string, string> = {
+      pageSize: 'page_size',
+      isActive: 'is_active',
+    };
+    return Object.fromEntries(
+      Object.entries(filters)
+        .filter(([, v]) => v !== undefined && v !== null)
+        .map(([k, v]) => [map[k] ?? k.replace(/[A-Z]/g, c => `_${c.toLowerCase()}`), v])
     );
   }
 }

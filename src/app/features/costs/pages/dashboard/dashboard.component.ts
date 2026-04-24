@@ -1,22 +1,18 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-
-import { KpiCardComponent }       from '../../../../shared/components/display/kpi-card/kpi-card.component';
-import { AmountDisplayComponent } from '../../../../shared/components/bills/amount-display/amount-display.component';
-import { BadgeComponent }         from '../../../../shared/components/display/badge/badge.component';
-import { ProgressBarComponent }   from '../../../../shared/components/display/progress-bar/progress-bar.component';
-import { LoaderComponent }        from '../../../../shared/components/loader/loader.component';
-import { EmptyStateComponent }    from '../../../../shared/components/empty-state/empty-state.component';
-import { AlertComponent }         from '../../../../shared/components/display/alert/alert.component';
-
 import { CostService }      from '../../services/cost.service';
 import { CategoryService }  from '../../services/category.service';
 import {
-  CostTotals, MonthlyReport, MonthlyReportCategory,
+  CostTotals, MonthlyReport,
   MonthlySummary, CategorySummary,
 } from '../../models/cost.model';
 import { parseDecimal } from '../../../../core/utils/helpers';
+import { KpiCardComponent } from '../../../../shared/components/data-display/kpi-card/kpi-card.component';
+import { ProgressBarComponent } from '../../../../shared/components/ui/progress-bar/progress-bar.component';
+import { AmountDisplayComponent } from '../../../../shared/components/data-display/amount-display/amount-display.component';
+import { LoaderComponent } from '../../../../shared/components/feedback/loader/loader.component';
+import { EmptyStateComponent } from '../../../../shared/components/feedback/empty-state/empty-state.component';
 
 interface MonthOption { label: string; year: number; month: number; }
 

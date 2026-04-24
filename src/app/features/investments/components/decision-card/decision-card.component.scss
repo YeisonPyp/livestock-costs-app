@@ -1,0 +1,90 @@
+// decision-card.component.scss
+@use '../../../../styles/variables' as *;
+
+.decision-card {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  padding: $space-5;
+  margin-bottom: $space-4;
+  box-shadow: $shadow-sm;
+  @include transition(box-shadow, border-color);
+
+  &.urgent {
+    border-color: rgba($danger, .4);
+    background: rgba($danger, .02);
+    box-shadow: 0 0 0 3px rgba($danger, .08);
+  }
+}
+
+.dec-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: $space-4;
+}
+
+.dec-title {
+  font-size: $font-md;
+  font-weight: $weight-semibold;
+  color: $slate-900;
+}
+
+.dec-meta {
+  font-size: $font-xs;
+  color: $slate-400;
+  margin-top: $space-1;
+}
+
+.dec-amount {
+  font-size: $font-2xl;
+  font-weight: $weight-bold;
+  color: $slate-900;
+  margin-bottom: $space-2;
+}
+
+.dec-profit {
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  margin-bottom: $space-4;
+  color: $slate-500;
+  &.profit { color: $success; }
+  &.loss   { color: $danger;  }
+}
+
+.dec-actions {
+  display: flex;
+  gap: $space-2;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  padding: $space-2 $space-4;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  @include transition(background-color);
+  &:hover { background: $primary-hover; }
+}
+
+.btn-ghost {
+  padding: $space-2 $space-4;
+  background: transparent;
+  color: $slate-600;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  @include transition(background-color, border-color);
+  &:hover { background: $slate-50; border-color: $slate-400; }
+}
+
+// Deadline classes
+.urgent  { color: $danger;       font-weight: $weight-medium; }
+.warning { color: $warning-hover; font-weight: $weight-medium; }
+.ok      { color: $success; }

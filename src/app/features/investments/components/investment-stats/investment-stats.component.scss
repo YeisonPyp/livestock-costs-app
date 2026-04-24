@@ -1,0 +1,9 @@
+@use "../../../../styles/variables" as *;
+.kpi-section {
+  margin-bottom: $space-5;
+}
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: $space-4;
+}

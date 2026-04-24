@@ -1,121 +1,88 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
+// pages/sale-decision-detail/sale-decision-detail.component.ts
 
-import { PageHeaderComponent }    from '../../../../../shared/components/page-header/page-header.component';
-import { LoaderComponent }         from '../../../../../shared/components/loader/loader.component';
-import { BadgeComponent }          from '../../../../../shared/components/display/badge/badge.component';
-import { AlertComponent }          from '../../../../../shared/components/display/alert/alert.component';
-import { AmountDisplayComponent }  from '../../../../../shared/components/bills/amount-display/amount-display.component';
+import {
+  Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject
+} from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { SaleService } from '../../../services';
-import { SaleDecision, SALE_DECISION_TYPES } from '../../../models/investment.model';
-import { formatCurrency, parseDecimal } from '../../../../../core/utils/helpers';
+import { SaleFacade } from '../../../facades/sale.facade';
+import { DecisionOptionsComponent } from '../../../components/decision-options/decision-options.component';
+
+import { PageHeaderComponent }    from '../../../../../shared/components/navigation/page-header/page-header.component';
+import { LoaderComponent }        from '../../../../../shared/components/feedback/loader/loader.component';
+import { BadgeComponent }         from '../../../../../shared/components/ui/badge/badge.component';
+import { AlertComponent }         from '../../../../../shared/components/feedback/alert/alert.component';
+import { AmountDisplayComponent } from '../../../../../shared/components/data-display/amount-display/amount-display.component';
+import { SaleDecisionType }       from '../../../models/enums';
 
 @Component({
   selector: 'app-sale-decision-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule, PageHeaderComponent, LoaderComponent, BadgeComponent, AlertComponent, AmountDisplayComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [SaleFacade],
+  imports: [
+    RouterLink, ReactiveFormsModule,
+    PageHeaderComponent, LoaderComponent, BadgeComponent,
+    AlertComponent, AmountDisplayComponent, DecisionOptionsComponent,
+  ],
   templateUrl: './sale-decision-detail.component.html',
   styleUrl:    './sale-decision-detail.component.scss',
 })
-export class SaleDecisionDetailComponent implements OnInit {
-  private route    = inject(ActivatedRoute);
-  private router   = inject(Router);
-  private fb       = inject(FormBuilder);
-  private saleSvc      = inject(SaleService);
-  private snackBar = inject(MatSnackBar);
+export class SaleDecisionDetailComponent implements OnInit, OnDestroy {
+  readonly facade = inject(SaleFacade);
+  private  route  = inject(ActivatedRoute);
+  private  fb     = inject(FormBuilder);
 
-  decision = signal<SaleDecision | null>(null);
-  loading  = signal(true);
-  saving   = signal(false);
+  readonly SaleDecisionType = SaleDecisionType;
 
-  selectedType = signal<'reinvest' | 'withdraw' | 'partial' | null>(null);
-  partialForm!: FormGroup;
-
-
-  formatCurrency = formatCurrency;
-  parseDecimal = parseDecimal;
-  SALE_DECISION_TYPES = SALE_DECISION_TYPES;
+  // Formulario para decisión parcial
+  readonly partialForm = this.fb.group({
+    reinvestAmount: [0, [Validators.required, Validators.min(0)]],
+    withdrawAmount: [{ value: 0, disabled: true }],
+  });
 
   ngOnInit(): void {
-    this.partialForm = this.fb.group({
-      reinvest_amount: [0, [Validators.required, Validators.min(0)]],
-      withdraw_amount: [{ value: 0, disabled: true }],
-    });
-
-    // Auto-calcular el otro campo en parcial
-    this.partialForm.get('reinvest_amount')?.valueChanges.subscribe(v => {
-      const total = +(this.decision()?.investor_amount ?? 0);
-      const reinvest = +v || 0;
-      this.partialForm.get('withdraw_amount')?.setValue(Math.max(0, total - reinvest).toFixed(2), { emitEvent: false });
-    });
-
     const id = this.route.snapshot.paramMap.get('id');
-    if (id) this.loadDecision(id);
-  }
+    if (id) this.facade.loadDecision(id);
 
-  private loadDecision(id: string): void {
-    this.loading.set(true);
-    this.saleSvc.getDecision(id).subscribe({
-      next: (res) => {
-        if (res.success) this.decision.set(res.data);
-        this.loading.set(false);
-      },
-      error: () => { this.loading.set(false); this.snackBar.open('Error al cargar la decisión', 'Cerrar', { duration: 3000 }); },
+    // Sincronizar monto de retiro automáticamente
+    this.partialForm.get('reinvestAmount')?.valueChanges.subscribe(v => {
+      const total    = facade_parseDecimal(this.facade.decision()?.investorAmount ?? '0');
+      const reinvest = +(v ?? 0);
+      this.partialForm.get('withdrawAmount')?.setValue(
+        Number(Math.max(0, total - reinvest).toFixed(2)),
+        { emitEvent: false }
+      );
     });
   }
 
-  selectDecision(type: 'reinvest' | 'withdraw' | 'partial'): void {
-    this.selectedType.set(type);
-    if (type === 'partial') {
-      this.partialForm.reset({ reinvest_amount: 0 });
-    }
+  ngOnDestroy(): void { this.facade.resetDecision(); }
+
+  onSelectType(type: SaleDecisionType): void {
+    this.facade.selectDecisionType(type);
+    if (type === SaleDecisionType.PARTIAL) this.partialForm.reset({ reinvestAmount: 0 });
   }
 
-  confirmDecision(): void {
-    const id   = this.decision()?.id;
-    const type = this.selectedType();
-    if (!id || !type) return;
+  onConfirm(): void {
+    const type = this.facade.selectedType();
+    if (!type) return;
 
-    let payload: any = { decision_type: type };
-
-    if (type === 'partial') {
+    if (type === SaleDecisionType.PARTIAL) {
       if (this.partialForm.invalid) { this.partialForm.markAllAsTouched(); return; }
       const raw = this.partialForm.getRawValue();
-      payload.reinvest_amount = +raw.reinvest_amount;
-      payload.withdraw_amount = +raw.withdraw_amount;
-
-      const total = +(this.decision()?.investor_amount ?? 0);
-      if (Math.abs((payload.reinvest_amount + payload.withdraw_amount) - total) > 0.01) {
-        this.snackBar.open('La suma de reinversión y retiro debe igualar el monto total', 'Cerrar', { duration: 4000 });
-        return;
-      }
+      this.facade.confirmDecision({
+        decisionType:   SaleDecisionType.PARTIAL,
+        reinvestAmount: +(raw.reinvestAmount ?? 0),
+        withdrawAmount: +(raw.withdrawAmount ?? 0),
+      });
+    } else {
+      this.facade.confirmDecision({ decisionType: type });
     }
-
-    this.saving.set(true);
-    this.saleSvc.makeDecision(id, payload).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.snackBar.open('Decisión registrada exitosamente', 'Cerrar', { duration: 3000 });
-        this.router.navigate(['/investments/sales', this.decision()!.sale_event]);
-      },
-      error: (err) => {
-        this.saving.set(false);
-        this.snackBar.open(err?.error?.error || 'Error al registrar decisión', 'Cerrar', { duration: 4000 });
-      },
-    });
   }
+}
 
-  decisionColor(type: string): 'success' | 'danger' | 'warning' | 'secondary' {
-    const m: Record<string, any> = { reinvest: 'success', withdraw: 'danger', partial: 'warning', pending: 'secondary' };
-    return m[type] ?? 'secondary';
-  }
-
-  get isAlreadyDecided(): boolean {
-    const d = this.decision();
-    return !!d && d.decision_type !== 'pending';
-  }
+// Helper local (evita importar de core en el template)
+function facade_parseDecimal(v: string | number): number {
+  return typeof v === 'number' ? v : parseFloat(v) || 0;
 }

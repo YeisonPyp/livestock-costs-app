@@ -1,0 +1,87 @@
+<div class="operation-panel">
+  <div class="panel-header">
+    <h3>
+      {{
+        type() === "contribute" ? "💰 Registrar Aporte" : "💸 Procesar Retiro"
+      }}
+    </h3>
+    <button type="button" class="close-btn" (click)="cancelled.emit()">
+      ×
+    </button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="panel-body">
+    <!-- Monto -->
+    <div class="form-group">
+      <label class="form-label required">Monto</label>
+      <div class="input-wrapper">
+        <span class="input-prefix">$</span>
+        <input
+          type="number"
+          class="form-control"
+          formControlName="amount"
+          [class.is-invalid]="amountInvalid"
+          min="0.01"
+          [max]="type() === 'withdraw' ? maxAmount() : null"
+          step="1000"
+          placeholder="0.00"
+        />
+      </div>
+      @if (amountInvalid) {
+        <span class="error-text">{{ amountError }}</span>
+      }
+      @if (type() === "withdraw") {
+        <span class="form-hint">
+          Disponible: {{ formatCurrency(maxAmount()) }}
+        </span>
+      }
+    </div>
+
+    <!-- Fecha efectiva -->
+    <div class="form-group">
+      <label class="form-label">Fecha efectiva</label>
+      <input
+        type="date"
+        class="form-control"
+        formControlName="effectiveDate"
+        [max]="today"
+      />
+    </div>
+
+    <!-- Descripción -->
+    <div class="form-group">
+      <label class="form-label">Descripción</label>
+      <input
+        type="text"
+        class="form-control"
+        formControlName="description"
+        [placeholder]="
+          type() === 'contribute' ? 'Aporte de capital' : 'Retiro de capital'
+        "
+      />
+    </div>
+
+    <div class="panel-footer">
+      <button
+        type="button"
+        class="btn btn-ghost"
+        (click)="cancelled.emit()"
+        [disabled]="loading()"
+      >
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        class="btn"
+        [class.btn-success]="type() === 'contribute'"
+        [class.btn-warning]="type() === 'withdraw'"
+        [disabled]="form.invalid || loading()"
+      >
+        @if (loading()) {
+          <span class="spinner"></span>
+        }
+        {{ type() === "contribute" ? "Registrar Aporte" : "Procesar Retiro" }}
+      </button>
+    </div>
+  </form>
+</div>

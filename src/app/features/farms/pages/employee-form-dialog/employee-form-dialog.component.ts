@@ -8,7 +8,7 @@ import { InputFieldComponent } from '../../../../shared/components/forms/input-f
 import { SelectFieldComponent, SelectOption } from '../../../../shared/components/forms/select-field/select-field.component';
 import { CurrencyInputComponent } from '../../../../shared/components/forms/currency-input/currency-input.component';
 import { CheckboxToggleComponent } from '../../../../shared/components/forms/checkbox-toggle/checkbox-toggle.component';
-import { AlertComponent } from '../../../../shared/components/display/alert/alert.component';
+import { AlertComponent } from '../../../../shared/components/feedback/alert/alert.component';
 import { PersonSearchComponent } from '../../../users/components/person-search/person-search.component'
 import { PersonSimple } from "../../../users/models/user.model"
 

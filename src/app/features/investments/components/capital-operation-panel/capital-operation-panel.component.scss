@@ -1,0 +1,110 @@
+// capital-operation-panel.component.scss
+@use '../../../../styles/variables' as *;
+
+.operation-panel {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-md;
+  margin-bottom: $space-5;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-4 $space-5;
+  border-bottom: 1px solid $border-color;
+  background: $slate-50;
+
+  h3 { margin: 0; font-size: $font-md; font-weight: $weight-bold; color: $slate-900; }
+}
+
+.close-btn {
+  background: none; border: none;
+  font-size: 22px; line-height: 1; padding: 0;
+  cursor: pointer; color: $slate-400;
+  &:hover { color: $slate-700; }
+}
+
+.panel-body { padding: $space-5; }
+
+.form-group { margin-bottom: $space-4; }
+
+.form-label {
+  display: block;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: $slate-700;
+  margin-bottom: $space-1;
+  &.required::after { content: ' *'; color: $danger; }
+}
+
+.input-wrapper { position: relative; display: flex; align-items: center; }
+
+.input-prefix {
+  position: absolute;
+  left: $space-3;
+  color: $slate-500;
+  font-size: $font-sm;
+  pointer-events: none;
+}
+
+.form-control {
+  width: 100%;
+  padding: $space-2 $space-3;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-family: $font-family;
+  background: $white;
+  @include transition(border-color, box-shadow);
+
+  &:focus { outline: none; border-color: $primary; box-shadow: 0 0 0 3px rgba($primary, .1); }
+  &.is-invalid { border-color: $danger; }
+
+  // Input con prefijo
+  .input-wrapper & { padding-left: 2rem; }
+}
+
+.form-hint  { display: block; font-size: $font-xs; color: $slate-400; margin-top: $space-1; }
+.error-text { display: block; font-size: $font-xs; color: $danger;  margin-top: $space-1; }
+
+.panel-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-3;
+  padding-top: $space-4;
+  border-top: 1px solid $border-color;
+  margin-top: $space-4;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-5;
+  border: none;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  @include transition(background-color, opacity);
+
+  &:disabled { opacity: .5; cursor: not-allowed; }
+
+  &.btn-ghost   { background: transparent; color: $slate-600; &:hover { background: $slate-100; } }
+  &.btn-success { background: $success; color: $white; &:hover:not(:disabled) { background: darken($success, 8%); } }
+  &.btn-warning { background: $warning; color: $white; &:hover:not(:disabled) { background: $warning-hover; } }
+}
+
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

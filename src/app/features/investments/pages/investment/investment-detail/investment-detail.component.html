@@ -1,648 +1,350 @@
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     HEADER
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<app-page-header 
-  [title]="investment()?.investor_name ?? 'Inversión'"
-  [subtitle]="investment()?.investor_code ?? ''"
->
-  <div class="header-actions">
-    <button 
-      type="button" 
-      class="btn btn-outline" 
-      (click)="goBack()"
-    >
+<!-- investment-detail.component.html -->
+
+<app-page-header
+  [title]="facade.detail()?.investorName ?? 'Inversión'"
+  [subtitle]="facade.detail()?.investorCode ?? ''">
+
+  <ng-container breadcrumb>
+    <a routerLink="/investments/investments" class="bc-link">Inversiones</a>
+    <span class="bc-sep">/</span>
+    <span>{{ facade.detail()?.investorCode }}</span>
+  </ng-container>
+
+  <ng-container actions>
+    <button type="button" class="btn btn-outline btn-sm" (click)="facade.goBackToList()">
       ← Volver
     </button>
-
-    @if (isActive()) {
-      <app-button
-        variant="outline"
-        icon="arrow-down-circle"
-        (clicked)="openPanel('contribute')"
-        [disabled]="!canContribute()"
-      >
+    @if (facade.isActive()) {
+      <app-button variant="outline" icon="arrow-down-circle"
+        [disabled]="!facade.canContribute()"
+        (clicked)="facade.openPanel('contribute')">
         Aportar
       </app-button>
-
-      <app-button
-        variant="outline"
-        icon="arrow-up-circle"
-        (clicked)="openPanel('withdraw')"
-        [disabled]="!canWithdraw()"
-      >
+      <app-button variant="outline" icon="arrow-up-circle"
+        [disabled]="!facade.canWithdraw()"
+        (clicked)="facade.openPanel('withdraw')">
         Retirar
       </app-button>
-
-      <app-button
-        variant="danger"
-        icon="lock-closed"
-        (clicked)="openCloseModal()"
-        [disabled]="!canClose()"
-      >
+      <app-button variant="danger" icon="lock-closed"
+        [disabled]="!facade.canClose()"
+        (clicked)="facade.openCloseModal()">
         Cerrar Inversión
       </app-button>
     }
-  </div>
+  </ng-container>
 </app-page-header>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     ESTADOS: LOADING / ERROR / CONTENIDO
-     ═══════════════════════════════════════════════════════════════════════════ -->
-
 <!-- Loading -->
-@if (isLoading()) {
+@if (facade.detailLoading()) {
   <app-loader [overlay]="false" type="spinner" />
 }
 
 <!-- Error -->
-@if (!isLoading() && hasError()) {
+@else if (facade.detailError()) {
   <app-empty-state
     title="Error"
-    [message]="errorMessage()"
-    icon="alert-circle"
-  >
-    <button class="btn btn-outline" (click)="goBack()">
-      Volver al listado
-    </button>
+    [message]="facade.detailErrorMessage()"
+    icon="alert-circle">
+    <button class="btn btn-outline" (click)="facade.goBackToList()">Volver al listado</button>
   </app-empty-state>
 }
 
 <!-- Contenido -->
-@if (!isLoading() && !hasError() && investment()) {
-  
-  <!-- Alerta de estado cerrado -->
-  @if (investment()?.status === 'closed') {
+@if (facade.detail(); as investment) {
+
+  <!-- Alertas de estado -->
+  @if (investment.status === 'closed') {
     <app-alert type="info" class="status-alert">
-      Esta inversión fue cerrada el {{ formatDate(investment()?.end_date ?? '') }}.
+      Esta inversión fue cerrada el {{ investment.endDate | safeDate:'date':'medium' }}.
     </app-alert>
   }
-
-  <!-- Alerta de estado pausado -->
-  @if (investment()?.status === 'paused') {
-    <app-alert type="warning" class="status-alert">
-      Esta inversión está pausada.
-    </app-alert>
+  @if (investment.status === 'suspended') {
+    <app-alert type="warning" class="status-alert">Esta inversión está suspendida.</app-alert>
   }
 
   <!-- KPIs -->
   <section class="kpi-section">
     <div class="kpi-grid">
-      <app-kpi-card 
-        label="Capital Actual" 
-        [value]="formatCurrency(investment()!.current_capital)"
-        color="blue"
-      >
+      <app-kpi-card label="Capital Actual"
+        [value]="facade.formatCurrency(investment.currentCapital)" color="blue">
         <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="1" x2="12" y2="23"/>
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
         </svg>
       </app-kpi-card>
 
-      <app-kpi-card 
-        label="Ganancias" 
-        [value]="formatCurrency(investment()!.total_profits)"
-        [color]="parseDecimal(investment()!.total_profits) >= 0 ? 'green' : 'red'"
-      >
+      <app-kpi-card label="Ganancias"
+        [value]="facade.formatCurrency(investment.totalProfits)"
+        [color]="facade.parseDecimal(investment.totalProfits) >= 0 ? 'green' : 'red'">
         <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
           <polyline points="16 7 22 7 22 13"/>
         </svg>
       </app-kpi-card>
 
-      <app-kpi-card 
-        label="ROI" 
-        [value]="formatRoi(investment()!.roi ?? '0')"
-        [color]="parseDecimal(investment()!.roi ?? '0') >= 0 ? 'green' : 'red'"
-      >
+      <app-kpi-card label="ROI"
+        [value]="facade.formatRoi(investment.roi ?? '0')"
+        [color]="facade.parseDecimal(investment.roi ?? '0') >= 0 ? 'green' : 'red'">
         <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 6v6l4 2"/>
+          <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
         </svg>
       </app-kpi-card>
 
-      <app-kpi-card 
-        label="Cabezas Activas" 
-        [value]="(investment()!.cattle_stats?.count ?? 0).toString()"
-        color="yellow"
-      >
+      <app-kpi-card label="Cabezas Activas"
+        [value]="facade.activeCattle().length.toString()" color="yellow">
         <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+          <circle cx="12" cy="12" r="10"/>
         </svg>
       </app-kpi-card>
     </div>
   </section>
 
+  <!-- Panel aporte/retiro (presentacional) -->
+  @if (facade.activePanel()) {
+    <app-capital-operation-panel
+      [type]="facade.activePanel()!"
+      [maxAmount]="facade.availableForWithdraw()"
+      [loading]="facade.operationLoading()"
+      (submitted)="facade.activePanel() === 'contribute' ? onContribute($event) : onWithdraw($event)"
+      (cancelled)="facade.closePanel()" />
+  }
+
+  <!-- Modal de cierre -->
+  @if (facade.isCloseModalOpen()) {
+    <app-close-investment-dialog
+      [closureStatus]="facade.closureStatus()"
+      [loading]="facade.closingLoading()"
+      (confirmed)="facade.confirmClose()"
+      (cancelled)="facade.closeCloseModal()" />
+  }
+
   <!-- Tabs -->
-  <mat-tab-group 
-    class="investment-tabs"
-    [selectedIndex]="activeTab()"
-    (selectedIndexChange)="onTabChange($event)"
-  >
-    <!-- ══════════════════════════════════════════════════════════════════════
-         TAB: RESUMEN
-         ══════════════════════════════════════════════════════════════════════ -->
+  <mat-tab-group class="investment-tabs">
+
+    <!-- TAB: Resumen -->
     <mat-tab label="Resumen">
       <div class="tab-content">
         <div class="detail-grid">
-          <!-- Info Principal -->
+
+          <!-- Información general -->
           <div class="detail-card">
             <h3 class="card-title">Información General</h3>
             <dl class="detail-list">
-              <div class="detail-item">
+              <div class="detail-row">
                 <dt>Inversionista</dt>
                 <dd>
-                  <strong>{{ investment()!.investor_code }}</strong>
-                  <span class="text-muted">{{ investment()!.investor_name }}</span>
+                  <button class="btn-link"
+                    (click)="facade.goToInvestor(investment.investorId)">
+                    {{ investment.investorCode }} — {{ investment.investorName }}
+                  </button>
                 </dd>
               </div>
-              <div class="detail-item">
+              <div class="detail-row">
                 <dt>Estado</dt>
                 <dd>
-                  <app-badge [color]="getStatusColor(investment()!.status)">
-                    {{ getStatusLabel(investment()!.status) }}
+                  <app-badge [color]="facade.getStatusColor(investment.status)">
+                    {{ facade.getStatusLabel(investment.status) }}
                   </app-badge>
                 </dd>
               </div>
-              <div class="detail-item">
+              <div class="detail-row">
                 <dt>Fecha de Inicio</dt>
-                <dd>{{ formatDate(investment()!.start_date) }}</dd>
+                <dd>{{ investment.startDate | safeDate:'date':'medium' }}</dd>
               </div>
-              @if (investment()!.end_date) {
-                <div class="detail-item">
+              @if (investment.endDate) {
+                <div class="detail-row">
                   <dt>Fecha de Cierre</dt>
-                  <dd>{{ formatDate(investment()!.end_date!) }}</dd>
+                  <dd>{{ investment.endDate | safeDate:'date':'medium' }}</dd>
+                </div>
+              }
+              @if (investment.notes) {
+                <div class="detail-row">
+                  <dt>Notas</dt>
+                  <dd>{{ investment.notes }}</dd>
                 </div>
               }
             </dl>
           </div>
 
-          <!-- Resumen Financiero -->
+          <!-- Capital -->
           <div class="detail-card">
-            <h3 class="card-title">Resumen Financiero</h3>
+            <h3 class="card-title">Capital</h3>
             <dl class="detail-list">
-              <div class="detail-item">
+              <div class="detail-row">
                 <dt>Capital Inicial</dt>
-                <dd>
-                  <app-amount-display 
-                    [amount]="parseDecimal(investment()!.initial_capital)" 
-                    type="neutral"
-                  />
-                </dd>
+                <dd><app-amount-display [amount]="facade.parseDecimal(investment.initialCapital)" type="neutral" size="sm" /></dd>
               </div>
-              <div class="detail-item">
-                <dt>Total Aportes</dt>
-                <dd>
-                  <app-amount-display 
-                    [amount]="parseDecimal(investment()!.total_contributions)" 
-                    type="income"
-                  />
-                </dd>
+              <div class="detail-row">
+                <dt>Aportes</dt>
+                <dd><app-amount-display [amount]="facade.parseDecimal(investment.totalContributions)" type="income" size="sm" /></dd>
               </div>
-              <div class="detail-item">
-                <dt>Total Retiros</dt>
-                <dd>
-                  <app-amount-display 
-                    [amount]="parseDecimal(investment()!.total_withdrawals)" 
-                    type="expense"
-                  />
-                </dd>
+              <div class="detail-row">
+                <dt>Retiros</dt>
+                <dd><app-amount-display [amount]="facade.parseDecimal(investment.totalWithdrawals)" type="expense" size="sm" /></dd>
               </div>
-              <div class="detail-item">
+              <div class="detail-row">
                 <dt>Ganancias</dt>
-                <dd>
-                  <app-amount-display 
-                    [amount]="parseDecimal(investment()!.total_profits)" 
-                    [type]="parseDecimal(investment()!.total_profits) >= 0 ? 'income' : 'expense'"
-                  />
-                </dd>
+                <dd><app-amount-display [amount]="facade.parseDecimal(investment.totalProfits)"
+                  [type]="facade.parseDecimal(investment.totalProfits) >= 0 ? 'income' : 'expense'" size="sm" /></dd>
               </div>
-              @if (investment()!.total_costs) {
-                <div class="detail-item">
-                  <dt>Costos</dt>
-                  <dd>
-                    <app-amount-display 
-                      [amount]="parseDecimal(investment()!.total_costs!)" 
-                      type="expense"
-                    />
-                  </dd>
-                </div>
-              }
-              <div class="detail-item detail-item--highlight">
+              <div class="detail-row highlight">
                 <dt>Capital Actual</dt>
-                <dd>
-                  <app-amount-display 
-                    [amount]="parseDecimal(investment()!.current_capital)" 
-                    type="neutral"
-                    size="lg"
-                  />
-                </dd>
+                <dd><app-amount-display [amount]="facade.parseDecimal(investment.currentCapital)" type="neutral" size="md" /></dd>
               </div>
             </dl>
           </div>
 
-          <!-- Estadísticas de Ganado -->
-          @if (investment()!.cattle_stats) {
+          <!-- Ganado stats -->
+          @if (facade.detail()?.cattleStats; as cs) {
             <div class="detail-card">
               <h3 class="card-title">Ganado</h3>
               <dl class="detail-list">
-                <div class="detail-item">
-                  <dt>Cabezas Activas</dt>
-                  <dd>{{ investment()!.cattle_stats!.count }}</dd>
-                </div>
-                <div class="detail-item">
-                  <dt>Valor de Compra</dt>
-                  <dd>
-                    <app-amount-display 
-                      [amount]="parseDecimal(investment()!.cattle_stats!.total_purchase_value)" 
-                      type="neutral"
-                    />
-                  </dd>
-                </div>
-                <div class="detail-item">
-                  <dt>Animales</dt>
-                  <dd>{{ investment()!.cattle_stats!.distinct_animals }}</dd>
-                </div>
-                <div class="detail-item">
-                  <dt>Lotes</dt>
-                  <dd>{{ investment()!.cattle_stats!.distinct_lots }}</dd>
+                <div class="detail-row"><dt>Cabezas activas</dt><dd>{{ cs.totalHeads }}</dd></div>
+                <div class="detail-row"><dt>Peso total</dt><dd>{{ cs.totalWeight }} kg</dd></div>
+                <div class="detail-row"><dt>Peso promedio</dt><dd>{{ cs.averageWeight }} kg</dd></div>
+                <div class="detail-row"><dt>Valor estimado</dt>
+                  <dd><app-amount-display [amount]="facade.parseDecimal(cs.totalValue)" type="neutral" size="sm" /></dd>
                 </div>
               </dl>
             </div>
           }
 
-          <!-- Estado de Cierre (solo si está activa) -->
-          @if (isActive() && closureStatus()) {
-            <div class="detail-card">
-              <h3 class="card-title">Estado de Cierre</h3>
-              
-              @if (canClose()) {
-                <app-alert type="success">
-                  <strong>✓ Lista para cerrar</strong>
-                  <p>Esta inversión cumple todos los requisitos para ser cerrada.</p>
-                </app-alert>
-              } @else {
-                <app-alert type="warning">
-                  <strong>Requisitos pendientes:</strong>
-                  <ul class="blocking-list">
-                    @for (reason of closureBlocking(); track reason) {
-                      <li>{{ reason }}</li>
-                    }
-                  </ul>
-                </app-alert>
-              }
-            </div>
-          }
-        </div>
-
-        <!-- Notas -->
-        @if (investment()!.notes) {
-          <div class="notes-card">
-            <h3 class="card-title">Notas</h3>
-            <p class="notes-content">{{ investment()!.notes }}</p>
-          </div>
-        }
-      </div>
-    </mat-tab>
-
-    <!-- ══════════════════════════════════════════════════════════════════════
-         TAB: MOVIMIENTOS
-         ══════════════════════════════════════════════════════════════════════ -->
-    <mat-tab label="Movimientos ({{ movements().length }})">
-      <div class="tab-content">
-        <!-- Filtros -->
-        <!-- <div class="filters-card">
-          <div class="filters-row">
-            <div class="filter-item">
-              <label class="filter-label">Tipo</label>
-              <select 
-                class="native-select"
-                [ngModel]="movementFilter().type"
-                (ngModelChange)="onMovementTypeFilter($event)"
-              >
-                @for (opt of movementTypeOptions; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
+          <!-- Estado de cierre -->
+          @if (!facade.canClose() && facade.closureStatus()?.blocking?.length) {
+            <div class="detail-card detail-card--warning">
+              <h3 class="card-title">Bloqueos para cierre</h3>
+              <ul class="blocking-list">
+                @for (b of facade.closureStatus()!.blocking; track b) {
+                  <li>⚠ {{ b }}</li>
                 }
-              </select>
-            </div>
-            <div class="filter-item">
-              <label class="filter-label">Desde</label>
-              <input 
-                type="date" 
-                class="native-input"
-                [ngModel]="movementFilter().dateFrom"
-                (ngModelChange)="onMovementDateFilter('dateFrom', $event)"
-              />
-            </div>
-            <div class="filter-item">
-              <label class="filter-label">Hasta</label>
-              <input 
-                type="date" 
-                class="native-input"
-                [ngModel]="movementFilter().dateTo"
-                (ngModelChange)="onMovementDateFilter('dateTo', $event)"
-              />
-            </div>
-          </div>
-        </div> -->
-
-        <!-- Loading -->
-        @if (isLoadingMovements()) {
-          <app-loader [overlay]="false" type="spinner" />
-        } @else if (movements().length === 0) {
-          <!-- Empty -->
-          <app-empty-state
-            title="Sin movimientos"
-            message="No hay movimientos registrados para esta inversión."
-            icon="list"
-          />
-        } @else {
-          <!-- Lista -->
-          <div class="movements-list">
-            @for (mov of movements(); track trackMovementById($index, mov)) {
-              <div 
-                class="movement-item"
-                [class.movement-credit]="isMovementCredit(mov.movement_type)"
-                [class.movement-debit]="!isMovementCredit(mov.movement_type)"
-              >
-                <!-- <div class="movement-icon">
-                  <ion-icon [name]="getMovementIcon(mov.movement_type)"></ion-icon>
-                </div> -->
-                
-                <div class="movement-info">
-                  <div class="movement-header">
-                    <app-badge [color]="getMovementColor(mov.movement_type)" size="sm">
-                      {{ getMovementLabel(mov.movement_type) }}
-                    </app-badge>
-                    <span class="movement-date">{{ formatDate(mov.effective_date) }}</span>
-                  </div>
-                  <p class="movement-description">{{ mov.description }}</p>
-                  @if (mov.created_by_name) {
-                    <span class="movement-author">por {{ mov.created_by_name }}</span>
-                  }
-                </div>
-                
-                <div class="movement-amount">
-                  <app-amount-display
-                    [amount]="parseDecimal(mov.amount)"
-                    [type]="isMovementCredit(mov.movement_type) ? 'income' : 'expense'"
-                    [showSign]="true"
-                  />
-                  <span class="movement-balance">
-                    Saldo: {{ formatCurrency(mov.balance_after) }}
-                  </span>
-                </div>
-              </div>
-            }
-          </div>
-        }
-      </div>
-    </mat-tab>
-
-    <!-- ══════════════════════════════════════════════════════════════════════
-         TAB: GANADO
-         ══════════════════════════════════════════════════════════════════════ -->
-    <mat-tab label="Ganado ({{ activeCattle().length }})">
-      <div class="tab-content">
-        @if (isLoadingCattle()) {
-          <app-loader [overlay]="false" type="spinner" />
-        } @else if (cattle().length === 0) {
-          <app-empty-state
-            title="Sin ganado asignado"
-            message="No hay ganado asignado a esta inversión."
-            icon="paw"
-          />
-        } @else {
-          <!-- Ganado Activo -->
-          @if (activeCattle().length > 0) {
-            <h3 class="section-title">Activos ({{ activeCattle().length }})</h3>
-            <div class="cattle-grid">
-              @for (item of activeCattle(); track trackCattleById($index, item)) {
-                <div class="cattle-card">
-                  <div class="cattle-header">
-                    <span class="cattle-tag">{{ item.animal_tag ?? 'Sin tag' }}</span>
-                    <app-badge [color]="getCattleStatusColor(item.status)" size="sm">
-                      {{ getCattleStatusLabel(item.status) }}
-                    </app-badge>
-                  </div>
-                  
-                  <div class="cattle-body">
-                    @if (item.animal_breed) {
-                      <p class="cattle-breed">{{ item.animal_breed }}</p>
-                    }
-                    
-                    <dl class="cattle-stats">
-                      <div>
-                        <dt>Valor Compra</dt>
-                        <dd>{{ formatCurrency(item.purchase_value) }}</dd>
-                      </div>
-                      @if (item.current_weight) {
-                        <div>
-                          <dt>Peso Actual</dt>
-                          <dd>{{ item.current_weight }} kg</dd>
-                        </div>
-                      }
-                      @if (item.weight_gain) {
-                        <div>
-                          <dt>Ganancia Peso</dt>
-                          <dd [class]="parseDecimal(item.weight_gain) > 0 ? 'text-success' : 'text-danger'">
-                            {{ item.weight_gain }} kg
-                          </dd>
-                        </div>
-                      }
-                    </dl>
-                  </div>
-                  
-                  <div class="cattle-footer">
-                    <span class="cattle-date">
-                      Adquirido: {{ formatDate(item.acquisition_date) }}
-                    </span>
-                  </div>
-                </div>
-              }
+              </ul>
             </div>
           }
-
-          <!-- Ganado Vendido -->
-          @if (soldCattle().length > 0) {
-            <h3 class="section-title section-title--muted">
-              Vendidos ({{ soldCattle().length }})
-            </h3>
-            <div class="cattle-grid cattle-grid--sold">
-              @for (item of soldCattle(); track trackCattleById($index, item)) {
-                <div class="cattle-card cattle-card--sold">
-                  <div class="cattle-header">
-                    <span class="cattle-tag">{{ item.animal_tag ?? 'Sin tag' }}</span>
-                    <app-badge [color]="getCattleStatusColor(item.status)" size="sm">
-                      {{ getCattleStatusLabel(item.status) }}
-                    </app-badge>
-                  </div>
-                  
-                  <div class="cattle-body">
-                    <dl class="cattle-stats">
-                      <div>
-                        <dt>Valor Compra</dt>
-                        <dd>{{ formatCurrency(item.purchase_value) }}</dd>
-                      </div>
-                      @if (item.disposal_date) {
-                        <div>
-                          <dt>Fecha Venta</dt>
-                          <dd>{{ formatDate(item.disposal_date) }}</dd>
-                        </div>
-                      }
-                    </dl>
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        }
-      </div>
-    </mat-tab>
-  </mat-tab-group>
-}
-
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     PANEL APORTE/RETIRO
-     ═══════════════════════════════════════════════════════════════════════════ -->
-@if (activePanel()) {
-  <app-modal
-    [isOpen]="true"
-    [title]="panelTitle()"
-    size="md"
-    [showFooter]="false"
-    (close)="closePanel()"
-  >
-    <form [formGroup]="panelForm" (ngSubmit)="submitPanel()">
-      <!-- Monto -->
-      <div class="form-group">
-        <label for="amount" class="form-label">
-          Monto *
-          @if (activePanel() === 'withdraw') {
-            <span class="text-muted">
-              (Disponible: {{ formatCurrency(availableForWithdraw()) }})
-            </span>
-          }
-        </label>
-        <input
-          id="amount"
-          type="number"
-          class="form-input"
-          formControlName="amount"
-          placeholder="0.00"
-          step="0.01"
-          min="0"
-        />
-        @if (panelForm.get('amount')?.invalid && panelForm.get('amount')?.touched) {
-          <span class="form-error">{{ getAmountError() }}</span>
-        }
-      </div>
-
-      <!-- Fecha Efectiva -->
-      <div class="form-group">
-        <label for="effective_date" class="form-label">Fecha Efectiva</label>
-        <input
-          id="effective_date"
-          type="date"
-          class="form-input"
-          formControlName="effective_date"
-        />
-      </div>
-
-      <!-- Descripción -->
-      <div class="form-group">
-        <label for="description" class="form-label">Descripción</label>
-        <textarea
-          id="description"
-          class="form-textarea"
-          formControlName="description"
-          rows="3"
-          placeholder="Descripción del movimiento..."
-        ></textarea>
-      </div>
-
-      <!-- Acciones -->
-      <div class="form-actions">
-        <button 
-          type="button" 
-          class="btn btn-outline" 
-          (click)="closePanel()"
-          [disabled]="isSubmitting()"
-        >
-          Cancelar
-        </button>
-        <button 
-          type="submit" 
-          class="btn"
-          [class.btn-success]="activePanel() === 'contribute'"
-          [class.btn-danger]="activePanel() === 'withdraw'"
-          [disabled]="panelForm.invalid || isSubmitting()"
-        >
-          @if (isSubmitting()) {
-            <span class="spinner-sm"></span>
-            Procesando...
-          } @else {
-            {{ activePanel() === 'contribute' ? 'Registrar Aporte' : 'Procesar Retiro' }}
-          }
-        </button>
-      </div>
-    </form>
-  </app-modal>
-}
-
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     MODAL CONFIRMAR CIERRE
-     ═══════════════════════════════════════════════════════════════════════════ -->
-@if (isCloseModalOpen()) {
-  <app-modal
-    [isOpen]="true"
-    title="Cerrar Inversión"
-    size="md"
-    [showFooter]="false"
-    (close)="closeCloseModal()"
-  >
-    <div class="confirm-content">
-      <app-alert type="warning">
-        <strong>⚠️ Esta acción es irreversible</strong>
-        <p>
-          Una vez cerrada la inversión, no podrá realizar más operaciones.
-          Para reinvertir, deberá crear una nueva inversión.
-        </p>
-      </app-alert>
-
-      @if (closureSummary(); as summary) {
-        <div class="closure-summary">
-          <h4>Resumen de cierre:</h4>
-          <ul>
-            <li>Ganado activo: {{ summary.active_cattle }}</li>
-            <li>Decisiones pendientes: {{ summary.pending_decisions }}</li>
-            <li>Saldo actual: {{ formatCurrency(summary.current_balance) }}</li>
-          </ul>
         </div>
-      }
-
-      <div class="form-actions">
-        <button 
-          type="button" 
-          class="btn btn-outline" 
-          (click)="closeCloseModal()"
-          [disabled]="isClosing()"
-        >
-          Cancelar
-        </button>
-        <button 
-          type="button" 
-          class="btn btn-danger"
-          (click)="confirmClose()"
-          [disabled]="isClosing()"
-        >
-          @if (isClosing()) {
-            <span class="spinner-sm"></span>
-            Cerrando...
-          } @else {
-            Confirmar Cierre
-          }
-        </button>
       </div>
-    </div>
-  </app-modal>
+    </mat-tab>
+
+    <!-- TAB: Movimientos -->
+    <mat-tab [label]="'Movimientos (' + facade.movements().length + ')'">
+      <div class="tab-content">
+
+        <!-- Filtros de movimientos -->
+        <div class="movement-filters">
+          <select class="native-select"
+            [ngModel]="facade.movementFilters().type"
+            (ngModelChange)="facade.applyMovementFilter({ type: $event })">
+            @for (opt of movementTypeOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+          <input type="date" class="native-input"
+            [ngModel]="facade.movementFilters().dateFrom"
+            (ngModelChange)="facade.applyMovementFilter({ dateFrom: $event })"
+            placeholder="Desde" />
+          <input type="date" class="native-input"
+            [ngModel]="facade.movementFilters().dateTo"
+            (ngModelChange)="facade.applyMovementFilter({ dateTo: $event })"
+            placeholder="Hasta" />
+          @if (facade.movementFilters().type || facade.movementFilters().dateFrom || facade.movementFilters().dateTo) {
+            <button class="btn btn-ghost btn-sm" (click)="facade.clearMovementFilters()">
+              Limpiar
+            </button>
+          }
+        </div>
+
+        @if (facade.movementsLoading()) {
+          <app-loader [overlay]="false" type="spinner" />
+        } @else if (facade.movements().length === 0) {
+          <app-empty-state title="Sin movimientos" [compact]="true" />
+        } @else {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha</th><th>Tipo</th><th>Descripción</th>
+                <th class="text-right">Monto</th><th class="text-right">Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (mov of facade.movements(); track mov.id) {
+                <tr>
+                  <td class="date-cell">{{ mov.effectiveDate | safeDate:'date':'short' }}</td>
+                  <td>
+                    <app-badge [color]="mov.isCredit ? 'success' : 'danger'" size="sm">
+                      {{ mov.movementTypeDisplay }}
+                    </app-badge>
+                  </td>
+                  <td>{{ mov.description }}</td>
+                  <td class="text-right">
+                    <app-amount-display
+                      [amount]="facade.parseDecimal(mov.amount)"
+                      [type]="mov.isCredit ? 'income' : 'expense'" size="sm" />
+                  </td>
+                  <td class="text-right">
+                    <app-amount-display
+                      [amount]="facade.parseDecimal(mov.balanceAfter)"
+                      type="neutral" size="sm" />
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </mat-tab>
+
+    <!-- TAB: Ganado -->
+    <mat-tab [label]="'Ganado (' + facade.cattle().length + ')'">
+      <div class="tab-content">
+
+        @if (facade.cattleLoading()) {
+          <app-loader [overlay]="false" type="spinner" />
+        } @else if (facade.cattle().length === 0) {
+          <app-empty-state title="Sin ganado asignado" [compact]="true" />
+        } @else {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tipo</th><th>Animal/Lote</th><th>Cantidad</th>
+                <th class="text-right">Valor Compra</th>
+                <th class="text-right">Valor Actual</th>
+                <th class="text-right">Ganancia Peso</th>
+                <th class="text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of facade.cattle(); track c.id) {
+                <tr>
+                  <td>{{ c.ownershipType }}</td>
+                  <td>{{ c.animal ?? c.lot ?? '—' }}</td>
+                  <td>{{ c.quantity }}</td>
+                  <td class="text-right">
+                    <app-amount-display
+                      [amount]="facade.parseDecimal(c.purchaseValue)"
+                      type="neutral" size="sm" />
+                  </td>
+                  <td class="text-right">
+                    <app-amount-display
+                      [amount]="facade.parseDecimal(c.currentValue)"
+                      type="neutral" size="sm" />
+                  </td>
+                  <td class="text-right"
+                    [class.text-success]="facade.parseDecimal(c.weightGain) > 0">
+                    {{ c.weightGain ? facade.parseDecimal(c.weightGain).toFixed(1) + ' kg' : '—' }}
+                  </td>
+                  <td class="text-center">
+                    <app-badge
+                      [color]="c.status === 'active' ? 'success' : c.status === 'sold' ? 'info' : 'secondary'"
+                      size="sm">
+                      {{ c.status }}
+                    </app-badge>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
 }

@@ -4,11 +4,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
-
-import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
-import { BadgeComponent } from '../../../../shared/components/display/badge/badge.component';
-
 import { CattleService } from '../../../cattle/services/cattle.service';
 import {
   AnimalListItem,
@@ -17,6 +12,8 @@ import {
   ANIMAL_STATUS_COLORS,
   GENDER_LABELS,
 } from '../../../cattle/models/cattle.model';
+import { LoaderComponent } from '../../../../shared/components/feedback/loader/loader.component';
+import { EmptyStateComponent } from '../../../../shared/components/feedback/empty-state/empty-state.component';
 
 export interface AnimalSelection extends AnimalListItem {
   selected?: boolean;

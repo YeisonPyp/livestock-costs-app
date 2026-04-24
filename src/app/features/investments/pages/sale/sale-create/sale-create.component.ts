@@ -6,15 +6,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
-
-import { AlertComponent } from '../../../../../shared/components/display/alert/alert.component';
-import { AmountDisplayComponent } from '../../../../../shared/components/bills/amount-display/amount-display.component';
 import { AnimalSelectionModalComponent } from '../../../components/animal-selection-modal/animal-selection-modal.component';
 import { WeightBulkImportComponent } from '../../../../cattle/pages/weights/weight-bulk-import/weight-bulk-import.component';
 
-import { SaleService } from '../../../services';
+import { SaleEventService } from '../../../services';
 import { WeightedAnimal } from '../../../../cattle/models/cattle.model';
 import { formatCurrency } from '../../../../../core/utils/helpers';
+import { AmountDisplayComponent } from '../../../../../shared/components/data-display/amount-display/amount-display.component';
+import { AlertComponent } from '../../../../../shared/components/feedback/alert/alert.component';
 
 interface AnimalSelection {
   id: string;
@@ -41,7 +40,7 @@ interface AnimalSelection {
 })
 export class SaleCreateComponent implements OnInit {
 
-  private saleSvc      = inject(SaleService);
+  private saleSvc      = inject(SaleEventService);
   private fb       = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private dialog   = inject(MatDialog);
@@ -194,7 +193,7 @@ export class SaleCreateComponent implements OnInit {
       })),
     };
 
-    this.saleSvc.createSaleEvent(payload).subscribe({
+    this.saleSvc.create(payload).subscribe({
       next: () => {
         this.saving.set(false);
         this.snackBar.open('Venta registrada exitosamente', 'Cerrar', { duration: 3000 });

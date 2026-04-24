@@ -1,20 +1,21 @@
 <!-- contract-detail.component.html -->
 
-<app-page-header [title]="contract()?.contract_number ?? 'Cargando...'">
+<app-page-header [title]="facade.detail()?.contractNumber ?? 'Cargando...'">
   <ng-container breadcrumb>
     <a routerLink="/investments" class="bc-link">Inversiones</a>
     <span class="bc-sep">/</span>
     <a routerLink="/investments/contracts" class="bc-link">Contratos</a>
     <span class="bc-sep">/</span>
-    <span>{{ contract()?.contract_number }}</span>
+    <span>{{ facade.detail()?.contractNumber }}</span>
   </ng-container>
-  
+
   <ng-container actions>
-    @if (contract()) {
-      <button class="btn btn-outline btn-sm" (click)="downloadContract()">
+    @if (facade.detail()) {
+      <button class="btn btn-outline btn-sm" (click)="facade.downloadCurrentContract()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
         Descargar PDF
       </button>
@@ -22,73 +23,70 @@
   </ng-container>
 </app-page-header>
 
-<!-- Loading -->
-@if (loading()) {
+@if (facade.detailLoading()) {
   <app-loader [overlay]="false" type="spinner" text="Cargando contrato..." />
 }
 
-@else if (contract()) {
+@if (facade.detail(); as contract) {
+
   <!-- Alertas -->
-  @if (contract()!.expires_soon) {
+  @if (contract.expiresSoon) {
     <app-alert type="warning" title="Contrato por vencer" [dismissible]="false">
-      Este contrato vence en <strong>{{ contract()!.days_until_expiry }}</strong> días.
-      @if (canRenew()) {
-        <button class="btn btn-sm btn-warning ml-3" (click)="renewContract()">
+      Este contrato vence en <strong>{{ contract.daysUntilExpiry }}</strong> días.
+      @if (facade.canRenew()) {
+        <button class="btn btn-sm btn-warning ml-3" (click)="openRenew()">
           Renovar ahora
         </button>
       }
     </app-alert>
   }
 
-  @if (contract()!.status === 'expired') {
+  @if (contract.status === 'expired') {
     <app-alert type="danger" title="Contrato vencido" [dismissible]="false">
-      Este contrato ha vencido. 
-      @if (canRenew()) {
-        <button class="btn btn-sm btn-primary ml-3" (click)="renewContract()">
-          Renovar
-        </button>
+      Este contrato ha vencido.
+      @if (facade.canRenew()) {
+        <button class="btn btn-sm btn-primary ml-3" (click)="openRenew()">Renovar</button>
       }
     </app-alert>
   }
 
-  <!-- Header Card -->
+  <!-- Header card -->
   <div class="detail-card">
     <div class="card-header">
+
       <div class="header-info">
         <div class="contract-title">
-          <span class="contract-number">{{ contract()!.contract_number }}</span>
-          <span class="contract-version">Versión {{ contract()!.version }}</span>
+          <span class="contract-number">{{ contract.contractNumber }}</span>
+          <span class="contract-version">Versión {{ contract.version }}</span>
         </div>
         <div class="contract-badges">
-            <!-- <app-badge [color]="getStatusColor(contract()!.status)" size="lg"></app-badge> -->
-          <app-badge [color]="'primary'" size="lg">
-            {{ contract()!.status_display }}
+          <app-badge [color]="getStatusColor(contract.status)" size="lg">
+            {{ getStatusLabel(contract.status) }}
           </app-badge>
-          <!-- <app-badge [color]="getTypeColor(contract()!.contract_type)" size="md"></app-badge> -->
-          <app-badge [color]="'secondary'" size="md">
-            {{ contract()!.contract_type_display }}
+          <app-badge [color]="getTypeColor(contract.contractType)" size="md">
+            {{ getTypeLabel(contract.contractType) }}
           </app-badge>
         </div>
       </div>
-      
+
       <!-- Acciones -->
       <div class="header-actions">
-        @if (canActivate()) {
-          <button 
-            class="btn btn-success btn-sm" 
-            (click)="activateContract()"
-            [disabled]="actionLoading()">
+        @if (facade.canActivate()) {
+          <button
+            class="btn btn-success btn-sm"
+            (click)="openActivate()"
+            [disabled]="facade.detailActionLoading()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
             Activar
           </button>
         }
-        @if (canRenew()) {
-          <button 
-            class="btn btn-primary btn-sm" 
-            (click)="renewContract()"
-            [disabled]="actionLoading()">
+        @if (facade.canRenew()) {
+          <button
+            class="btn btn-primary btn-sm"
+            (click)="openRenew()"
+            [disabled]="facade.detailActionLoading()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
               <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
               <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
@@ -96,13 +94,14 @@
             Renovar
           </button>
         }
-        @if (canTerminate()) {
-          <button 
-            class="btn btn-danger btn-sm" 
-            (click)="terminateContract()"
-            [disabled]="actionLoading()">
+        @if (facade.canTerminate()) {
+          <button
+            class="btn btn-danger btn-sm"
+            (click)="openTerminate()"
+            [disabled]="facade.detailActionLoading()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
-              <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/>
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
               <line x1="9" y1="9" x2="15" y2="15"/>
             </svg>
             Terminar
@@ -111,97 +110,94 @@
       </div>
     </div>
 
-    <!-- Info Grid -->
+    <!-- Info grid -->
     <div class="info-grid">
-      <!-- Inversionista -->
+
       <div class="info-section">
         <h4>👤 Inversionista</h4>
-        <div class="info-row clickable" (click)="goToInvestor()">
+        <div class="info-row clickable"
+          (click)="facade.goToInvestor(contract.investorId)">
           <span class="lbl">Código</span>
-          <span class="val link">{{ contract()!.investor_code }}</span>
+          <span class="val link">{{ contract.investorCode }}</span>
         </div>
         <div class="info-row">
           <span class="lbl">Nombre</span>
-          <span class="val">{{ contract()!.investor_name }}</span>
+          <span class="val">{{ contract.investorName }}</span>
         </div>
       </div>
 
-      <!-- Vigencia -->
       <div class="info-section">
         <h4>📅 Vigencia</h4>
         <div class="info-row">
           <span class="lbl">Inicio</span>
-          <span class="val">{{ contract()!.start_date | date:'longDate' }}</span>
+          <span class="val">{{ contract.startDate | safeDate:'date':'long' }}</span>
         </div>
         <div class="info-row">
           <span class="lbl">Fin</span>
-          <span class="val" [class.text-danger]="contract()!.is_expired || contract()!.expires_soon">
-            {{ contract()!.end_date ? (contract()!.end_date | date:'longDate') : 'Indefinido' }}
+          <span
+            class="val"
+            [class.text-danger]="contract.isExpired || contract.expiresSoon">
+            {{ contract.endDate ? (contract.endDate | safeDate:'date':'long') : 'Indefinido' }}
           </span>
         </div>
-        @if (contract()!.signed_date) {
+        @if (contract.signedDate) {
           <div class="info-row">
-            <span class="lbl">Fecha de Firma</span>
-            <span class="val">{{ contract()!.signed_date | date:'longDate' }}</span>
+            <span class="lbl">Firma</span>
+            <span class="val">{{ contract.signedDate | safeDate:'date':'long' }}</span>
           </div>
         }
-        @if (contract()!.days_until_expiry !== null && contract()!.days_until_expiry! >= 0) {
+        @if (contract.daysUntilExpiry != null && contract.daysUntilExpiry >= 0) {
           <div class="info-row">
             <span class="lbl">Días restantes</span>
-            <span class="val" [class.text-warning]="contract()!.expires_soon">
-              {{ contract()!.days_until_expiry }} días
+            <span class="val" [class.text-warning]="contract.expiresSoon">
+              {{ contract.daysUntilExpiry }} días
             </span>
           </div>
         }
       </div>
 
-      <!-- Participación -->
       <div class="info-section">
         <h4>💰 Participación</h4>
         <div class="info-row">
           <span class="lbl">% Inversionista</span>
-          <span class="val percentage">{{ contract()!.investor_percentage }}%</span>
+          <span class="val percentage">{{ contract.investorPercentage }}%</span>
         </div>
         <div class="info-row">
           <span class="lbl">% Operador</span>
-          <span class="val percentage">{{ contract()!.operator_percentage }}%</span>
+          <span class="val percentage">{{ contract.operatorPercentage }}%</span>
         </div>
-        @if (contract()!.initial_investment) {
+        @if (contract.initialInvestment) {
           <div class="info-row">
             <span class="lbl">Inversión Inicial</span>
-            <!-- <app-amount-display 
-              [amount]="contract()!.initial_investment ?? 0" 
-              type="neutral" 
-              size="sm" /> -->
+            <span class="val">{{ contract.initialInvestment }}</span>
           </div>
         }
       </div>
 
-      <!-- Relaciones -->
-      @if (contract()!.previous_contract_number) {
+      @if (contract.previousContractNumber) {
         <div class="info-section">
           <h4>🔗 Contrato Anterior</h4>
           <div class="info-row">
             <span class="lbl">Número</span>
-            <span class="val">{{ contract()!.previous_contract_number }}</span>
+            <span class="val">{{ contract.previousContractNumber }}</span>
           </div>
         </div>
       }
     </div>
 
     <!-- Notas -->
-    @if (contract()!.notes || contract()!.terms_and_conditions) {
+    @if (contract.notes || contract.termsAndConditions) {
       <div class="notes-section">
-        @if (contract()!.notes) {
+        @if (contract.notes) {
           <div class="note-block">
             <h4>📝 Notas</h4>
-            <p>{{ contract()!.notes }}</p>
+            <p>{{ contract.notes }}</p>
           </div>
         }
-        @if (contract()!.terms_and_conditions) {
+        @if (contract.termsAndConditions) {
           <div class="note-block">
             <h4>📋 Términos y Condiciones</h4>
-            <p>{{ contract()!.terms_and_conditions }}</p>
+            <p>{{ contract.termsAndConditions }}</p>
           </div>
         }
       </div>
@@ -213,33 +209,29 @@
       <div class="audit-grid">
         <div class="audit-item">
           <span class="audit-label">Creado</span>
-          <span class="audit-value">{{ contract()!.created_at | date:'medium' }}</span>
+          <span class="audit-value">{{ contract.createdAt | safeDate:'date' }}</span>
         </div>
-        @if (contract()!.activated_at) {
+        @if (contract.activatedAt) {
           <div class="audit-item">
             <span class="audit-label">Activado</span>
             <span class="audit-value">
-              {{ contract()!.activated_at | date:'medium' }}
-              @if (contract()!.activated_by_username) {
-                por {{ contract()!.activated_by_username }}
-              }
+              {{ contract.activatedAt | safeDate:'date' }}
+              @if (contract.activatedByUsername) { por {{ contract.activatedByUsername }} }
             </span>
           </div>
         }
-        @if (contract()!.terminated_at) {
+        @if (contract.terminatedAt) {
           <div class="audit-item">
             <span class="audit-label">Terminado</span>
             <span class="audit-value">
-              {{ contract()!.terminated_at | date:'medium' }}
-              @if (contract()!.terminated_by_username) {
-                por {{ contract()!.terminated_by_username }}
-              }
+              {{ contract.terminatedAt | safeDate:'date' }}
+              @if (contract.terminatedByUsername) { por {{ contract.terminatedByUsername }} }
             </span>
           </div>
-          @if (contract()!.termination_reason) {
+          @if (contract.terminationReason) {
             <div class="audit-item full-width">
               <span class="audit-label">Motivo</span>
-              <span class="audit-value">{{ contract()!.termination_reason }}</span>
+              <span class="audit-value">{{ contract.terminationReason }}</span>
             </div>
           }
         }

@@ -1,0 +1,119 @@
+@use "../../../../styles/variables" as *;
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 300;
+}
+.modal-box {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: $white;
+  border-radius: $border-radius-md;
+  width: 420px;
+  max-width: 95vw;
+  box-shadow: $shadow-lg;
+  z-index: 301;
+  overflow: hidden;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-4 $space-5;
+  border-bottom: 1px solid $border-color;
+  h3 {
+    margin: 0;
+    font-size: $font-md;
+    font-weight: $weight-bold;
+  }
+}
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: $slate-400;
+  &:hover {
+    color: $slate-700;
+  }
+}
+.modal-body {
+  padding: $space-5;
+}
+.modal-desc {
+  font-size: $font-sm;
+  color: $slate-600;
+  margin: 0 0 $space-4;
+}
+.form-group {
+  margin-bottom: $space-4;
+}
+.form-label {
+  display: block;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: $slate-700;
+  margin-bottom: $space-1;
+  &.required::after {
+    content: " *";
+    color: $danger;
+  }
+}
+.form-control {
+  width: 100%;
+  padding: $space-2 $space-3;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+}
+.error-text {
+  display: block;
+  color: $danger;
+  font-size: $font-xs;
+  margin-top: $space-1;
+}
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-3;
+  padding-top: $space-4;
+  border-top: 1px solid $border-color;
+  margin-top: $space-2;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-2 $space-4;
+  border: none;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  &.btn-primary {
+    background: $primary;
+    color: $white;
+    &:hover:not(:disabled) {
+      background: $primary-hover;
+    }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+  &.btn-ghost {
+    background: transparent;
+    color: $slate-600;
+    &:hover {
+      background: $slate-100;
+    }
+  }
+}

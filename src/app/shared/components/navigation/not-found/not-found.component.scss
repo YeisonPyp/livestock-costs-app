@@ -1,0 +1,76 @@
+/* src/app/pages/not-found/not-found.component.css */
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  font-family: Arial, sans-serif;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background: white;
+  padding: 3rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.error-code {
+  font-size: 8rem;
+  font-weight: 900;
+  color: #e74c3c;
+  margin: 0;
+  line-height: 1;
+}
+
+.divider {
+  width: 2px;
+  height: 100px;
+  background-color: #dee2e6;
+}
+
+.message h2 {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+}
+
+.message p {
+  color: #6c757d;
+  margin: 0 0 1.5rem 0;
+}
+
+.btn-home {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background-color: #3498db;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.btn-home:hover {
+  background-color: #2980b9;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .divider {
+    width: 100px;
+    height: 2px;
+  }
+
+  .error-code {
+    font-size: 5rem;
+  }
+}

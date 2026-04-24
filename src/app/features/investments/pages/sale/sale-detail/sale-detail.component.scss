@@ -1,49 +1,83 @@
+// sale-detail.component.scss
 @use '../../../../../styles/variables' as *;
-@use "sass:color";
 
-.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: $space-4; margin-bottom: $space-5; }
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: $space-4;
+  margin-bottom: $space-5;
+}
 
 .info-card {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0;
-  background: $white; border: 1px solid $border-color; border-radius: $border-radius-md;
-  box-shadow: $shadow-sm; margin-bottom: $space-5; overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4;
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  padding: $space-5;
+  margin-bottom: $space-5;
+  box-shadow: $shadow-sm;
 }
+
 .info-item {
-  display: flex; flex-direction: column; gap: $space-1;
-  padding: $space-4 $space-5; border-right: 1px solid $border-color;
-  &:last-child { border-right: none; }
-  &.full { grid-column: 1 / -1; border-top: 1px solid $border-color; border-right: none; }
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  min-width: 140px;
+  &.full { width: 100%; }
 }
-.lbl { font-size: $font-xs; color: $slate-400; text-transform: uppercase; letter-spacing: .04em; }
-.val { font-size: $font-sm; font-weight: $weight-medium; color: $slate-800; }
 
-.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: $space-4;
-  h3 { margin: 0; font-size: $font-md; font-weight: $weight-bold; color: $slate-900; }
+.lbl { font-size: $font-xs; color: $slate-400; font-weight: $weight-medium; text-transform: uppercase; letter-spacing: .04em; }
+.val { font-size: $font-sm; color: $slate-800; font-weight: $weight-medium; }
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $space-4;
+
+  h3 { margin: 0; font-size: $font-lg; font-weight: $weight-bold; color: $slate-900; }
 }
-.decision-summary { display: flex; gap: $space-2; flex-wrap: wrap; }
 
-.table-card { background: $white; border: 1px solid $border-color; border-radius: $border-radius-md; box-shadow: $shadow-sm; overflow-x: auto; }
+.decision-summary { display: flex; gap: $space-2; flex-wrap: wrap; align-items: center; }
+
+.table-card { background: $white; border: 1px solid $border-color; border-radius: $border-radius-md; overflow-x: auto; box-shadow: $shadow-sm; }
+
 .data-table {
   width: 100%; border-collapse: collapse;
   th, td { padding: $space-3 $space-4; text-align: left; font-size: $font-sm; border-bottom: 1px solid $border-color; vertical-align: middle; white-space: nowrap; }
-  th { background: $slate-50; font-weight: $weight-semibold; color: $slate-500; font-size: $font-xs; text-transform: uppercase; letter-spacing: .04em; }
+  th { background: $slate-50; font-size: $font-xs; font-weight: $weight-semibold; color: $slate-600; text-transform: uppercase; letter-spacing: .04em; }
+  tbody tr.row-pending { background: rgba($warning, .04); }
   tbody tr:hover { background: $slate-50; }
   tbody tr:last-child td { border-bottom: none; }
-  tbody tr.row-pending td { background: rgba($warning, .04); }
+  .center { text-align: center; }
 }
-.investor-cell { display: flex; flex-direction: column; gap: 1px; }
+
+.investor-cell { display: flex; flex-direction: column; }
 .code { font-size: $font-xs; font-weight: $weight-bold; color: $primary; text-transform: uppercase; }
-.center    { text-align: center; }
+
 .date-cell { color: $slate-500; }
 .muted     { color: $slate-300; }
 
-.btn-decide { font-size: $font-xs; font-weight: $weight-bold; color: $primary; text-decoration: none; padding: $space-1 $space-2; border-radius: $border-radius-sm; background: $primary-muted; @include transition(background-color); &:hover { background: color.adjust($primary-muted, $lightness: -5%); } }
-
-.btn { display: inline-flex; align-items: center; gap: $space-2; border: 1.5px solid transparent; border-radius: $border-radius; font-size: $font-sm; font-weight: $weight-medium; cursor: pointer; text-decoration: none; @include transition(background-color, border-color);
-  &.btn-primary { padding: $space-2 $space-4; background: $primary; color: $white; &:hover:not(:disabled) { background: $primary-hover; } &:disabled { opacity: .6; cursor: not-allowed; } }
+.btn-decide {
+  font-size: $font-xs; font-weight: $weight-bold;
+  color: $primary; text-decoration: none;
+  &:hover { text-decoration: underline; }
 }
-.btn-spinner-sm { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.4); border-top-color: $white; border-radius: 50%; animation: spin .7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
-.bc-link { color: $primary; text-decoration: none; font-size: $font-sm; }
+.btn {
+  display: inline-flex; align-items: center; gap: $space-2;
+  border: 1.5px solid transparent; border-radius: $border-radius;
+  font-size: $font-sm; font-weight: $weight-medium; cursor: pointer;
+  @include transition(background-color, border-color);
+
+  &.btn-primary { padding: $space-2 $space-4; background: $primary; color: $white; &:hover:not(:disabled) { background: $primary-hover; } }
+  &:disabled    { opacity: .5; cursor: not-allowed; }
+  .btn-spinner-sm { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.4); border-top-color: $white; border-radius: 50%; animation: spin .6s linear infinite; }
+}
+
+.bc-link { color: $primary; text-decoration: none; font-size: $font-sm; &:hover { text-decoration: underline; } }
 .bc-sep  { margin: 0 $space-2; color: $slate-400; font-size: $font-sm; }
+
+@keyframes spin { to { transform: rotate(360deg); } }

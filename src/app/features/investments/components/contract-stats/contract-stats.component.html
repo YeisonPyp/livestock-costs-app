@@ -1,0 +1,34 @@
+<div class="stats-grid">
+  <button
+    class="stat-card"
+    [class.active]="activeMode === 'all'"
+    (click)="modeChange.emit('all')"
+  >
+    <span class="stat-value">{{ stats.total }}</span>
+    <span class="stat-label">Todos</span>
+  </button>
+  <button
+    class="stat-card success"
+    [class.active]="activeMode === 'active'"
+    (click)="modeChange.emit('active')"
+  >
+    <span class="stat-value">{{ stats.active }}</span>
+    <span class="stat-label">Activos</span>
+  </button>
+  <button
+    class="stat-card warning"
+    [class.active]="activeMode === 'expiring'"
+    (click)="modeChange.emit('expiring')"
+  >
+    <span class="stat-value">{{ stats.expiring }}</span>
+    <span class="stat-label">Por vencer</span>
+  </button>
+  <button
+    class="stat-card danger"
+    [class.active]="activeMode === 'expired'"
+    (click)="modeChange.emit('expired')"
+  >
+    <span class="stat-value">{{ stats.expired }}</span>
+    <span class="stat-label">Vencidos</span>
+  </button>
+</div>

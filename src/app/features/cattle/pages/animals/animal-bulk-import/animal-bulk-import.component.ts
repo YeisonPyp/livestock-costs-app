@@ -1,6 +1,6 @@
 // animal-bulk-import.component.ts
 import { Component, inject, signal, computed, output } from '@angular/core';
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { CattleService } from '../../../services/cattle.service';

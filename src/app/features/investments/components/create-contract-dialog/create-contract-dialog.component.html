@@ -1,1 +1,169 @@
-<p>create-contract-dialog works!</p>
+<!-- create-contract-dialog.component.html -->
+
+<div class="dialog-container">
+  <div class="dialog-header">
+    <h2>Nuevo Contrato</h2>
+    <button class="close-btn" (click)="close()">×</button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="dialog-body">
+
+      <!-- Inversionista (solo si no viene precargado) -->
+      @if (!data.investor) {
+        <div class="form-group">
+          <label class="form-label required">Inversionista</label>
+          <select formControlName="investorId" class="form-control">
+            <option value="">Seleccionar...</option>
+            @for (inv of data.investors ?? []; track inv.id) {
+              <option [value]="inv.id">{{ inv.code }} - {{ inv.fullName }}</option>
+            }
+          </select>
+          @if (form.get('investorId')?.touched && form.get('investorId')?.errors?.['required']) {
+            <span class="error-text">Seleccione un inversionista</span>
+          }
+        </div>
+      } @else {
+        <div class="selected-investor">
+          <span class="label">Inversionista:</span>
+          <span class="value">{{ data.investor.code }} — {{ data.investor.fullName }}</span>
+        </div>
+      }
+
+      <!-- Archivo PDF -->
+      <div class="form-group">
+        <label class="form-label required">Archivo del Contrato (PDF)</label>
+        <div
+          class="file-upload"
+          [class.has-file]="selectedFile()"
+          [class.drag-over]="isDragOver()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="isDragOver.set(false)"
+          (drop)="onDrop($event)">
+
+          @if (selectedFile(); as file) {
+            <div class="file-info">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="file-icon">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              <span class="file-name">{{ file.name }}</span>
+              <span class="file-size">({{ (file.size / 1024 / 1024).toFixed(2) }} MB)</span>
+              <button type="button" class="remove-file" (click)="removeFile()">×</button>
+            </div>
+          } @else {
+            <div class="upload-prompt">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="upload-icon">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>Arrastra el archivo aquí o</span>
+              <label class="browse-btn">
+                selecciona
+                <input type="file" accept=".pdf" (change)="onFileSelected($event)" hidden />
+              </label>
+            </div>
+          }
+        </div>
+        @if (fileError()) {
+          <span class="error-text">{{ fileError() }}</span>
+        }
+      </div>
+
+      <!-- Tipo y fecha de inicio -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required">Tipo de Contrato</label>
+          <select formControlName="contractType" class="form-control">
+            @for (type of typeOptions; track type.value) {
+              <option [value]="type.value">{{ type.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label required">Fecha de Inicio</label>
+          <input type="date" formControlName="startDate" class="form-control" />
+          @if (form.get('startDate')?.touched && form.get('startDate')?.errors?.['required']) {
+            <span class="error-text">La fecha de inicio es requerida</span>
+          }
+        </div>
+      </div>
+
+      <!-- Fin y firma -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Fecha de Fin <span class="optional">(opcional)</span></label>
+          <input type="date" formControlName="endDate" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de Firma</label>
+          <input type="date" formControlName="signedDate" class="form-control" />
+        </div>
+      </div>
+
+      <!-- Porcentajes -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label required">% Inversionista</label>
+          <input
+            type="number"
+            formControlName="investorPercentage"
+            class="form-control"
+            min="0" max="100" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label class="form-label required">% Operador</label>
+          <input
+            type="number"
+            formControlName="operatorPercentage"
+            class="form-control"
+            min="0" max="100" step="0.01" />
+        </div>
+      </div>
+      @if (percentageErr()) {
+        <span class="error-text">{{ percentageErr() }}</span>
+      }
+
+      <!-- Inversión Inicial -->
+      <div class="form-group">
+        <label class="form-label">Inversión Inicial <span class="optional">(opcional)</span></label>
+        <input
+          type="number"
+          formControlName="initialInvestment"
+          class="form-control"
+          min="0" step="0.01"
+          placeholder="0.00" />
+      </div>
+
+      <!-- Notas -->
+      <div class="form-group">
+        <label class="form-label">Notas</label>
+        <textarea
+          formControlName="notes"
+          class="form-control form-textarea"
+          rows="3"
+          placeholder="Observaciones..."></textarea>
+      </div>
+
+    </div><!-- /dialog-body -->
+
+    <div class="dialog-footer">
+      <button type="button" class="btn btn-ghost" (click)="close()">
+        Cancelar
+      </button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="submitting() || !isFormValid()">
+        @if (submitting()) {
+          <span class="spinner"></span>
+          Guardando...
+        } @else {
+          Crear Contrato
+        }
+      </button>
+    </div>
+
+  </form>
+</div>

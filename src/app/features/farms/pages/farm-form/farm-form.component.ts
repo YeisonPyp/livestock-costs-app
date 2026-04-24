@@ -2,15 +2,12 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-
-
-import { PageHeaderComponent }  from '../../../../shared/components/page-header/page-header.component';
-import { LoaderComponent }       from '../../../../shared/components/loader/loader.component';
+import { PageHeaderComponent }  from '../../../../shared/components/navigation/page-header/page-header.component';
+import { LoaderComponent }       from '../../../../shared/components/feedback/loader/loader.component';
 import { FormCardComponent }     from '../../../../shared/components/forms/form-card/form-card.component';
 import { InputFieldComponent }   from '../../../../shared/components/forms/input-field/input-field.component';
 import { SelectFieldComponent, SelectOption } from '../../../../shared/components/forms/select-field/select-field.component';
 import { NotificationService } from '../../../../core/services/notification.service';
-
 import { FarmService } from '../../services/farm.service';
 import { FARM_TYPES, FARM_STATUS } from '../../models/farm.model';
 

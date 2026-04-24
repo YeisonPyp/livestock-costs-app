@@ -1,24 +1,16 @@
 // animal-list.component.ts
 import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
-import { CommonModule, DecimalPipe, CurrencyPipe } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { CommonModule, DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
-
-import { PageHeaderComponent }  from '../../../../../shared/components/page-header/page-header.component';
-import { KpiCardComponent }     from '../../../../../shared/components/display/kpi-card/kpi-card.component';
-import { BadgeColor, BadgeComponent }       from '../../../../../shared/components/display/badge/badge.component';
-import { LoaderComponent }      from '../../../../../shared/components/loader/loader.component';
-import { EmptyStateComponent }  from '../../../../../shared/components/empty-state/empty-state.component';
-import { DropdownMenuComponent} from '../../../../../shared/components/display/dropdown-menu/dropdown-menu.component';
 import { AnimalBulkImportComponent } from '../animal-bulk-import/animal-bulk-import.component';
 
 import { CattleService } from '../../../services/cattle.service';
 import { 
   AnimalFilters, 
   AnimalListItem,
-  AnimalDetail,
   ANIMAL_STATUS_LABELS, 
   ANIMAL_STATUS_COLORS, 
   ANIMAL_CATEGORY_LABELS, 
@@ -26,7 +18,13 @@ import {
 } from '../../../models/cattle.model';
 import { WeightBulkImportComponent } from '../../weights/weight-bulk-import/weight-bulk-import.component';
 import { NotificationService } from '../../../../../core/services/notification.service';
-import { MatDialog } from '@angular/material/dialog';
+import { LoaderComponent } from '../../../../../shared/components/feedback/loader/loader.component';
+import { PageHeaderComponent } from '../../../../../shared/components/navigation/page-header/page-header.component';
+import { KpiCardComponent } from '../../../../../shared/components/data-display/kpi-card/kpi-card.component';
+import { EmptyStateComponent } from '../../../../../shared/components/feedback/empty-state/empty-state.component';
+import { DropdownMenuComponent } from '../../../../../shared/components/data-display/dropdown-menu/dropdown-menu.component';
+import { BadgeColor, BadgeComponent } from '../../../../../shared/components/ui/badge/badge.component';
+
 
 @Component({
   selector: 'app-animal-list',

@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
-import { SidebarMenuComponent } from '../../shared/components/sidebar-menu/sidebar-menu.component';
+import { SidebarMenuComponent } from '../../shared/components/navigation/sidebar-menu/sidebar-menu.component';
+import { NavbarComponent } from '../../shared/components/navigation/navbar/navbar.component';
 
 @Component({
   selector: 'app-main-layout',

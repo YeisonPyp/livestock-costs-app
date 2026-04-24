@@ -1,200 +1,105 @@
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     HEADER
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<app-page-header 
-  title="Inversiones" 
-  subtitle="Capital y movimientos por inversionista"
->
-  <app-button 
-    variant="primary" 
-    icon="plus" 
-    (clicked)="openCreateModal()"
-    aria-label="Crear nueva inversión"
-  >
+<!-- investment-list.component.html -->
+
+<app-page-header
+  title="Inversiones"
+  subtitle="Capital y movimientos por inversionista">
+  <app-button variant="primary" icon="plus" (clicked)="facade.openCreateModal()">
     Nueva inversión
   </app-button>
 </app-page-header>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     MODAL CREAR
-     ═══════════════════════════════════════════════════════════════════════════ -->
-@if (isCreateModalOpen()) {
+<!-- Modal de creación -->
+@if (facade.isModalOpen()) {
   <app-modal
     [isOpen]="true"
     title="Nueva inversión"
     size="lg"
     [showFooter]="false"
-    (close)="closeCreateModal()"
-  >
+    (close)="facade.closeCreateModal()">
     <app-investment-form
-      [preselectedInvestorId]="preselectedInvestorId()"
-      [loading]="isSubmitting()"
+      [loading]="facade.isSubmitting()"
       (formSubmit)="onCreateSubmit($event)"
-      (formCancel)="closeCreateModal()"
-    />
+      (formCancel)="facade.closeCreateModal()" />
   </app-modal>
 }
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     KPIs
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<section class="kpi-section" aria-label="Resumen de inversiones">
-  <div class="kpi-grid">
-    <app-kpi-card 
-      label="Total Inversiones" 
-      [value]="stats().total.toString()" 
-      [loading]="stats().isLoading"
-      color="blue"
-    >
-      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="2" y="3" width="20" height="14" rx="2"/>
-        <line x1="8" y1="21" x2="16" y2="21"/>
-        <line x1="12" y1="17" x2="12" y2="21"/>
-      </svg>
-    </app-kpi-card>
+<!-- KPIs -->
+<app-investment-stats [stats]="facade.listStats()" />
 
-    <app-kpi-card 
-      label="Activas" 
-      [value]="stats().active.toString()" 
-      [loading]="stats().isLoading"
-      color="green"
-    >
-      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-        <polyline points="16 7 22 7 22 13"/>
-      </svg>
-    </app-kpi-card>
-
-    <app-kpi-card 
-      label="Capital Total" 
-      [value]="formatCurrency(stats().totalCapital)" 
-      [loading]="stats().isLoading"
-      color="yellow"
-    >
-      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="1" x2="12" y2="23"/>
-        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-      </svg>
-    </app-kpi-card>
-
-    <app-kpi-card 
-      label="Ganancia Neta" 
-      [value]="formatCurrency(stats().netProfit)" 
-      [loading]="stats().isLoading"
-      [color]="stats().netProfit >= 0 ? 'green' : 'red'"
-    >
-      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/>
-      </svg>
-    </app-kpi-card>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     FILTROS
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<section class="filters-section" aria-label="Filtros">
+<!-- Filtros -->
+<section class="filters-section">
   <div class="filters-card">
     <div class="filters-row">
-      <!-- Status -->
+
       <div class="filter-item">
         <label for="status-filter" class="filter-label">Estado</label>
-        <select 
+        <select
           id="status-filter"
-          class="native-select" 
-          [ngModel]="filters().status"
-          (ngModelChange)="onStatusChange($event)"
-        >
+          class="native-select"
+          [ngModel]="facade.listFilters().status"
+          (ngModelChange)="facade.updateFilter({ status: $event })">
           @for (opt of statusOptions; track opt.value) {
             <option [value]="opt.value">{{ opt.label }}</option>
           }
         </select>
       </div>
 
-      <!-- Search -->
       <div class="filter-item filter-item--grow">
         <label for="search-filter" class="filter-label">Buscar</label>
         <div class="search-wrapper">
-          <input 
+          <input
             id="search-filter"
-            type="text" 
-            class="native-input" 
+            type="text"
+            class="native-input"
             placeholder="Código o nombre del inversionista..."
-            [ngModel]="filters().search"
-            (ngModelChange)="onSearchChange($event)"
-          />
-          @if (filters().search) {
-            <button 
-              type="button" 
-              class="search-clear" 
-              (click)="onSearchChange('')"
-              aria-label="Limpiar búsqueda"
-            >
-              ×
-            </button>
+            [ngModel]="facade.listFilters().search"
+            (ngModelChange)="onSearchChange($event)" />
+          @if (facade.listFilters().search) {
+            <button type="button" class="search-clear"
+              (click)="facade.updateFilter({ search: '' })"
+              aria-label="Limpiar búsqueda">×</button>
           }
         </div>
       </div>
 
-      <!-- Clear filters -->
-      @if (hasActiveFilters()) {
+      @if (facade.hasActiveFilters()) {
         <div class="filter-item filter-item--action">
-          <button 
-            type="button" 
-            class="btn btn-sm btn-ghost"
-            (click)="clearFilters()"
-          >
+          <button type="button" class="btn btn-sm btn-ghost" (click)="facade.clearFilters()">
             Limpiar filtros
           </button>
         </div>
       }
+
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     CONTENIDO
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<section class="content-section" aria-label="Lista de inversiones">
-  
-  <!-- Loading -->
-  @if (isLoading()) {
+<!-- Contenido -->
+<section class="content-section">
+
+  @if (facade.listLoading()) {
     <app-loader [overlay]="false" type="spinner" />
-  } 
-  
-  <!-- Error -->
-  @else if (hasError()) {
-    <app-empty-state 
-      title="Error al cargar" 
-      message="No se pudieron cargar las inversiones."
-      icon="alert-circle"
-    >
-      <button class="btn btn-primary" (click)="loadInvestments()">
-        Reintentar
-      </button>
+  }
+
+  @else if (facade.listError()) {
+    <app-empty-state title="Error al cargar" message="No se pudieron cargar las inversiones." icon="alert-circle">
+      <button class="btn btn-primary" (click)="facade.loadInvestments()">Reintentar</button>
     </app-empty-state>
-  } 
-  
-  <!-- Empty -->
-  @else if (investments().length === 0) {
-    <app-empty-state 
-      title="Sin inversiones" 
-      [message]="emptyMessage()"
-      icon="trending-up"
-    >
-      @if (hasActiveFilters()) {
-        <app-button variant="outline" (clicked)="clearFilters()">
-          Limpiar filtros
-        </app-button>
+  }
+
+  @else if (facade.listItems().length === 0) {
+    <app-empty-state
+      title="Sin inversiones"
+      [message]="facade.emptyMessage()"
+      icon="trending-up">
+      @if (facade.hasActiveFilters()) {
+        <app-button variant="outline" (clicked)="facade.clearFilters()">Limpiar filtros</app-button>
       } @else {
-        <app-button variant="primary" (clicked)="openCreateModal()">
-          Crear primera inversión
-        </app-button>
+        <app-button variant="primary" (clicked)="facade.openCreateModal()">Crear primera inversión</app-button>
       }
     </app-empty-state>
-  } 
-  
-  <!-- Data -->
+  }
+
   @else {
     <div class="table-card">
       <div class="table-responsive">
@@ -214,84 +119,66 @@
             </tr>
           </thead>
           <tbody>
-            @for (inv of investments(); track trackById($index, inv)) {
+            @for (inv of facade.listItems(); track inv.id) {
               <tr [class.row-inactive]="inv.status !== 'active'">
-                <!-- Inversionista -->
+
                 <td>
                   <div class="investor-cell">
-                    <span class="investor-code">{{ inv.investor_code ?? '—' }}</span>
-                    <span class="investor-name">{{ inv.investor_name ?? '—' }}</span>
+                    <span class="investor-code">{{ inv.investorCode ?? '—' }}</span>
+                    <span class="investor-name">{{ inv.investorName ?? '—' }}</span>
                   </div>
                 </td>
-                
-                <!-- Capital Inicial -->
+
                 <td class="text-right">
-                  <app-amount-display 
-                    [amount]="parseDecimal(inv.initial_capital)" 
-                    type="neutral" 
-                    size="sm"
-                  />
+                  <app-amount-display
+                    [amount]="facade.parseDecimal(inv.initialCapital)"
+                    type="neutral" size="sm" />
                 </td>
-                
-                <!-- Capital Actual -->
+
                 <td class="text-right">
-                  <app-amount-display 
-                    [amount]="parseDecimal(inv.current_capital)" 
-                    type="neutral" 
-                    size="sm"
-                  />
+                  <app-amount-display
+                    [amount]="facade.parseDecimal(inv.currentCapital)"
+                    type="neutral" size="sm" />
                 </td>
-                
-                <!-- Aportes -->
+
                 <td class="text-right">
-                  <app-amount-display 
-                    [amount]="parseDecimal(inv.total_contributions)" 
-                    type="income" 
-                    size="sm"
-                  />
+                  <app-amount-display
+                    [amount]="facade.parseDecimal(inv.totalContributions)"
+                    type="income" size="sm" />
                 </td>
-                
-                <!-- Ganancias -->
+
                 <td class="text-right">
-                  <app-amount-display 
-                    [amount]="parseDecimal(inv.total_profits)" 
-                    [type]="parseFloat(inv.total_profits) >= 0 ? 'income' : 'expense'" 
-                    size="sm"
-                  />
+                  <app-amount-display
+                    [amount]="facade.parseDecimal(inv.totalProfits)"
+                    [type]="facade.parseDecimal(inv.totalProfits) >= 0 ? 'income' : 'expense'"
+                    size="sm" />
                 </td>
-                
-                <!-- ROI -->
+
                 <td class="text-center">
-                  <span class="roi-badge" [class]="getRoiClass(inv.roi ?? '0')">
-                    {{ formatRoi(inv.roi ?? '0') }}
+                  <span class="roi-badge" [class]="facade.getRoiClass(inv.roi ?? '0')">
+                    {{ facade.formatRoi(inv.roi ?? '0') }}
                   </span>
                 </td>
-                
-                <!-- Ganado -->
+
                 <td class="text-center">
-                  <span class="cattle-badge">{{ inv.cattle_count ?? 0 }}</span>
+                  <span class="cattle-badge">{{ inv.cattleCount ?? 0 }}</span>
                 </td>
-                
-                <!-- Estado -->
+
                 <td class="text-center">
-                  <app-badge [color]="getStatusColor(inv.status)">
-                    {{ getStatusLabel(inv.status) }}
+                  <app-badge [color]="facade.getStatusColor(inv.status)">
+                    {{ facade.getStatusLabel(inv.status) }}
                   </app-badge>
                 </td>
-                
-                <!-- Fecha -->
-                <td class="date-cell">{{ formatDate(inv.start_date) }}</td>
-                
-                <!-- Acciones -->
+
+                <td class="date-cell">{{ formatDate(inv.startDate) }}</td>
+
                 <td class="text-center">
-                  <a 
-                    [routerLink]="[inv.id]" 
-                    class="btn-link"
-                    [attr.aria-label]="'Ver inversión ' + (inv.investor_code ?? '')"
-                  >
+                  <a [routerLink]="[inv.id]" class="btn-link"
+                    [attr.aria-label]="'Ver inversión ' + (inv.investorCode ?? '')">
                     Ver →
                   </a>
                 </td>
+
               </tr>
             }
           </tbody>
@@ -299,35 +186,25 @@
       </div>
     </div>
 
-    <!-- Pagination -->
-    @if (showPagination()) {
+    <!-- Paginación -->
+    @if (facade.showPagination()) {
       <nav class="pagination" aria-label="Paginación">
         <span class="pagination-info">
-          Mostrando {{ investments().length }} de {{ pagination().totalItems }}
+          Mostrando {{ facade.listItems().length }} de {{ facade.pagination().totalItems }}
         </span>
-        
         <div class="pagination-controls">
-          <button 
-            class="btn btn-sm btn-outline" 
-            [disabled]="!canGoPrevious()" 
-            (click)="previousPage()"
-          >
-            ← Anterior
-          </button>
-          
+          <button class="btn btn-sm btn-outline"
+            [disabled]="!facade.canGoPrevious()"
+            (click)="facade.previousPage()">← Anterior</button>
           <span class="pagination-page">
-            {{ pagination().currentPage }} / {{ pagination().totalPages }}
+            {{ facade.pagination().currentPage }} / {{ facade.pagination().totalPages }}
           </span>
-          
-          <button 
-            class="btn btn-sm btn-outline" 
-            [disabled]="!canGoNext()" 
-            (click)="nextPage()"
-          >
-            Siguiente →
-          </button>
+          <button class="btn btn-sm btn-outline"
+            [disabled]="!facade.canGoNext()"
+            (click)="facade.nextPage()">Siguiente →</button>
         </div>
       </nav>
     }
   }
+
 </section>

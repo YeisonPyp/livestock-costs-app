@@ -1,85 +1,66 @@
+<!-- investment-form.component.html -->
+
 <form [formGroup]="form" (ngSubmit)="onSubmit()" class="investment-form">
-  
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       ERROR CARGANDO INVERSIONISTAS
-       ═══════════════════════════════════════════════════════════════════════ -->
-  @if (investorsError()) {
+
+  <!-- Error de inversionistas -->
+  @if (facade.formInvestorsError()) {
     <app-alert type="danger" class="form-alert">
-      <strong>Error:</strong> {{ investorsError() }}
-      <button 
-        type="button" 
-        class="btn btn-sm btn-outline" 
-        (click)="onRetryLoadInvestors()"
-      >
+      <strong>Error:</strong> {{ facade.formInvestorsError() }}
+      <button type="button" class="btn btn-sm btn-outline" (click)="onRetryInvestors()">
         Reintentar
       </button>
     </app-alert>
   }
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       ALERTA INVERSIÓN ACTIVA
-       ═══════════════════════════════════════════════════════════════════════ -->
-  @if (hasActiveInvestment()) {
+  <!-- Alerta inversión activa -->
+  @if (facade.hasActiveInvestment()) {
     <app-alert type="warning" class="form-alert">
       <strong>⚠️ Inversión activa existente</strong>
-      <p>
-        Este inversionista ya tiene una inversión activa. 
-        Debe cerrarla antes de crear una nueva.
-      </p>
+      <p>Este inversionista ya tiene una inversión activa. Debe cerrarla antes de crear una nueva.</p>
     </app-alert>
   }
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       CAMPO: INVERSIONISTA
-       ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- Inversionista -->
   <div class="form-section">
     <h3 class="section-title">Inversionista</h3>
-
     <div class="form-group">
-      <label for="investor_id" class="form-label">
-        Seleccionar inversionista *
-      </label>
+      <label for="investorId" class="form-label">Seleccionar inversionista *</label>
 
-      <!-- Select -->
       <select
-        id="investor_id"
+        id="investorId"
         class="form-select"
-        formControlName="investor_id"
-        [class.is-invalid]="isInvalid('investor_id')"
-        (change)="onInvestorChange($any($event.target).value)"
-      >
+        formControlName="investorId"
+        [class.is-invalid]="isInvalid('investorId')"
+        (change)="onInvestorChange($any($event.target).value)">
         <option value="">-- Seleccione un inversionista --</option>
-        @for (option of investorOptions(); track option.value) {
-          <option [value]="option.value">
-            {{ option.label }}
-          </option>
+        @for (opt of investorOptions(); track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
         }
       </select>
 
-      @if (isInvalid('investor_id')) {
-        <span class="form-error">{{ getErrorMessage('investor_id') }}</span>
+      @if (isInvalid('investorId')) {
+        <span class="form-error">{{ getError('investorId') }}</span>
       }
 
       <!-- Info del inversionista seleccionado -->
-      @if (selectedInvestor(); as investor) {
+      @if (selectedInvestor(); as inv) {
         <div class="investor-info">
           <div class="investor-info-row">
             <span class="investor-info-label">Documento:</span>
-            <span>{{ investor.document_number }}</span>
+            <span>{{ inv.documentNumber }}</span>
           </div>
-          @if (getInvestorInfo()) {
+          @if (inv.email) {
             <div class="investor-info-row">
               <span class="investor-info-label">Contacto:</span>
-              <span>{{ getInvestorInfo() }}</span>
+              <!-- <span>{{ [inv.email, inv.phone].filter(Boolean).join(' • ') }}</span> -->
+              <span>{{ [inv.email] }}</span>
             </div>
           }
           <div class="investor-info-row">
             <span class="investor-info-label">Participación:</span>
-            <span>
-              {{ investor.investor_percentage }}% inv. / {{ investor.operator_percentage }}% op.
-            </span>
+            <!-- <span>{{ inv.currentInvestorPercentage ?? '—' }}% inv. / {{ inv.currentOperatorPercentage ?? '—' }}% op.</span> -->
           </div>
-          @if (!investor.has_active_contract) {
+          @if (!inv.hasActiveContract) {
             <div class="investor-warning">
               <small>⚠️ Este inversionista no tiene contrato activo</small>
             </div>
@@ -87,169 +68,114 @@
         </div>
       }
 
-      <!-- Verificando inversión activa -->
-      @if (isCheckingActiveInvestment()) {
+      @if (facade.checkingActive()) {
         <div class="form-hint">
-          <span class="hint-spinner"></span>
-          Verificando inversiones existentes...
+          <span class="hint-spinner"></span> Verificando inversiones existentes...
         </div>
       }
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       CAMPO: CAPITAL INICIAL
-       ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- Capital inicial -->
   <div class="form-section">
     <h3 class="section-title">Capital</h3>
-
     <div class="form-group">
-      <label for="initial_capital" class="form-label">
-        Capital inicial *
-      </label>
+      <label for="initialCapital" class="form-label">Capital inicial *</label>
       <div class="input-with-preview">
         <div class="input-wrapper">
           <span class="input-prefix">$</span>
           <input
-            id="initial_capital"
+            id="initialCapital"
             type="number"
             class="form-input input-currency"
-            formControlName="initial_capital"
-            [class.is-invalid]="isInvalid('initial_capital')"
-            placeholder="0"
-            min="0"
-            step="1000"
-          />
+            formControlName="initialCapital"
+            [class.is-invalid]="isInvalid('initialCapital')"
+            placeholder="0" min="0" step="1000" />
         </div>
         @if (capitalPreview()) {
-          <span class="capital-preview">
-            {{ capitalPreview() }}
-          </span>
+          <span class="capital-preview">{{ capitalPreview() }}</span>
         }
       </div>
-      
-      @if (isInvalid('initial_capital')) {
-        <span class="form-error">{{ getErrorMessage('initial_capital') }}</span>
-      } @else {
-        <span class="form-hint">{{ capitalHelpText() }}</span>
-      }
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       CAMPO: FECHA DE INICIO
-       ═══════════════════════════════════════════════════════════════════════ -->
-  <div class="form-section">
-    <h3 class="section-title">Fecha</h3>
-
-    <div class="form-group">
-      <label for="start_date" class="form-label">
-        Fecha de inicio *
-      </label>
-      <input
-        id="start_date"
-        type="date"
-        class="form-input"
-        formControlName="start_date"
-        [class.is-invalid]="isInvalid('start_date')"
-        [max]="today"
-      />
-      
-      @if (isInvalid('start_date')) {
-        <span class="form-error">{{ getErrorMessage('start_date') }}</span>
+      @if (isInvalid('initialCapital')) {
+        <span class="form-error">{{ getError('initialCapital') }}</span>
       } @else {
         <span class="form-hint">
-          Fecha en que inicia la inversión
+          {{ capitalPreview() ? 'Equivale a ' + capitalPreview() : 'Ingrese el monto inicial de la inversión' }}
         </span>
       }
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       CAMPO: NOTAS
-       ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- Fecha -->
   <div class="form-section">
-    <h3 class="section-title">Información adicional</h3>
-
+    <h3 class="section-title">Fecha</h3>
     <div class="form-group">
-      <label for="notes" class="form-label">
-        Notas
-        <span class="label-optional">(opcional)</span>
-      </label>
-      <textarea
-        id="notes"
-        class="form-textarea"
-        formControlName="notes"
-        [class.is-invalid]="isInvalid('notes')"
-        rows="3"
-        placeholder="Observaciones, condiciones especiales, etc."
-        maxlength="1000"
-      ></textarea>
-      
-      @if (isInvalid('notes')) {
-        <span class="form-error">{{ getErrorMessage('notes') }}</span>
+      <label for="startDate" class="form-label">Fecha de inicio *</label>
+      <input
+        id="startDate"
+        type="date"
+        class="form-input"
+        formControlName="startDate"
+        [class.is-invalid]="isInvalid('startDate')"
+        [max]="today" />
+      @if (isInvalid('startDate')) {
+        <span class="form-error">{{ getError('startDate') }}</span>
+      } @else {
+        <span class="form-hint">Fecha en que inicia la inversión</span>
       }
-      
-      <div class="char-counter">
-        {{ controls.notes.value?.length ?? 0 }} / 1000
-      </div>
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       RESUMEN (solo en creación)
-       ═══════════════════════════════════════════════════════════════════════ -->
-  @if (!isEditMode() && selectedInvestor() && controls.initial_capital.valid) {
+  <!-- Resumen previo al envío -->
+  @if (selectedInvestor() && form.get('initialCapital')?.valid) {
     <div class="form-section summary-section">
       <h3 class="section-title">Resumen</h3>
-      
       <div class="summary-card">
         <div class="summary-row">
           <span class="summary-label">Inversionista</span>
-          <span class="summary-value">{{ selectedInvestor()?.full_name }}</span>
+          <span class="summary-value">{{ selectedInvestor()?.fullName }}</span>
         </div>
         <div class="summary-row">
           <span class="summary-label">Capital inicial</span>
-          <span class="summary-value summary-value--highlight">
-            {{ capitalPreview() }}
-          </span>
+          <span class="summary-value summary-value--highlight">{{ capitalPreview() }}</span>
         </div>
         <div class="summary-row">
           <span class="summary-label">Fecha de inicio</span>
-          <span class="summary-value">{{ controls.start_date.value }}</span>
-        </div>
-        <div class="summary-row">
-          <span class="summary-label">Participación</span>
-          <span class="summary-value">
-            {{ selectedInvestor()?.investor_percentage }}% / {{ selectedInvestor()?.operator_percentage }}%
-          </span>
+          <span class="summary-value">{{ form.get('startDate')?.value }}</span>
         </div>
       </div>
     </div>
   }
 
-  <!-- ═══════════════════════════════════════════════════════════════════════
-       ACCIONES
-       ═══════════════════════════════════════════════════════════════════════ -->
+  <!-- Notas -->
+  <div class="form-section">
+    <h3 class="section-title">Información adicional</h3>
+    <div class="form-group">
+      <label for="notes" class="form-label">
+        Notas <span class="label-optional">(opcional)</span>
+      </label>
+      <textarea
+        id="notes"
+        class="form-textarea"
+        formControlName="notes"
+        rows="3"
+        placeholder="Observaciones, condiciones especiales, etc."
+        maxlength="1000"></textarea>
+      <div class="char-counter">{{ charCount }} / 1000</div>
+    </div>
+  </div>
+
+  <!-- Acciones -->
   <div class="form-actions">
-    <button
-      type="button"
-      class="btn btn-outline"
-      (click)="onCancel()"
-      [disabled]="loading()"
-    >
+    <button type="button" class="btn btn-outline" (click)="onCancel()" [disabled]="loading()">
       Cancelar
     </button>
-
-    <button
-      type="submit"
-      class="btn btn-primary"
-      [disabled]="!canSubmit()"
-    >
-      @if (loading() || isCheckingActiveInvestment()) {
+    <button type="submit" class="btn btn-primary" [disabled]="!canSubmit()">
+      @if (loading() || facade.checkingActive()) {
         <span class="btn-spinner"></span>
       }
       {{ submitLabel() }}
     </button>
   </div>
+
 </form>

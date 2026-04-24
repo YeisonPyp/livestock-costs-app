@@ -1,52 +1,6 @@
 // contract-list.component.scss
 @use '../../../../../styles/variables' as *;
 
-// Stats Grid
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: $space-4;
-  margin-bottom: $space-5;
-}
-
-.stat-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: $space-4;
-  background: $white;
-  border: 2px solid $border-color;
-  border-radius: $border-radius-md;
-  cursor: pointer;
-  @include transition(border-color, background-color, transform);
-
-  &:hover {
-    transform: translateY(-2px);
-    border-color: $primary;
-  }
-
-  &.active {
-    border-color: $primary;
-    background: rgba($primary, 0.05);
-  }
-
-  &.success .stat-value { color: $success; }
-  &.warning .stat-value { color: $warning; }
-  &.danger .stat-value { color: $danger; }
-}
-
-.stat-value {
-  font-size: $font-2xl;
-  font-weight: $weight-bold;
-  color: $slate-800;
-}
-
-.stat-label {
-  font-size: $font-xs;
-  color: $slate-500;
-  margin-top: $space-1;
-}
-
 // Filters
 .filters-card {
   background: $white;
@@ -63,33 +17,20 @@
   align-items: flex-end;
 }
 
-.filter-group {
-  flex: 1;
-  min-width: 150px;
-}
-
-.filter-label {
-  display: block;
-  font-size: $font-xs;
-  font-weight: $weight-medium;
-  color: $slate-600;
-  margin-bottom: $space-1;
-}
+.filter-group { display: flex; flex-direction: column; gap: $space-1; flex: 1; min-width: 160px; }
+.filter-label { font-size: $font-xs; font-weight: $weight-medium; color: $slate-600; }
 
 .filter-input,
 .filter-select {
-  width: 100%;
-  padding: $space-2 $space-3;
+  height: 38px;
+  padding: 0 $space-3;
   border: 1px solid $border-color;
   border-radius: $border-radius;
   font-size: $font-sm;
-  @include transition(border-color, box-shadow);
-
-  &:focus {
-    outline: none;
-    border-color: $primary;
-    box-shadow: 0 0 0 3px rgba($primary, 0.1);
-  }
+  font-family: $font-family;
+  background: $white;
+  @include transition(border-color);
+  &:focus { outline: none; border-color: $primary; }
 }
 
 // Table
@@ -98,6 +39,7 @@
   border: 1px solid $border-color;
   border-radius: $border-radius-md;
   overflow: hidden;
+  box-shadow: $shadow-sm;
 }
 
 .data-table {
@@ -109,146 +51,85 @@
     text-align: left;
     font-size: $font-sm;
     border-bottom: 1px solid $border-color;
+    vertical-align: middle;
   }
 
   th {
     background: $slate-50;
+    font-size: $font-xs;
     font-weight: $weight-semibold;
     color: $slate-600;
-    font-size: $font-xs;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: .04em;
   }
 
   tbody tr {
-    @include transition(background-color);
-
-    &.clickable-row {
-      cursor: pointer;
-
-      &:hover {
-        background: $slate-50;
-      }
-    }
-
-    &.expiring {
-      background: rgba($warning, 0.05);
-    }
-
-    &.expired {
-      background: rgba($danger, 0.05);
-    }
+    &.clickable-row { cursor: pointer; &:hover { background: $slate-50; } }
+    &.expiring td   { background: rgba($warning, .04); }
+    &.expired td    { background: rgba($danger,  .04); }
+    &:last-child td { border-bottom: none; }
   }
 }
 
-.contract-number {
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
+.contract-number { display: flex; flex-direction: column; }
+.number { font-weight: $weight-semibold; color: $slate-800; }
+.version { font-size: $font-xs; color: $slate-400; }
 
-  .number {
-    font-family: $font-family;
-    font-weight: $weight-medium;
-    color: $slate-800;
-  }
+.investor-cell { display: flex; flex-direction: column; }
+.investor-code { font-size: $font-xs; font-weight: $weight-bold; color: $primary; text-transform: uppercase; }
+.investor-name { font-size: $font-sm; color: $slate-700; }
 
-  .version {
-    font-size: $font-xs;
-    color: $slate-400;
-  }
-}
-
-.investor-cell {
-  display: flex;
-  flex-direction: column;
-  gap: $space-1;
-
-  .investor-code {
-    font-size: $font-xs;
-    font-weight: $weight-bold;
-    color: $primary;
-  }
-
-  .investor-name {
-    color: $slate-600;
-  }
-}
-
-.date-range {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  font-size: $font-sm;
-}
-
-.date-separator {
-  color: $slate-400;
-}
-
-.percentage {
-  font-family: $font-family;
-  font-size: $font-sm;
-  color: $slate-600;
-}
+.date-range { display: flex; align-items: center; gap: $space-1; font-size: $font-sm; }
+.date-sep   { color: $slate-400; }
+.text-danger { color: $danger !important; }
+.text-muted  { color: $slate-400; }
 
 .expires-soon-tag {
   display: inline-block;
-  margin-left: $space-2;
   font-size: $font-xs;
   color: $warning-hover;
+  margin-left: $space-2;
 }
 
-.text-danger {
-  color: $danger;
-  font-weight: $weight-medium;
-}
-
-.text-muted {
-  color: $slate-400;
-  font-style: italic;
-}
-
-.actions {
-  display: flex;
-  gap: $space-2;
-  justify-content: flex-end;
-}
+.row-actions { display: flex; gap: $space-1; }
 
 .btn-icon-only {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 32px; height: 32px;
   border: none;
   background: transparent;
   border-radius: $border-radius;
   cursor: pointer;
-  color: $slate-500;
+  color: $slate-400;
   @include transition(background-color, color);
 
-  svg {
-    width: 18px;
-    height: 18px;
-  }
+  svg { width: 16px; height: 16px; }
 
-  &:hover {
-    background: $slate-100;
-    color: $primary;
-  }
+  &:hover { background: $slate-100; color: $slate-700; }
 }
 
-// Responsive
-@media (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+// Buttons
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  border: 1.5px solid transparent;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  @include transition(background-color, border-color, color);
 
-  .filters-form {
-    flex-direction: column;
-  }
+  &.btn-primary { padding: $space-2 $space-4; background: $primary; color: $white; &:hover { background: $primary-hover; } }
+  &.btn-outline { background: $white; border-color: $border-color; color: $slate-600; &:hover { border-color: $primary; color: $primary; } }
+  &.btn-ghost   { background: transparent; color: $slate-500; &:hover { background: $slate-100; color: $slate-700; } }
+  &.btn-sm      { padding: $space-1 $space-3; font-size: $font-xs; }
+  &:disabled    { opacity: .5; cursor: not-allowed; }
 
-  .filter-group {
-    width: 100%;
-  }
+  .btn-icon { width: 14px; height: 14px; }
 }
+
+.bc-link { color: $primary; text-decoration: none; font-size: $font-sm; &:hover { text-decoration: underline; } }
+.bc-sep  { margin: 0 $space-2; color: $slate-400; font-size: $font-sm; }

@@ -1,74 +1,107 @@
-<app-page-header [title]="investor()?.full_name ?? 'Cargando...'">
-  <ng-container breadcrumb>
-    <span>{{ investor()?.code }}</span>
-  </ng-container>
-  <!-- En investor-detail.component.html - agregar en la sección de profile-badges o como nueva sección -->
+<!-- investor-detail.component.html -->
 
-<!-- En el profile-card, agregar botones de contrato -->
-<div class="contract-actions">
-  @if (!investor()!.has_active_contract) {
-    <button class="btn btn-warning btn-sm" (click)="createContract()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/>
-        <line x1="9" y1="15" x2="15" y2="15"/>
-      </svg>
-      Crear Contrato
-    </button>
-  }
-  <button class="btn btn-outline btn-sm" (click)="goToContracts()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-      <polyline points="14 2 14 8 20 8"/>
-    </svg>
-    Ver Contratos ({{ investor()!.total_contracts }})
-  </button>
-</div>
-  <a [routerLink]="['edit']" class="btn btn-outline btn-sm">Editar</a>
+<app-page-header [title]="facade.detail()?.fullName ?? 'Cargando...'">
+  <ng-container breadcrumb>
+    <a routerLink="/investments/investors" class="bc-link">Inversionistas</a>
+    <span class="bc-sep">/</span>
+    <span>{{ facade.detail()?.code }}</span>
+  </ng-container>
+
+  <ng-container actions>
+    @if (facade.detail()) {
+      @if (!facade.detail()!.hasActiveContract) {
+        <button class="btn btn-warning btn-sm" (click)="openCreateContractDialog()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+          Crear Contrato
+        </button>
+      }
+      <button class="btn btn-outline btn-sm"
+        (click)="facade.goToContracts(facade.detail()!.id)">
+        Ver Contratos ({{ facade.detail()!.totalContracts }})
+      </button>
+      <button class="btn btn-outline btn-sm"
+        (click)="facade.goToEdit(facade.detail()!.id)">
+        Editar
+      </button>
+    }
+  </ng-container>
 </app-page-header>
 
-@if (loading()) {
+<!-- Loading -->
+@if (facade.detailLoading()) {
   <app-loader [overlay]="false" type="spinner" />
-} @else if (investor()) {
+}
 
-  <!-- Header card -->
+@if (facade.detail(); as investor) {
+
+  <!-- Profile card -->
   <div class="profile-card">
-    <app-avatar [name]="investor()!.full_name" size="xl"></app-avatar>
+    <app-avatar [name]="investor.fullName" size="xl" />
     <div class="profile-info">
-      <span class="profile-code">{{ investor()!.document_number }}</span>
-      <h2 class="profile-name">{{ investor()!.full_name }}</h2>
+      <span class="profile-code">{{ investor.documentNumber }}</span>
+      <h2 class="profile-name">{{ investor.fullName }}</h2>
       <div class="profile-meta">
-        @if (investor()!.email) { <span>✉ {{ investor()!.email }}</span> }
-        @if (investor()!.phone) { <span>📞 {{ investor()!.phone }}</span> }
-        <span>Vinculado: {{ investor()!.joined_date }}</span>
+        @if (investor.email)  { <span>✉ {{ investor.email }}</span>  }
+        @if (investor.phone)  { <span>📞 {{ investor.phone }}</span>  }
+        <span>Vinculado: {{ investor.joinedDate }}</span>
       </div>
     </div>
-    <app-badge [color]="investor()!.is_active ? 'success' : 'secondary'" size="md">
-      {{ investor()!.is_active ? 'Activo' : 'Inactivo' }}
+    <app-badge [color]="investor.isActive ? 'success' : 'secondary'" size="md">
+      {{ investor.isActive ? 'Activo' : 'Inactivo' }}
     </app-badge>
   </div>
 
-  <!-- Pending decisions alert -->
-  @if ((summary()?.pending_decisions ?? 0) > 0) {
+  <!-- Alerta decisiones pendientes -->
+  @if (facade.hasPendingDecisions()) {
     <app-alert type="warning" title="Decisiones pendientes" [dismissible]="false">
-      Este inversionista tiene <strong>{{ summary()!.pending_decisions }}</strong> decisiones de venta pendientes.
+      Este inversionista tiene
+      <strong>{{ facade.summary()!.pendingDecisions }}</strong>
+      decisiones de venta pendientes.
       <a routerLink="/investments/decisions" class="alert-link">Ver decisiones →</a>
     </app-alert>
   }
 
   <!-- KPIs -->
   <div class="kpi-grid">
-    <app-kpi-card label="Capital Actual"    [value]="formatCurrency(summary()?.investments?.total_capital ?? 0)"           color="blue">
-      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <app-kpi-card
+      label="Capital Actual"
+      [value]="formatCurrency(facade.summary()?.investments?.totalCapital ?? 0)"
+      color="blue">
+      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="1" x2="12" y2="23"/>
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
     </app-kpi-card>
-    <app-kpi-card label="Ganancia Total"    [value]="formatCurrency(summary()?.investments?.total_profits ?? 0)"     color="green"  [trend]="summary()?.investments?.roi_percentage">
-      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+    <app-kpi-card
+      label="Ganancia Total"
+      [value]="formatCurrency(facade.summary()?.investments?.totalProfits ?? 0)"
+      color="green">
+      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+        <polyline points="16 7 22 7 22 13"/>
+      </svg>
     </app-kpi-card>
-    <app-kpi-card label="Cabezas de Ganado" [value]="(summary()?.cattle?.total_heads ?? 0).toString()"                 color="yellow">
-      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+    <app-kpi-card
+      label="Cabezas de Ganado"
+      [value]="(facade.summary()?.cattle?.totalHeads ?? 0).toString()"
+      color="yellow">
+      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+      </svg>
     </app-kpi-card>
-    <app-kpi-card label="ROI"               [value]="(summary()?.investments?.roi_percentage ?? 0).toFixed(1) + '%'" color="purple">
-      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>
+    <app-kpi-card
+      label="Decisiones Pendientes"
+      [value]="(facade.summary()?.pendingDecisions ?? 0).toString()"
+      color="red">
+      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
     </app-kpi-card>
   </div>
 
@@ -80,47 +113,117 @@
       <mat-tab label="Resumen">
         <div class="tab-content">
           <div class="summary-grid">
+
             <div class="summary-block">
               <h4>Capital</h4>
-              <div class="info-row"><span class="lbl">Capital Inicial</span>    <app-amount-display [amount]="summary()?.investments?.capital_initial ?? 0"             type="neutral" size="sm"></app-amount-display></div>
-              <div class="info-row"><span class="lbl">Aportes Totales</span>    <app-amount-display [amount]="summary()?.investments?.total_contributions ?? 0" type="income"  size="sm"></app-amount-display></div>
-              <div class="info-row"><span class="lbl">Retiros Totales</span>    <app-amount-display [amount]="summary()?.investments?.total_withdrawals ?? 0"   type="expense" size="sm"></app-amount-display></div>
-              <div class="info-row"><span class="lbl">Ganancias</span>          <app-amount-display [amount]="summary()?.investments?.total_profits ?? 0"       type="income"  size="sm"></app-amount-display></div>
-              <div class="info-row"><span class="lbl">Capital Actual</span>     <app-amount-display [amount]="summary()?.investments?.total_capital ?? 0"             type="neutral" size="md"></app-amount-display></div>
+              <div class="info-row">
+                <span class="lbl">Aportes Totales</span>
+                <app-amount-display
+                  [amount]="parseDecimal(facade.summary()?.investments?.totalContributions ?? 0)"
+                  type="income" size="sm" />
+              </div>
+              <div class="info-row">
+                <span class="lbl">Retiros Totales</span>
+                <app-amount-display
+                  [amount]="parseDecimal(facade.summary()?.investments?.totalWithdrawals ?? 0)"
+                  type="expense" size="sm" />
+              </div>
+              <div class="info-row">
+                <span class="lbl">Ganancias</span>
+                <app-amount-display
+                  [amount]="parseDecimal(facade.summary()?.investments?.totalProfits ?? 0)"
+                  type="income" size="sm" />
+              </div>
+              <div class="info-row">
+                <span class="lbl">Capital Actual</span>
+                <app-amount-display
+                  [amount]="parseDecimal(facade.summary()?.investments?.totalCapital ?? 0)"
+                  type="neutral" size="md" />
+              </div>
             </div>
+
             <div class="summary-block">
               <h4>Ganado</h4>
-              <div class="info-row"><span class="lbl">Cabezas activas</span>    <span class="val">{{ summary()?.cattle?.total_heads ?? 0 }}</span></div>
-              <div class="info-row"><span class="lbl">Peso total</span>         <span class="val">{{ (summary()?.cattle?.total_weight ?? 0) }} kg</span></div>
-              <div class="info-row"><span class="lbl">Valor estimado</span>     <app-amount-display [amount]="summary()?.cattle?.total_value ?? 0" type="neutral" size="sm"></app-amount-display></div>
+              <div class="info-row">
+                <span class="lbl">Cabezas activas</span>
+                <span class="val">{{ facade.summary()?.cattle?.totalHeads ?? 0 }}</span>
+              </div>
+              <div class="info-row">
+                <span class="lbl">Peso total</span>
+                <span class="val">{{ facade.summary()?.cattle?.totalWeight ?? 0 }} kg</span>
+              </div>
+              <div class="info-row">
+                <span class="lbl">Valor estimado</span>
+                <app-amount-display
+                  [amount]="parseDecimal(facade.summary()?.cattle?.totalValue ?? 0)"
+                  type="neutral" size="sm" />
+              </div>
             </div>
+
             <div class="summary-block">
               <h4>Inversiones</h4>
-              <div class="info-row"><span class="lbl">Total</span>              <span class="val">{{ summary()?.decisions_list?.length ?? 0 }}</span></div>
-              <div class="info-row"><span class="lbl">Decisiones pendientes</span><span class="val warn">{{ summary()?.pending_decisions ?? 0 }}</span></div>
+              <div class="info-row">
+                <span class="lbl">Total</span>
+                <span class="val">{{ facade.detailInvestments().length }}</span>
+              </div>
+              <div class="info-row">
+                <span class="lbl">Decisiones pendientes</span>
+                <span class="val warn">{{ facade.summary()?.pendingDecisions ?? 0 }}</span>
+              </div>
             </div>
+
           </div>
         </div>
       </mat-tab>
 
       <!-- Inversiones -->
-      <mat-tab label="Inversiones ({{ investments().length }})">
+      <mat-tab [label]="'Inversiones (' + facade.detailInvestments().length + ')'">
         <div class="tab-content">
-          @if (investments().length === 0) {
-            <app-empty-state title="Sin inversiones" [compact]="true"></app-empty-state>
+          @if (facade.detailInvestments().length === 0) {
+            <app-empty-state title="Sin inversiones" [compact]="true" />
           } @else {
             <table class="data-table">
-              <thead><tr><th>Inicio</th><th>Capital Inicial</th><th>Capital Actual</th><th>Ganancias</th><th>ROI</th><th>Estado</th><th></th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Inicio</th><th>Capital Inicial</th><th>Capital Actual</th>
+                  <th>Ganancias</th><th>ROI</th><th>Estado</th><th></th>
+                </tr>
+              </thead>
               <tbody>
-                @for (inv of investments(); track inv.id) {
+                @for (inv of facade.detailInvestments(); track inv.id) {
                   <tr>
-                    <td>{{ inv.start_date }}</td>
-                    <td><app-amount-display [amount]="parseDecimal(inv.initial_capital)" type="neutral" size="sm"></app-amount-display></td>
-                    <td><app-amount-display [amount]="parseDecimal(inv.current_capital)" type="neutral" size="sm"></app-amount-display></td>
-                    <td><app-amount-display [amount]="parseDecimal(inv.total_profits)"   [type]="parseDecimal(inv.total_profits) >= 0 ? 'income' : 'expense'" size="sm"></app-amount-display></td>
-                    <td [class.positive]="(parseDecimal(inv.roi) ?? 0) > 0" [class.negative]="(parseDecimal(inv.roi) ?? 0) < 0">{{ (parseDecimal(inv.roi) ?? 0).toFixed(1) }}%</td>
-                    <td><app-badge [color]="inv.status === 'active' ? 'success' : 'secondary'">{{ inv.status_display ?? inv.status }}</app-badge></td>
-                    <td><a [routerLink]="['/investments/investments', inv.id]" class="btn-link">Ver →</a></td>
+                    <td>{{ inv.startDate }}</td>
+                    <td>
+                      <app-amount-display
+                        [amount]="parseDecimal(inv.initialCapital)"
+                        type="neutral" size="sm" />
+                    </td>
+                    <td>
+                      <app-amount-display
+                        [amount]="parseDecimal(inv.currentCapital)"
+                        type="neutral" size="sm" />
+                    </td>
+                    <td>
+                      <app-amount-display
+                        [amount]="parseDecimal(inv.totalProfits)"
+                        [type]="parseDecimal(inv.totalProfits) >= 0 ? 'income' : 'expense'"
+                        size="sm" />
+                    </td>
+                    <td
+                      [class.positive]="parseDecimal(inv.roi) > 0"
+                      [class.negative]="parseDecimal(inv.roi) < 0">
+                      {{ parseDecimal(inv.roi).toFixed(1) }}%
+                    </td>
+                    <td>
+                      <app-badge [color]="inv.status === 'active' ? 'success' : 'secondary'">
+                        {{ inv.status }}
+                      </app-badge>
+                    </td>
+                    <td>
+                      <a [routerLink]="['/investments/investments', inv.id]" class="btn-link">
+                        Ver →
+                      </a>
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -130,23 +233,43 @@
       </mat-tab>
 
       <!-- Ganado -->
-      <mat-tab label="Ganado ({{ cattle().length }})">
+      <mat-tab [label]="'Ganado (' + facade.detailCattle().length + ')'">
         <div class="tab-content">
-          @if (cattle().length === 0) {
-            <app-empty-state title="Sin ganado asignado" [compact]="true"></app-empty-state>
+          @if (facade.detailCattle().length === 0) {
+            <app-empty-state title="Sin ganado asignado" [compact]="true" />
           } @else {
             <table class="data-table">
-              <thead><tr><th>Tipo</th><th>Animal/Lote</th><th>Cantidad</th><th>Valor Compra</th><th>Valor Actual</th><th>Ganancia Peso</th><th>Estado</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Tipo</th><th>Animal/Lote</th><th>Cantidad</th>
+                  <th>Valor Compra</th><th>Valor Actual</th><th>Ganancia Peso</th><th>Estado</th>
+                </tr>
+              </thead>
               <tbody>
-                @for (own of cattle(); track own.id) {
+                @for (own of facade.detailCattle(); track own.id) {
                   <tr>
-                    <td>{{ own.ownership_type_display ?? own.ownership_type }}</td>
-                    <td>{{ own.animal_tag ?? own.lot_code ?? '—' }}</td>
+                    <td>{{ own.ownershipType }}</td>
+                    <td>{{ own.animal ?? own.lot ?? '—' }}</td>
                     <td>{{ own.quantity }}</td>
-                    <td><app-amount-display [amount]="parseDecimal(own.purchase_value)" type="neutral" size="sm"></app-amount-display></td>
-                    <td><app-amount-display [amount]="parseDecimal(own.current_value) ?? 0" type="neutral" size="sm"></app-amount-display></td>
-                    <td [class.positive]="(parseDecimal(own.weight_gain) ?? 0) > 0">{{ own.weight_gain ? parseDecimal(own.weight_gain).toFixed(1) + ' kg' : '—' }}</td>
-                    <td><app-badge [color]="own.status === 'active' ? 'success' : own.status === 'sold' ? 'info' : 'secondary'">{{ own.status }}</app-badge></td>
+                    <td>
+                      <app-amount-display
+                        [amount]="parseDecimal(own.purchaseValue)"
+                        type="neutral" size="sm" />
+                    </td>
+                    <td>
+                      <app-amount-display
+                        [amount]="parseDecimal(own.currentValue)"
+                        type="neutral" size="sm" />
+                    </td>
+                    <td [class.positive]="parseDecimal(own.weightGain) > 0">
+                      {{ own.weightGain ? parseDecimal(own.weightGain).toFixed(1) + ' kg' : '—' }}
+                    </td>
+                    <td>
+                      <app-badge
+                        [color]="own.status === 'active' ? 'success' : own.status === 'sold' ? 'info' : 'secondary'">
+                        {{ own.status }}
+                      </app-badge>
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -155,23 +278,48 @@
         </div>
       </mat-tab>
 
-      <!-- Decisiones pendientes -->
-      <mat-tab label="Decisiones ({{ decisions().length }})">
+      <!-- Decisiones -->
+      <mat-tab [label]="'Decisiones (' + facade.detailDecisions().length + ')'">
         <div class="tab-content">
-          @if (decisions().length === 0) {
-            <app-empty-state title="Sin decisiones pendientes" message="No hay ventas pendientes de decisión." [compact]="true"></app-empty-state>
+          @if (facade.detailDecisions().length === 0) {
+            <app-empty-state
+              title="Sin decisiones pendientes"
+              message="No hay ventas pendientes de decisión."
+              [compact]="true" />
           } @else {
             <table class="data-table">
-              <thead><tr><th>Venta</th><th>Monto</th><th>Ganancia</th><th>Decisión</th><th>Límite</th><th></th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Venta</th><th>Monto</th><th>Ganancia</th>
+                  <th>Decisión</th><th>Límite</th><th></th>
+                </tr>
+              </thead>
               <tbody>
-                @for (d of decisions(); track d.id) {
+                @for (d of facade.detailDecisions(); track d.id) {
                   <tr>
-                    <td>{{ d.sale_event_description ?? d.sale_event }}</td>
-                    <td><app-amount-display [amount]="parseDecimal(d.investor_amount)" type="income" size="sm"></app-amount-display></td>
-                    <td><app-amount-display [amount]="parseDecimal(d.profit_loss)" [type]="parseDecimal(d.profit_loss) >= 0 ? 'income' : 'expense'" size="sm"></app-amount-display></td>
-                    <td><app-badge [color]="decisionBadgeColor(d.decision_type)">{{ d.decision_type_display ?? d.decision_type }}</app-badge></td>
-                    <td>{{ d.decision_deadline ?? '—' }}</td>
-                    <td><a [routerLink]="['/investments/decisions', d.id]" class="btn-link">Decidir →</a></td>
+                    <td>{{ d.saleEventId }}</td>
+                    <td>
+                      <app-amount-display
+                        [amount]="parseDecimal(d.investorAmount)"
+                        type="income" size="sm" />
+                    </td>
+                    <td>
+                      <app-amount-display
+                        [amount]="parseDecimal(d.profitLoss)"
+                        [type]="parseDecimal(d.profitLoss) >= 0 ? 'income' : 'expense'"
+                        size="sm" />
+                    </td>
+                    <td>
+                      <app-badge [color]="facade.decisionBadgeColor(d.decisionType)">
+                        {{ d.decisionTypeDisplay }}
+                      </app-badge>
+                    </td>
+                    <td>{{ d.decisionDeadline ?? '—' }}</td>
+                    <td>
+                      <a [routerLink]="['/investments/decisions', d.id]" class="btn-link">
+                        Decidir →
+                      </a>
+                    </td>
                   </tr>
                 }
               </tbody>

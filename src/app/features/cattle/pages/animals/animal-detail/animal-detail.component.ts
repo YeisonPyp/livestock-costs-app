@@ -5,14 +5,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject, takeUntil, forkJoin } from 'rxjs';
 
-import { PageHeaderComponent }    from '../../../../../shared/components/page-header/page-header.component';
-import { KpiCardComponent }       from '../../../../../shared/components/display/kpi-card/kpi-card.component';
-import { BadgeComponent }         from '../../../../../shared/components/display/badge/badge.component';
-import { LoaderComponent }        from '../../../../../shared/components/loader/loader.component';
-import { EmptyStateComponent }    from '../../../../../shared/components/empty-state/empty-state.component';
-
 import { CattleService} from '../../../services/cattle.service';
-import { AnimalDetail, AnimalSummary, WeightHistoryItem, BulkImportResult, BulkWeightResult, ANIMAL_STATUS_LABELS, ANIMAL_STATUS_COLORS, ANIMAL_CATEGORY_LABELS, SEX_LABELS } from '../../../models/cattle.model';
+import { AnimalDetail, AnimalSummary, WeightHistoryItem, BulkWeightResult, ANIMAL_STATUS_LABELS, ANIMAL_STATUS_COLORS, ANIMAL_CATEGORY_LABELS, SEX_LABELS } from '../../../models/cattle.model';
+import { PageHeaderComponent } from '../../../../../shared/components/navigation/page-header/page-header.component';
+import { KpiCardComponent } from '../../../../../shared/components/data-display/kpi-card/kpi-card.component';
+import { LoaderComponent } from '../../../../../shared/components/feedback/loader/loader.component';
+import { EmptyStateComponent } from '../../../../../shared/components/feedback/empty-state/empty-state.component';
 
 type Tab = 'info' | 'weights' | 'health' | 'movements';
 

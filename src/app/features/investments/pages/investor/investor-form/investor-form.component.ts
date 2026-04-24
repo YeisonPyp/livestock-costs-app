@@ -1,119 +1,138 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute, RouterLink } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
+// pages/investor/investor-form/investor-form.component.ts
 
-import { PageHeaderComponent }  from '../../../../../shared/components/page-header/page-header.component';
-import { LoaderComponent }       from '../../../../../shared/components/loader/loader.component';
-import { FormCardComponent }     from '../../../../../shared/components/forms/form-card/form-card.component';
-import { InputFieldComponent }   from '../../../../../shared/components/forms/input-field/input-field.component';
+import {
+  Component, OnInit, ChangeDetectionStrategy, inject, signal, computed
+} from '@angular/core';
+import { RouterLink, ActivatedRoute } from '@angular/router';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+
+import { InvestorFacade } from '../../../facades/investor.facade';
+
+import { PageHeaderComponent }     from '../../../../../shared/components/navigation/page-header/page-header.component';
+import { LoaderComponent }         from '../../../../../shared/components/feedback/loader/loader.component';
+import { FormCardComponent }       from '../../../../../shared/components/forms/form-card/form-card.component';
+import { InputFieldComponent }     from '../../../../../shared/components/forms/input-field/input-field.component';
 import { SelectFieldComponent, SelectOption } from '../../../../../shared/components/forms/select-field/select-field.component';
 import { CheckboxToggleComponent } from '../../../../../shared/components/forms/checkbox-toggle/checkbox-toggle.component';
-import { PersonSearchComponent } from '../../../../users/components/person-search/person-search.component'
-import { PersonSimple } from "../../../../users/models/user.model"
-
-import { InvestorService } from '../../../services';
-import { SALE_DECISION_TYPES } from '../../../models/investment.model';
+import { PersonSearchComponent }   from '../../../../users/components/person-search/person-search.component';
+import type { PersonSimple }       from '../../../../users/models/user.model';
+import { SaleDecisionType }        from '../../../models/enums';
 
 @Component({
   selector: 'app-investor-form',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [InvestorFacade],
   imports: [
-    CommonModule, RouterLink, ReactiveFormsModule,
+    RouterLink, ReactiveFormsModule,
     PageHeaderComponent, LoaderComponent, FormCardComponent,
     InputFieldComponent, SelectFieldComponent, CheckboxToggleComponent,
-    PersonSearchComponent
+    PersonSearchComponent,
   ],
   templateUrl: './investor-form.component.html',
   styleUrl:    './investor-form.component.scss',
 })
 export class InvestorFormComponent implements OnInit {
-  private fb      = inject(FormBuilder);
-  private router  = inject(Router);
-  private route   = inject(ActivatedRoute);
-  private svc     = inject(InvestorService);
-  private snack   = inject(MatSnackBar);
+  readonly facade = inject(InvestorFacade);
+  private  fb     = inject(FormBuilder);
+  private  route  = inject(ActivatedRoute);
+
+  readonly investorId = signal<string | null>(null);
+  readonly isEdit     = computed(() => !!this.investorId());
+  readonly today      = new Date().toLocaleDateString('en-CA');
+
+  readonly defaultDecisionOptions: SelectOption[] = Object.values(SaleDecisionType).map(v => ({
+    value: v,
+    label: this.labelForDecision(v),
+  }));
 
   form!: FormGroup;
-  loading    = signal(false);
-  saving     = signal(false);
-  isEdit     = signal(false);
-  investorId = signal<string | null>(null);
-
-  defaultDecisionOptions: SelectOption[] = SALE_DECISION_TYPES.map(d => ({ label: d.label, value: d.value }));
-
-  today = new Date().toLocaleDateString('en-CA');
 
   get f() { return this.form.controls; }
 
   ngOnInit(): void {
     this.buildForm();
-    this.handlePercentageChanges();
+    this.syncOperatorPercentage();
 
     const id = this.route.snapshot.paramMap.get('id');
-    if (id) { this.isEdit.set(true); this.investorId.set(id); this.loadInvestor(id); }
+    if (id) {
+      this.investorId.set(id);
+      this.facade.loadInvestorForEdit(id, (data) => {
+        this.form.patchValue({
+          joinedDate:           data.joinedDate,
+          defaultSaleDecision:  data.defaultSaleDecision,
+          notifySales:          data.notifySales,
+          notifyWeightGains:    data.notifyWeightGains,
+          isActive:             data.isActive,
+          notes:                data.notes,
+          investorPercentage:   data.currentInvestorPercentage ?? 60,
+        });
+      });
+    }
   }
 
   onPersonSelected(person: PersonSimple): void {
-    this.form.get('person_id')?.setValue(person.id);
-  }
-
-  private handlePercentageChanges(): void {
-    this.form.get('investor_percentage')?.valueChanges.subscribe(value => {
-      const investor = Number(value) || 0;
-
-      // Limitar entre 0 y 100
-      if (investor < 0 || investor > 100) return;
-
-      const operator = 100 - investor;
-
-      this.form.get('operator_percentage')?.setValue(operator, {
-        emitEvent: false // 🔥 evita loop infinito
-      });
-    });
-  }
-
-  private buildForm(): void {
-    this.form = this.fb.group({
-      // person UUID — in real app this would be a person-selector component
-      person_id:              ['', Validators.required],
-      joined_date:            [this.today, Validators.required],
-      investor_percentage:    [60, [Validators.required, Validators.min(0), Validators.max(100)]],
-      operator_percentage:    [{ value: 40, disabled: true }],
-      notify_sales:           [true],
-      notify_weight_gains:    [false],
-      default_sale_decision:  ['pending'],
-      is_active:              [true],
-      notes:                  [''],
-    });
-  }
-
-  private loadInvestor(id: string): void {
-    this.loading.set(true);
-    this.svc.getById(id).subscribe({
-      next: (res) => { if (res.success) this.form.patchValue(res.data); this.loading.set(false); },
-      error: () => { this.loading.set(false); this.snack.open('Error al cargar el inversionista', 'Cerrar', { duration: 3000 }); this.router.navigate(['/investments/investors']); },
-    });
+    this.form.get('personId')?.setValue(person.id);
   }
 
   onSubmit(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    this.saving.set(true);
-    const req$ = this.isEdit()
-      ? this.svc.update(this.investorId()!, this.form.getRawValue())
-      : this.svc.create(this.form.getRawValue());
 
-    req$.subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.snack.open(this.isEdit() ? 'Inversionista actualizado' : 'Inversionista creado', 'Cerrar', { duration: 3000 });
-        this.router.navigate(['/investments/investors']);
-      },
-      error: (err) => {
-        this.saving.set(false);
-        this.snack.open(err?.error?.message || 'Error al guardar', 'Cerrar', { duration: 4000 });
-      },
+    const raw = this.form.getRawValue();
+    const id  = this.investorId();
+
+    if (id) {
+      this.facade.updateInvestor(id, {
+        notifySales:         raw.notifySales,
+        notifyWeightGains:   raw.notifyWeightGains,
+        defaultSaleDecision: raw.defaultSaleDecision,
+        notes:               raw.notes,
+      });
+    } else {
+      this.facade.createInvestor({
+        personId:            raw.personId,
+        joinedDate:          raw.joinedDate,
+        notifySales:         raw.notifySales,
+        notifyWeightGains:   raw.notifyWeightGains,
+        defaultSaleDecision: raw.defaultSaleDecision,
+        notes:               raw.notes,
+      });
+    }
+  }
+
+  // ── Helpers privados ──────────────────────────────────────
+
+  private buildForm(): void {
+    this.form = this.fb.group({
+      personId:           ['', Validators.required],
+      joinedDate:         [this.today, Validators.required],
+      investorPercentage: [60, [Validators.required, Validators.min(0), Validators.max(100)]],
+      operatorPercentage: [{ value: 40, disabled: true }],
+      notifySales:        [true],
+      notifyWeightGains:  [false],
+      defaultSaleDecision:['pending'],
+      isActive:           [true],
+      notes:              [''],
     });
+  }
+
+  private syncOperatorPercentage(): void {
+    this.form.get('investorPercentage')?.valueChanges.subscribe(val => {
+      const v = Number(val) || 0;
+      if (v >= 0 && v <= 100) {
+        this.form.get('operatorPercentage')?.setValue(100 - v, { emitEvent: false });
+      }
+    });
+  }
+
+  private labelForDecision(value: string): string {
+    const labels: Record<string, string> = {
+      [SaleDecisionType.PENDING]:         'Pendiente',
+      [SaleDecisionType.REINVEST]:        'Reinvertir',
+      [SaleDecisionType.WITHDRAW]:        'Retirar',
+      [SaleDecisionType.PARTIAL]:         'Parcial',
+      [SaleDecisionType.FULL_WITHDRAWAL]: 'Retiro total',
+    };
+    return labels[value] ?? value;
   }
 }

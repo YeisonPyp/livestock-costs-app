@@ -20,7 +20,7 @@ import { Subject } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 import { Category } from '../../models/cost.model';
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
 import { CategoryService } from '../../services/category.service';
 import { SelectFieldComponent } from '../../../../shared/components/forms/select-field/select-field.component';
 

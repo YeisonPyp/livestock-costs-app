@@ -4,19 +4,17 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
-import { PageHeaderComponent }   from '../../../../../shared/components/page-header/page-header.component';
-import { KpiCardComponent }       from '../../../../../shared/components/display/kpi-card/kpi-card.component';
-import { BadgeComponent }         from '../../../../../shared/components/display/badge/badge.component';
-import { LoaderComponent }        from '../../../../../shared/components/loader/loader.component';
-import { EmptyStateComponent }    from '../../../../../shared/components/empty-state/empty-state.component';
-import { ConfirmDialogComponent } from '../../../../../shared/components/confirm-dialog/confirm-dialog.component';
-
 import { CattleService } from '../../../services/cattle.service';
 import {
   Lot, LotStatus, LotType,
   LOT_STATUS_LABELS, LOT_STATUS_COLORS, LOT_TYPE_LABELS,
 } from '../../../models/cattle.model';
+import { PageHeaderComponent } from '../../../../../shared/components/navigation/page-header/page-header.component';
+import { LoaderComponent } from '../../../../../shared/components/feedback/loader/loader.component';
+import { KpiCardComponent } from '../../../../../shared/components/data-display/kpi-card/kpi-card.component';
+import { EmptyStateComponent } from '../../../../../shared/components/feedback/empty-state/empty-state.component';
+import { BadgeComponent } from '../../../../../shared/components/ui/badge/badge.component';
+import { ConfirmDialogComponent } from '../../../../../shared/components/feedback/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-lot-list',

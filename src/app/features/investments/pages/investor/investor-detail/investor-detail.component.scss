@@ -1,28 +1,124 @@
+// investor-detail.component.scss
 @use '../../../../../styles/variables' as *;
 
-.profile-card { display: flex; align-items: center; gap: $space-4; background: $white; border: 1px solid $border-color; border-radius: $border-radius-md; padding: $space-5; margin-bottom: $space-5; box-shadow: $shadow-sm; }
-.profile-info { flex: 1; min-width: 0; }
-.profile-code { display: block; font-size: $font-xs; font-weight: $weight-bold; color: $primary; letter-spacing: .06em; text-transform: uppercase; }
-.profile-name { margin: $space-1 0 $space-2; font-size: $font-xl; font-weight: $weight-bold; color: $slate-900; }
-.profile-meta { display: flex; flex-wrap: wrap; gap: $space-4; font-size: $font-sm; color: $slate-500; }
-
-.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: $space-4; margin-bottom: $space-5; }
-
-.tabs-container { background: $white; border: 1px solid $border-color; border-radius: $border-radius-md; box-shadow: $shadow-sm; overflow: hidden; }
-.tab-content { padding: $space-6; }
-
-.summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: $space-4; }
-.summary-block { background: $slate-50; border: 1px solid $border-color; border-radius: $border-radius; padding: $space-4;
-  h4 { margin: 0 0 $space-3; font-size: $font-sm; font-weight: $weight-bold; color: $slate-700; text-transform: uppercase; letter-spacing: .04em; padding-bottom: $space-2; border-bottom: 1px solid $border-color; }
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: $space-4;
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  padding: $space-5;
+  margin-bottom: $space-5;
+  box-shadow: $shadow-sm;
 }
 
-.info-row { display: flex; justify-content: space-between; align-items: center; padding: $space-2 0; border-bottom: 1px solid rgba($border-color,.5); &:last-child { border-bottom: none; } }
-.lbl { font-size: $font-xs; color: $slate-400; }
-.val { font-size: $font-sm; font-weight: $weight-medium; color: $slate-800; &.warn { color: $warning-hover; } }
+.profile-info { flex: 1; min-width: 0; }
 
-.data-table { width: 100%; border-collapse: collapse;
-  th, td { padding: $space-3 $space-4; text-align: left; font-size: $font-sm; border-bottom: 1px solid $border-color; vertical-align: middle; }
-  th { background: $slate-50; font-weight: $weight-semibold; color: $slate-600; font-size: $font-xs; text-transform: uppercase; letter-spacing: .04em; }
+.profile-code {
+  display: block;
+  font-size: $font-xs;
+  font-weight: $weight-bold;
+  color: $primary;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.profile-name {
+  margin: $space-1 0 $space-2;
+  font-size: $font-xl;
+  font-weight: $weight-bold;
+  color: $slate-900;
+}
+
+.profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-4;
+  font-size: $font-sm;
+  color: $slate-500;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: $space-4;
+  margin-bottom: $space-5;
+}
+
+.tabs-container {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+}
+
+.tab-content { padding: $space-6; }
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: $space-4;
+}
+
+.summary-block {
+  background: $slate-50;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  padding: $space-4;
+
+  h4 {
+    margin: 0 0 $space-3;
+    font-size: $font-sm;
+    font-weight: $weight-bold;
+    color: $slate-700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding-bottom: $space-2;
+    border-bottom: 1px solid $border-color;
+  }
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-2 0;
+  border-bottom: 1px solid rgba($border-color, .5);
+  &:last-child { border-bottom: none; }
+}
+
+.lbl { font-size: $font-xs; color: $slate-400; }
+.val {
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: $slate-800;
+  &.warn { color: $warning-hover; }
+}
+
+// Data table
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th, td {
+    padding: $space-3 $space-4;
+    text-align: left;
+    font-size: $font-sm;
+    border-bottom: 1px solid $border-color;
+    vertical-align: middle;
+  }
+
+  th {
+    background: $slate-50;
+    font-weight: $weight-semibold;
+    color: $slate-600;
+    font-size: $font-xs;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
   tbody tr:hover { background: $slate-50; }
   tbody tr:last-child td { border-bottom: none; }
 }
@@ -30,13 +126,52 @@
 .positive { color: $success; font-weight: $weight-semibold; }
 .negative { color: $danger;  font-weight: $weight-semibold; }
 
-.btn-link { font-size: $font-xs; font-weight: $weight-semibold; color: $primary; text-decoration: none; &:hover { text-decoration: underline; } }
-.alert-link { margin-left: $space-2; font-weight: $weight-semibold; color: inherit; text-decoration: underline; }
+.btn-link {
+  font-size: $font-xs;
+  font-weight: $weight-semibold;
+  color: $primary;
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
+}
 
+.alert-link {
+  margin-left: $space-2;
+  font-weight: $weight-semibold;
+  color: inherit;
+  text-decoration: underline;
+}
+
+// Breadcrumb
 .bc-link { color: $primary; text-decoration: none; font-size: $font-sm; &:hover { text-decoration: underline; } }
 .bc-sep  { margin: 0 $space-2; color: $slate-400; font-size: $font-sm; }
 
-.btn { display: inline-flex; align-items: center; gap: $space-2; border: 1.5px solid transparent; border-radius: $border-radius; font-size: $font-sm; font-weight: $weight-medium; cursor: pointer; text-decoration: none; @include transition(background-color, border-color, color);
-  &.btn-outline { background: $white; border-color: $border-color; color: $slate-600; &:hover { border-color: $primary; color: $primary; } }
+// Header action buttons
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  border: 1.5px solid transparent;
+  border-radius: $border-radius;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  text-decoration: none;
+  @include transition(background-color, border-color, color);
+
+  &.btn-outline {
+    background: $white;
+    border-color: $border-color;
+    color: $slate-600;
+    &:hover { border-color: $primary; color: $primary; }
+  }
+
+  &.btn-warning {
+    background: $warning;
+    color: $white;
+    &:hover { background: $warning-hover; }
+  }
+
   &.btn-sm { padding: $space-1 $space-3; font-size: $font-xs; }
+
+  .btn-icon { width: 14px; height: 14px; }
 }

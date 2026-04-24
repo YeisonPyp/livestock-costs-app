@@ -1,61 +1,32 @@
 <!-- sale-list.component.html -->
 
-<!-- ═══════════════════════════════════════════════════════════════════════════ -->
-<!-- HEADER -->
-<!-- ═══════════════════════════════════════════════════════════════════════════ -->
-<app-page-header 
-  title="Ventas de Ganado" 
-  subtitle="Eventos de venta y decisiones de inversionistas">
-  <button class="btn btn-primary" (click)="openDrawer()">
-    <svg ...><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+<app-page-header title="Ventas de Ganado" subtitle="Eventos de venta y decisiones de inversionistas">
+  <button class="btn btn-primary" (click)="facade.openDrawer()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
     Nueva Venta
   </button>
 </app-page-header>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════ -->
 <!-- KPIs -->
-<!-- ═══════════════════════════════════════════════════════════════════════════ -->
-<div class="kpi-grid">
-  <app-kpi-card 
-    label="Total Ventas" 
-    [value]="stats().total.toString()" 
-    color="blue" 
-  />
-  <app-kpi-card 
-    label="Pendientes" 
-    [value]="stats().pending.toString()" 
-    [color]="stats().pending > 0 ? 'red' : 'green'" 
-  />
-  <app-kpi-card 
-    label="Monto Neto Total" 
-    [value]="formatCurrency(stats().totalNet)" 
-    color="green" 
-  />
-  <app-kpi-card 
-    label="Cabezas Vendidas" 
-    [value]="stats().totalHeads.toString()" 
-    color="yellow" 
-  />
-</div>
+<app-sale-stats [stats]="facade.listStats()" />
 
-<!-- ═══════════════════════════════════════════════════════════════════════════ -->
-<!-- NEW SALE FORM -->
-<!-- ═══════════════════════════════════════════════════════════════════════════ -->
-@if (showDrawer()) {
-  <app-sale-create
-    (saved)="onSaleSaved()"
-    (cancel)="showDrawer.set(false)"
-  />
+<!-- Drawer de creación -->
+@if (facade.showDrawer()) {
+  <app-sale-create-drawer
+    (saved)="facade.onSaleSaved()"
+    (cancel)="facade.closeDrawer()" />
 }
 
-<!-- ═══════════════════════════════════════════════════════════════════════════ -->
-<!-- FILTERS -->
-<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- Filtros -->
 <div class="filters-card">
   <div class="filters-row">
     <div class="filter-item">
       <label class="filter-label">Estado</label>
-      <select class="filter-select" [(ngModel)]="filterFinalized" (ngModelChange)="onFilterChange()">
+      <select class="filter-select"
+        [ngModel]="facade.filterStatus()"
+        (ngModelChange)="facade.applyFilter($event)">
         <option value="">Todas</option>
         <option value="false">Pendientes</option>
         <option value="true">Finalizadas</option>
@@ -64,17 +35,16 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════ -->
-<!-- SALES TABLE -->
-<!-- ═══════════════════════════════════════════════════════════════════════════ -->
-@if (loading()) {
+<!-- Contenido -->
+@if (facade.listLoading()) {
   <app-loader [overlay]="false" type="spinner" />
-} @else if (sales().length === 0) {
-  <app-empty-state 
-    title="Sin ventas registradas" 
-    message="Registra el primer evento de venta."
-  />
-} @else {
+}
+@else if (facade.listItems().length === 0) {
+  <app-empty-state
+    title="Sin ventas registradas"
+    message="Registra el primer evento de venta." />
+}
+@else {
   <div class="table-card">
     <table class="data-table">
       <thead>
@@ -92,44 +62,38 @@
         </tr>
       </thead>
       <tbody>
-        @for (sale of sales(); track sale.id) {
+        @for (sale of facade.listItems(); track sale.id) {
           <tr>
-            <td class="date-cell">{{ sale.sale_date }}</td>
+            <td class="date-cell">{{ sale.saleDate }}</td>
             <td class="desc-cell">{{ sale.description }}</td>
-            <td>{{ sale.buyer_name || '—' }}</td>
-            <td class="text-center">{{ sale.total_heads }}</td>
-            <td class="text-center">{{ sale.total_weight | number:'1.1-1' }}</td>
-            <td class="text-center">{{ formatCurrency(sale.price_per_kg) }}</td>
+            <td>{{ sale.buyerName || '—' }}</td>
+            <td class="text-center">{{ sale.totalHeads }}</td>
+            <td class="text-center">{{ sale.totalWeight }}</td>
+            <td class="text-center">{{ facade.formatCurrency(facade.parseDecimal(sale.pricePerKg)) }}</td>
             <td class="text-right">
-              <app-amount-display 
-                [amount]="sale.net_amount" 
-                type="income" 
-                size="sm"
-              />
+              <app-amount-display
+                [amount]="facade.parseDecimal(sale.netAmount)"
+                type="income" size="sm" />
             </td>
             <td class="text-center">
-              @if (!sale.is_finalized) {
-                <app-badge 
-                  [color]="(sale.pending_decisions_count ?? 0) > 0 ? 'warning' : 'success'" 
-                  size="sm"
-                >
-                  {{ sale.pending_decisions_count ?? 0 }} pend.
+              @if (!sale.isFinalized) {
+                <app-badge
+                  [color]="(sale.pendingDecisionsCount ?? 0) > 0 ? 'warning' : 'success'"
+                  size="sm">
+                  {{ sale.pendingDecisionsCount ?? 0 }} pend.
                 </app-badge>
               } @else {
                 <app-badge color="secondary" size="sm">—</app-badge>
               }
             </td>
             <td class="text-center">
-              <app-badge [color]="sale.is_finalized ? 'success' : 'warning'">
-                {{ sale.is_finalized ? 'Finalizada' : 'Pendiente' }}
+              <app-badge [color]="sale.isFinalized ? 'success' : 'warning'">
+                {{ sale.isFinalized ? 'Finalizada' : 'Pendiente' }}
               </app-badge>
             </td>
             <td>
               <a [routerLink]="[sale.id]" class="btn-link">
-                Ver
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="9 18 15 12 9 6"/>
-                </svg>
+                Ver <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:middle"><polyline points="9 18 15 12 9 6"/></svg>
               </a>
             </td>
           </tr>
@@ -138,29 +102,18 @@
     </table>
   </div>
 
-  <!-- Pagination -->
-  @if (totalPages() > 1) {
+  @if (facade.totalPages() > 1) {
     <div class="pagination">
-      <button
-        class="btn btn-secondary btn-sm"
-        [disabled]="currentPage() === 1"
-        (click)="goToPage(currentPage() - 1)"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-        Anterior
+      <button class="btn btn-sm btn-outline"
+        [disabled]="facade.currentPage() === 1"
+        (click)="facade.goToPage(facade.currentPage() - 1)">
+        ← Anterior
       </button>
-      <span class="page-info">{{ currentPage() }} / {{ totalPages() }}</span>
-      <button
-        class="btn btn-secondary btn-sm"
-        [disabled]="currentPage() === totalPages()"
-        (click)="goToPage(currentPage() + 1)"
-      >
-        Siguiente
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="9 18 15 12 9 6"/>
-        </svg>
+      <span class="page-info">{{ facade.currentPage() }} / {{ facade.totalPages() }}</span>
+      <button class="btn btn-sm btn-outline"
+        [disabled]="facade.currentPage() === facade.totalPages()"
+        (click)="facade.goToPage(facade.currentPage() + 1)">
+        Siguiente →
       </button>
     </div>
   }

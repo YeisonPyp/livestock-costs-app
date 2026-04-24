@@ -1,0 +1,33 @@
+<button class="investor-card" (click)="cardClick.emit(investor.id)">
+  <div class="investor-card-top">
+    <app-avatar [name]="investor.fullName" size="lg" />
+    <div class="investor-info">
+      <span class="investor-code">{{ investor.documentNumber }}</span>
+      <h3 class="investor-name">{{ investor.fullName }}</h3>
+      <span class="investor-contact">{{ investor.email || "—" }}</span>
+    </div>
+    <app-badge [color]="investor.isActive ? 'success' : 'secondary'">
+      {{ investor.isActive ? "Activo" : "Inactivo" }}
+    </app-badge>
+  </div>
+
+  <div class="investor-card-stats">
+    <div class="inv-stat">
+      <span class="inv-stat-value">{{ fmt(investor.totalInvestments) }}</span>
+      <span class="inv-stat-label">Inv. Inicial</span>
+    </div>
+    <div class="inv-stat">
+      <span class="inv-stat-value">{{ fmt(investor.totalCapital) }}</span>
+      <span class="inv-stat-label">Capital</span>
+    </div>
+    <div class="inv-stat">
+      <span class="inv-stat-value">{{ fmt(investor.totalCattle || 0) }}</span>
+      <span class="inv-stat-label">Cabezas</span>
+    </div>
+  </div>
+
+  <div class="investor-card-footer">
+    <span class="joined-date">Vinculado: {{ investor.joinedDate }}</span>
+    <span class="view-link">Ver detalle →</span>
+  </div>
+</button>

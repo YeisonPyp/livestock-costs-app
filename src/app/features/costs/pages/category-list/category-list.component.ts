@@ -4,26 +4,18 @@ import { RouterLink } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
-
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
-import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
-import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
-import { BadgeComponent } from '../../../../shared/components/display/badge/badge.component';
-import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
-
+import { PageHeaderComponent } from '../../../../shared/components/navigation/page-header/page-header.component';
+import { TableComponent, TableColumn, TableConfig, PaginationParams } from '../../../../shared/components/data-display/table/table.component';
+import { EmptyStateComponent } from '../../../../shared/components/feedback/empty-state/empty-state.component';
+import { BadgeComponent } from '../../../../shared/components/ui/badge/badge.component';
+import { LoaderComponent } from '../../../../shared/components/feedback/loader/loader.component';
 import { CategoryService } from '../../services/category.service';
 import { CategoryTree, Category } from '../../models/cost.model';
-import {
-  TableComponent,
-  TableColumn,
-  TableConfig,
-  PaginationParams,
-} from '../../../../shared/components/table/table.component';
-
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { CategoryFormComponent } from '../category-form/category-form.component';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
+import { ModalComponent } from '../../../../shared/components/overlays/modal/modal.component';
+import { ConfirmDialogComponent } from '../../../../shared/components/feedback/confirm-dialog/confirm-dialog.component';
 
 const PAGE_SIZE = 10;
 

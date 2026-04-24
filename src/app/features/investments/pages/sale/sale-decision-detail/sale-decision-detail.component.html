@@ -1,151 +1,114 @@
+<!-- sale-decision-detail.component.html -->
+
 <app-page-header title="Decisión de Venta">
   <ng-container breadcrumb>
     <a routerLink="/investments/sales" class="bc-link">Ventas</a>
     <span class="bc-sep">/</span>
-    <a [routerLink]="['/investments/sales', decision()?.sale_event]" class="bc-link">Venta</a>
+    <a [routerLink]="['/investments/sales', facade.decision()?.saleEventId]" class="bc-link">Venta</a>
     <span class="bc-sep">/</span>
     <span>Decisión</span>
   </ng-container>
 </app-page-header>
 
-@if (loading()) {
+@if (facade.decisionLoading()) {
   <app-loader [overlay]="false" type="spinner" />
-} @else if (decision()) {
+}
+
+@if (facade.decision(); as d) {
 
   <!-- Summary card -->
   <div class="decision-card">
     <div class="decision-header">
       <div>
-        <span class="inv-code">{{ decision()!.investor_code ?? '—' }}</span>
-        <h2 class="inv-name">{{ decision()!.investor_name ?? '—' }}</h2>
+        <span class="inv-code">{{ d.investorCode ?? '—' }}</span>
+        <h2 class="inv-name">{{ d.investorName ?? '—' }}</h2>
       </div>
-      <app-badge [color]="decisionColor(decision()!.decision_type)" size="md">
-        {{ decision()!.decision_type === 'pending' ? 'Pendiente' : decision()!.decision_type_display ?? decision()!.decision_type }}
+      <app-badge [color]="facade.decisionColor(d.decisionType)" size="md">
+        {{ facade.decisionLabel(d.decisionType) }}
       </app-badge>
     </div>
 
     <div class="amounts-row">
       <div class="amount-block">
         <span class="amount-label">Monto de la Venta</span>
-        <app-amount-display [amount]="parseDecimal(decision()!.investor_amount)" type="income" size="xl"></app-amount-display>
+        <app-amount-display
+          [amount]="facade.parseDecimal(d.investorAmount)"
+          type="income" size="xl" />
       </div>
       <div class="amount-block">
         <span class="amount-label">Ganancia / Pérdida</span>
         <app-amount-display
-          [amount]="parseDecimal(decision()!.profit_loss)"
-          [type]="parseDecimal(decision()!.profit_loss) >= 0 ? 'income' : 'expense'"
-          [showSign]="true"
-          size="lg"
-        ></app-amount-display>
+          [amount]="facade.parseDecimal(d.profitLoss)"
+          [type]="facade.parseDecimal(d.profitLoss) >= 0 ? 'income' : 'expense'"
+          [showSign]="true" size="lg" />
       </div>
-      @if (decision()!.decision_deadline) {
+      @if (d.decisionDeadline) {
         <div class="amount-block">
           <span class="amount-label">Fecha Límite</span>
-          <span class="deadline">{{ decision()!.decision_deadline }}</span>
+          <span class="deadline">{{ d.decisionDeadline }}</span>
         </div>
       }
     </div>
   </div>
 
-  <!-- Already decided -->
-  @if (isAlreadyDecided) {
+  <!-- Ya decidido -->
+  @if (facade.isAlreadyDecided()) {
     <app-alert type="success" [dismissible]="false">
-      Ya se registró una decisión para esta venta: <strong>{{ decision()!.decision_type_display ?? decision()!.decision_type }}</strong>.
-      @if (parseDecimal(decision()!.reinvest_amount) > 0) { Se reinvertirán {{ formatCurrency(parseDecimal(decision()!.reinvest_amount)) }}. }
-      @if (parseDecimal(decision()!.withdraw_amount) > 0) { Se retirarán {{ formatCurrency(parseDecimal(decision()!.withdraw_amount)) }}. }
+      Ya se registró una decisión: <strong>{{ facade.decisionLabel(d.decisionType) }}</strong>.
+      @if (facade.parseDecimal(d.reinvestAmount) > 0) {
+        Se reinvertirán {{ facade.formatCurrency(facade.parseDecimal(d.reinvestAmount)) }}.
+      }
+      @if (facade.parseDecimal(d.withdrawAmount) > 0) {
+        Se retirarán {{ facade.formatCurrency(facade.parseDecimal(d.withdrawAmount)) }}.
+      }
     </app-alert>
-
-    <a [routerLink]="['/investments/sales', decision()!.sale_event]" class="btn btn-outline">
+    <a [routerLink]="['/investments/sales', d.saleEventId]" class="btn btn-outline">
       ← Volver a la Venta
     </a>
   }
 
-  <!-- Decision selector (only when pending) -->
-  @if (!isAlreadyDecided) {
+  <!-- Selector de decisión -->
+  @if (!facade.isAlreadyDecided()) {
     <div class="decision-section">
       <h3>¿Qué deseas hacer con tu monto?</h3>
 
-      <div class="options-grid">
+      <!-- Opciones (componente presentacional) -->
+      <app-decision-options
+        [investorAmount]="facade.parseDecimal(d.investorAmount)"
+        [selectedType]="facade.selectedType()"
+        (typeSelected)="onSelectType($event)" />
 
-        <!-- Reinvertir -->
-        <button
-          class="option-card"
-          [class.selected]="selectedType() === 'reinvest'"
-          (click)="selectDecision('reinvest')"
-        >
-          <div class="option-icon option-icon--success">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-          </div>
-          <div class="option-content">
-            <span class="option-title">Reinvertir Todo</span>
-            <span class="option-desc">El monto completo se reinvierte en la siguiente operación</span>
-            <span class="option-amount success">{{ formatCurrency(decision()!.investor_amount) }}</span>
-          </div>
-        </button>
-
-        <!-- Retirar -->
-        <button
-          class="option-card"
-          [class.selected]="selectedType() === 'withdraw'"
-          (click)="selectDecision('withdraw')"
-        >
-          <div class="option-icon option-icon--danger">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-          </div>
-          <div class="option-content">
-            <span class="option-title">Retirar Todo</span>
-            <span class="option-desc">El monto completo se acredita a tu cuenta</span>
-            <span class="option-amount danger">{{ formatCurrency(decision()!.investor_amount) }}</span>
-          </div>
-        </button>
-
-        <!-- Parcial -->
-        <button
-          class="option-card"
-          [class.selected]="selectedType() === 'partial'"
-          (click)="selectDecision('partial')"
-        >
-          <div class="option-icon option-icon--warning">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-          </div>
-          <div class="option-content">
-            <span class="option-title">Distribuir</span>
-            <span class="option-desc">Decide cuánto reinvertir y cuánto retirar</span>
-            <span class="option-amount warning">Personalizable</span>
-          </div>
-        </button>
-      </div>
-
-      <!-- Partial form -->
-      @if (selectedType() === 'partial') {
+      <!-- Formulario parcial -->
+      @if (facade.selectedType() === SaleDecisionType.PARTIAL) {
         <form [formGroup]="partialForm" class="partial-form">
           <div class="partial-fields">
             <div class="field">
               <label class="field-label">Monto a Reinvertir *</label>
-              <input type="number" formControlName="reinvest_amount" class="field-input"
-                min="0" [max]="decision()!.investor_amount" step="0.01"
-                placeholder="0.00" />
-              @if (partialForm.get('reinvest_amount')?.invalid && partialForm.get('reinvest_amount')?.touched) {
+              <input type="number" formControlName="reinvestAmount"
+                class="field-input" min="0"
+                [max]="facade.parseDecimal(d.investorAmount)"
+                step="0.01" placeholder="0.00" />
+              @if (partialForm.get('reinvestAmount')?.invalid && partialForm.get('reinvestAmount')?.touched) {
                 <span class="field-error">Ingresa un monto válido</span>
               }
             </div>
             <div class="field">
               <label class="field-label">Monto a Retirar (automático)</label>
-              <input type="text" formControlName="withdraw_amount" class="field-input field-readonly" readonly />
+              <input type="text" formControlName="withdrawAmount" class="field-input field-readonly" readonly />
             </div>
           </div>
-          <div class="total-display">
-            Total: {{ formatCurrency(decision()!.investor_amount) }}
-          </div>
+          <p class="total-display">
+            Total disponible: <strong>{{ facade.formatCurrency(facade.parseDecimal(d.investorAmount)) }}</strong>
+          </p>
         </form>
       }
 
-      <!-- Confirm button -->
-      @if (selectedType()) {
+      <!-- Confirmar -->
+      @if (facade.selectedType()) {
         <div class="confirm-actions">
-          <button class="btn btn-ghost" (click)="selectedType.set(null)">Cancelar</button>
-          <button class="btn btn-primary" (click)="confirmDecision()" [disabled]="saving()">
-            @if (saving()) { <span class="btn-spinner-sm"></span> Guardando... }
+          <button class="btn btn-ghost" (click)="facade.cancelDecisionSelection()">Cancelar</button>
+          <button class="btn btn-primary" (click)="onConfirm()" [disabled]="facade.decisionSaving()">
+            @if (facade.decisionSaving()) { <span class="btn-spinner-sm"></span> Guardando... }
             @else { Confirmar Decisión }
           </button>
         </div>

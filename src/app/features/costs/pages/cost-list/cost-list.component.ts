@@ -4,12 +4,6 @@ import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
-
-import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header.component';
-import { KpiCardComponent } from '../../../../shared/components/display/kpi-card/kpi-card.component';
-import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
-import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
-
 import { CostService } from '../../services/cost.service';
 import { CategoryService } from '../../services/category.service';
 import {
@@ -20,15 +14,14 @@ import {
   CostDetail,
   CategoryType,
 } from '../../models/cost.model';
-import {
-  TableComponent,
-  TableColumn,
-  TableConfig,
-  PaginationParams,
-} from '../../../../shared/components/table/table.component';
 import { NotificationService } from '../../../../core/services/notification.service';
-import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { SafeDatePipe } from '../../../../shared/pipes/safe-date.pipe';
+import { LoaderComponent } from '../../../../shared/components/feedback/loader/loader.component';
+import { ModalComponent } from '../../../../shared/components/overlays/modal/modal.component';
+import { PageHeaderComponent } from '../../../../shared/components/navigation/page-header/page-header.component';
+import { KpiCardComponent } from '../../../../shared/components/data-display/kpi-card/kpi-card.component';
+import { PaginationParams, TableColumn, TableComponent, TableConfig } from '../../../../shared/components/data-display/table/table.component';
+import { ConfirmDialogComponent } from '../../../../shared/components/feedback/confirm-dialog/confirm-dialog.component';
 
 const PAGE_SIZE = 10; // fuente única de verdad
 

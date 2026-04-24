@@ -1,404 +1,138 @@
-// ═══════════════════════════════════════════════════════════════════════════
-// VARIABLES
-// ═══════════════════════════════════════════════════════════════════════════
+// investment-form.component.scss
+@use '../../../../../styles/variables' as *;
 
-$spacing-xs: 0.25rem;
-$spacing-sm: 0.5rem;
-$spacing-md: 1rem;
-$spacing-lg: 1.5rem;
-$spacing-xl: 2rem;
+.investment-form { display: flex; flex-direction: column; gap: 0; }
 
-$color-primary: #3b82f6;
-$color-success: #10b981;
-$color-danger: #ef4444;
-$color-warning: #f59e0b;
-$color-muted: #6b7280;
-
-$border-radius: 0.5rem;
-$border-color: #d1d5db;
-
-// ═══════════════════════════════════════════════════════════════════════════
-// FORMULARIO BASE
-// ═══════════════════════════════════════════════════════════════════════════
-
-.investment-form {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-lg;
-}
-
-.form-alert {
-  margin-bottom: $spacing-md;
-
-  .btn {
-    margin-top: $spacing-sm;
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// SECCIONES
-// ═══════════════════════════════════════════════════════════════════════════
+.form-alert { margin-bottom: $space-4; }
 
 .form-section {
-  padding-bottom: $spacing-lg;
-  border-bottom: 1px solid var(--border-color, #e5e7eb);
-
-  &:last-of-type {
-    border-bottom: none;
-  }
+  padding: $space-5;
+  border-bottom: 1px solid $border-color;
+  &:last-of-type { border-bottom: none; }
+  &.summary-section { background: rgba($primary, .02); }
 }
 
 .section-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-muted, $color-muted);
+  margin: 0 0 $space-4;
+  font-size: $font-sm;
+  font-weight: $weight-bold;
+  color: $slate-700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: $spacing-md;
+  letter-spacing: .04em;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// CAMPOS
-// ═══════════════════════════════════════════════════════════════════════════
-
-.form-group {
-  margin-bottom: $spacing-md;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
+.form-group { display: flex; flex-direction: column; gap: $space-1; }
 
 .form-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-primary, #111827);
-  margin-bottom: $spacing-xs;
-
-  .label-optional {
-    font-weight: 400;
-    color: var(--text-muted, $color-muted);
-  }
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  color: $slate-700;
 }
 
-.form-input,
+.label-optional { font-weight: $weight-normal; color: $slate-400; font-size: $font-xs; }
+
 .form-select,
+.form-input,
 .form-textarea {
-  width: 100%;
-  padding: $spacing-sm $spacing-md;
-  border: 1px solid var(--border-color, $border-color);
+  padding: $space-2 $space-3;
+  border: 1px solid $border-color;
   border-radius: $border-radius;
-  font-size: 0.875rem;
-  background: var(--bg-input, #fff);
-  color: var(--text-primary, #111827);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  font-size: $font-sm;
+  font-family: $font-family;
+  background: $white;
+  @include transition(border-color, box-shadow);
 
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary, $color-primary);
-    box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
-  }
-
-  &:disabled {
-    background: var(--bg-muted, #f3f4f6);
-    color: var(--text-muted, $color-muted);
-    cursor: not-allowed;
-  }
-
-  &.is-invalid {
-    border-color: $color-danger;
-
-    &:focus {
-      box-shadow: 0 0 0 3px rgba($color-danger, 0.1);
-    }
-  }
+  &:focus { outline: none; border-color: $primary; box-shadow: 0 0 0 3px rgba($primary, .1); }
+  &.is-invalid { border-color: $danger; }
 }
 
-.form-select {
-  cursor: pointer;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right $spacing-sm center;
-  background-repeat: no-repeat;
-  background-size: 1.5em 1.5em;
-  padding-right: $spacing-xl;
-}
+.form-textarea { resize: vertical; }
 
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
-  line-height: 1.5;
-}
+.input-with-preview { display: flex; align-items: center; gap: $space-3; }
 
-.form-error {
-  display: block;
-  font-size: 0.75rem;
-  color: $color-danger;
-  margin-top: $spacing-xs;
-}
-
-.form-hint {
-  display: flex;
-  align-items: center;
-  gap: $spacing-xs;
-  font-size: 0.75rem;
-  color: var(--text-muted, $color-muted);
-  margin-top: $spacing-xs;
-}
-
-.char-counter {
-  font-size: 0.75rem;
-  color: var(--text-muted, $color-muted);
-  text-align: right;
-  margin-top: $spacing-xs;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// BÚSQUEDA DE INVERSIONISTAS
-// ═══════════════════════════════════════════════════════════════════════════
-
-.search-wrapper {
-  position: relative;
-  margin-bottom: $spacing-sm;
-}
-
-.search-input {
-  padding-right: $spacing-xl;
-}
-
-.search-spinner {
-  position: absolute;
-  right: $spacing-md;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--border-color, $border-color);
-  border-top-color: var(--color-primary, $color-primary);
-  border-radius: 50%;
-  animation: spin 0.75s linear infinite;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// INFO DEL INVERSIONISTA
-// ═══════════════════════════════════════════════════════════════════════════
-
-.investor-info {
-  margin-top: $spacing-md;
-  padding: $spacing-md;
-  background: var(--bg-surface, #f9fafb);
-  border-radius: $border-radius;
-  border: 1px solid var(--border-color, #e5e7eb);
-}
-
-.investor-info-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: $spacing-xs 0;
-  font-size: 0.875rem;
-
-  &:not(:last-child) {
-    border-bottom: 1px solid var(--border-color, #e5e7eb);
-  }
-}
-
-.investor-info-label {
-  color: var(--text-muted, $color-muted);
-}
-
-.investor-warning {
-  margin-top: $spacing-sm;
-  padding-top: $spacing-sm;
-  border-top: 1px solid var(--border-color, #e5e7eb);
-  color: $color-warning;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// CAMPO DE CAPITAL
-// ═══════════════════════════════════════════════════════════════════════════
-
-.input-with-preview {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-xs;
-}
-
-.input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
+.input-wrapper { position: relative; flex: 1; display: flex; align-items: center; }
 
 .input-prefix {
-  position: absolute;
-  left: $spacing-md;
-  color: var(--text-muted, $color-muted);
-  font-weight: 500;
-  pointer-events: none;
+  position: absolute; left: $space-3;
+  color: $slate-500; font-size: $font-sm; pointer-events: none;
 }
 
-.input-currency {
-  padding-left: $spacing-xl;
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  font-size: 1rem;
-  font-weight: 500;
-}
+.input-currency { padding-left: 2rem; }
 
-.capital-preview {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-primary, $color-primary);
-  padding: $spacing-xs $spacing-sm;
-  background: rgba($color-primary, 0.1);
+.capital-preview { font-size: $font-sm; font-weight: $weight-semibold; color: $primary; white-space: nowrap; }
+
+.form-error { font-size: $font-xs; color: $danger; }
+.form-hint  { font-size: $font-xs; color: $slate-400; }
+
+.char-counter { font-size: $font-xs; color: $slate-400; text-align: right; margin-top: $space-1; }
+
+// Investor info chip
+.investor-info {
+  margin-top: $space-2;
+  padding: $space-3;
+  background: $slate-50;
+  border: 1px solid $border-color;
   border-radius: $border-radius;
-  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// RESUMEN
-// ═══════════════════════════════════════════════════════════════════════════
+.investor-info-row { display: flex; gap: $space-2; font-size: $font-xs; color: $slate-600; }
+.investor-info-label { font-weight: $weight-semibold; color: $slate-500; min-width: 90px; }
+.investor-warning small { color: $warning-hover; }
 
-.summary-section {
-  border-bottom: none;
+// Hint con spinner
+.hint-spinner {
+  display: inline-block;
+  width: 12px; height: 12px;
+  border: 2px solid $slate-300;
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  vertical-align: middle;
+  margin-right: $space-1;
 }
 
-.summary-card {
-  background: var(--bg-surface, #f9fafb);
-  border-radius: $border-radius;
-  padding: $spacing-md;
-  border: 1px solid var(--border-color, #e5e7eb);
-}
+// Summary card
+.summary-card { background: $white; border: 1px solid $border-color; border-radius: $border-radius; overflow: hidden; }
 
 .summary-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: $spacing-sm 0;
-  font-size: 0.875rem;
-
-  &:not(:last-child) {
-    border-bottom: 1px solid var(--border-color, #e5e7eb);
-  }
+  padding: $space-3 $space-4;
+  font-size: $font-sm;
+  border-bottom: 1px solid rgba($border-color, .5);
+  &:last-child { border-bottom: none; }
 }
 
-.summary-label {
-  color: var(--text-muted, $color-muted);
-}
+.summary-label { color: $slate-500; }
+.summary-value { font-weight: $weight-medium; color: $slate-800; }
+.summary-value--highlight { color: $primary; font-weight: $weight-bold; }
 
-.summary-value {
-  font-weight: 500;
-  text-align: right;
-
-  &--highlight {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--color-primary, $color-primary);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// ACCIONES
-// ═══════════════════════════════════════════════════════════════════════════
-
+// Actions
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: $spacing-sm;
-  padding-top: $spacing-md;
-  border-top: 1px solid var(--border-color, #e5e7eb);
+  gap: $space-3;
+  padding: $space-5;
 }
 
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: $spacing-xs;
-  padding: $spacing-sm $spacing-lg;
-  font-size: 0.875rem;
-  font-weight: 500;
-  border-radius: $border-radius;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: 1px solid transparent;
+  display: inline-flex; align-items: center; gap: $space-2;
+  padding: $space-2 $space-5; border: 1.5px solid transparent;
+  border-radius: $border-radius; font-size: $font-sm;
+  font-weight: $weight-medium; cursor: pointer;
+  @include transition(background-color, border-color);
 
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-}
-
-.btn-primary {
-  background: var(--color-primary, $color-primary);
-  color: #fff;
-
-  &:hover:not(:disabled) {
-    background: darken($color-primary, 10%);
-  }
-}
-
-.btn-outline {
-  background: transparent;
-  border-color: var(--border-color, $border-color);
-  color: var(--text-primary, #374151);
-
-  &:hover:not(:disabled) {
-    background: var(--bg-hover, #f3f4f6);
-  }
+  &.btn-primary { background: $primary; color: $white; &:hover:not(:disabled) { background: $primary-hover; } &:disabled { opacity: .6; cursor: not-allowed; } }
+  &.btn-outline { background: $white; border-color: $border-color; color: $slate-600; &:hover { border-color: $primary; color: $primary; } }
 }
 
 .btn-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: spin 0.75s linear infinite;
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,.4); border-top-color: $white;
+  border-radius: 50%; animation: spin .7s linear infinite;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// SPINNERS
-// ═══════════════════════════════════════════════════════════════════════════
-
-.hint-spinner {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 2px solid var(--border-color, $border-color);
-  border-top-color: var(--color-primary, $color-primary);
-  border-radius: 50%;
-  animation: spin 0.75s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// RESPONSIVE
-// ═══════════════════════════════════════════════════════════════════════════
-
-@media (max-width: 640px) {
-  .form-actions {
-    flex-direction: column-reverse;
-
-    .btn {
-      width: 100%;
-    }
-  }
-
-  .investor-info-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: $spacing-xs;
-  }
-
-  .summary-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: $spacing-xs;
-  }
-}
+@keyframes spin { to { transform: rotate(360deg); } }

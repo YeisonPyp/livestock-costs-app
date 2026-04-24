@@ -4,19 +4,18 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { debounceTime, Subject } from 'rxjs';
-
-import { PageHeaderComponent }    from '../../../../shared/components/page-header/page-header.component';
-import { LoaderComponent }         from '../../../../shared/components/loader/loader.component';
-import { EmptyStateComponent }     from '../../../../shared/components/empty-state/empty-state.component';
-import { KpiCardComponent }        from '../../../../shared/components/display/kpi-card/kpi-card.component';
-import { BadgeComponent }          from '../../../../shared/components/display/badge/badge.component';
-import { ConfirmDialogComponent }  from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
-import { SelectFieldComponent, SelectOption } from '../../../../shared/components/forms/select-field/select-field.component';
+import { SelectOption } from '../../../../shared/components/forms/select-field/select-field.component';
 
 import { FarmService } from '../../services/farm.service';
 import { Farm, FARM_TYPES, FARM_STATUS } from '../../models/farm.model';
 import { formatNumber } from '../../../../core/utils/helpers';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { PageHeaderComponent } from '../../../../shared/components/navigation/page-header/page-header.component';
+import { LoaderComponent } from '../../../../shared/components/feedback/loader/loader.component';
+import { KpiCardComponent } from '../../../../shared/components/data-display/kpi-card/kpi-card.component';
+import { EmptyStateComponent } from '../../../../shared/components/feedback/empty-state/empty-state.component';
+import { BadgeComponent } from '../../../../shared/components/ui/badge/badge.component';
+import { ConfirmDialogComponent } from '../../../../shared/components/feedback/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-farm-list',
