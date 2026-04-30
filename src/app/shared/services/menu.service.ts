@@ -63,12 +63,12 @@ export class MenuService {
       color: 'green',
       path: '/investments/sales',
     },
-    {
-      label: 'Reportes',
-      icon: 'shopping-cart',
-      color: 'black',
-      path: '/investments/reports',
-    }
+    // {
+    //   label: 'Reportes',
+    //   icon: 'shopping-cart',
+    //   color: 'black',
+    //   path: '/investments/reports',
+    // }
 
   ]);
 
