@@ -10,12 +10,12 @@ import { forkJoin, finalize } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
-import { InvestorService }        from '../services/investor.service';
-import { InvestmentService }      from '../services/investment.service';
+import { InvestorService } from '../services/investor.service';
+import { InvestmentService } from '../services/investment.service';
 import { CattleOwnershipService } from '../services/cattle-ownership.service';
-import { SaleDecisionService }    from '../services/sale-decision.service';
-import { ContractService }        from '../services/contract.service';
-import { NotificationService }    from '../../../core/services/notification.service';
+import { SaleDecisionService } from '../services/sale-decision.service';
+import { ContractService } from '../services/contract.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 import type {
   InvestorList,
@@ -26,35 +26,38 @@ import type {
   UpdateInvestorPayload,
   DeactivateInvestorPayload,
 } from '../models/investor.model';
-import type { InvestmentList }  from '../models/investment.model';
+import type { InvestmentList } from '../models/investment.model';
 import type { CattleOwnership } from '../models/cattle-ownership.model';
 import type { SaleDecisionList } from '../models/sale.model';
-import type { ContractList, CreateContractPayload } from '../models/contract.model';
+import type {
+  ContractList,
+  CreateContractPayload,
+} from '../models/contract.model';
 
 // ── Tipos de estado ────────────────────────────────────────────────
 
 export interface InvestorListFilters {
-  search:      string;
+  search: string;
   showInactive: boolean;
-  page:        number;
-  pageSize:    number;
+  page: number;
+  pageSize: number;
 }
 
 export interface InvestorListState {
-  items:      InvestorList[];
-  loading:    boolean;
+  items: InvestorList[];
+  loading: boolean;
   totalPages: number;
-  filters:    InvestorListFilters;
+  filters: InvestorListFilters;
 }
 
 export interface InvestorDetailState {
-  investor:    InvestorDetail | null;
-  summary:     InvestorSummary | null;
+  investor: InvestorDetail | null;
+  summary: InvestorSummary | null;
   investments: InvestmentList[];
-  cattle:      CattleOwnership[];
-  decisions:   SaleDecisionList[];
-  contracts:   ContractList[];
-  loading:     boolean;
+  cattle: CattleOwnership[];
+  decisions: SaleDecisionList[];
+  contracts: ContractList[];
+  loading: boolean;
   actionLoading: boolean;
 }
 
@@ -62,18 +65,17 @@ export interface InvestorDetailState {
 // FACADE
 // ═══════════════════════════════════════════════════════════════════
 
-@Injectable()          // providedIn: 'root' intencional — se provee a nivel de ruta
+@Injectable() // providedIn: 'root' intencional — se provee a nivel de ruta
 export class InvestorFacade {
-
   // ── Dependencias ─────────────────────────────────────────────────
 
   private readonly investorSvc = inject(InvestorService);
   private readonly investmentSvc = inject(InvestmentService);
-  private readonly cattleSvc   = inject(CattleOwnershipService);
+  private readonly cattleSvc = inject(CattleOwnershipService);
   private readonly decisionSvc = inject(SaleDecisionService);
   private readonly contractSvc = inject(ContractService);
-  private readonly router      = inject(Router);
-  private readonly notify      = inject(NotificationService);
+  private readonly router = inject(Router);
+  private readonly notify = inject(NotificationService);
 
   // ═══════════════════════════════════════════════════════════
   // SECCIÓN LIST
@@ -81,25 +83,34 @@ export class InvestorFacade {
 
   // ── Estado ────────────────────────────────────────────────
 
-  readonly listLoading    = signal(false);
-  readonly listItems      = signal<InvestorList[]>([]);
+  readonly listLoading = signal(false);
+  readonly listItems = signal<InvestorList[]>([]);
+  readonly listItemsAll = signal<InvestorList[]>([]);
   readonly listTotalPages = signal(1);
+  readonly hasInvestorExistence = signal(false);
+  readonly checkingInvestorExistence    = signal(false);
+
 
   readonly listFilters = signal<InvestorListFilters>({
-    search:      '',
+    search: '',
     showInactive: false,
-    page:        1,
-    pageSize:    12,
+    page: 1,
+    pageSize: 12,
   });
 
   // ── Derived ───────────────────────────────────────────────
 
   readonly listStats = computed(() => {
-    const items = this.listItems();
+    const items = this.listItemsAll();
+
+    items.forEach((i) => {
+      console.log('capital:', i.totalCapital, typeof i.totalCapital);
+    });
     return {
-      total:    items.length,
-      active:   items.filter(i => i.isActive).length,
-      totalCapital: items.reduce((s, i) => s + Number(i.totalCapital ?? 0), 0),
+      total: items.length,
+      active: items.filter((i) => i.isActive).length,
+      totalCapital: items.reduce((s, i) => s + i.totalCapital, 0),
+      totalInvestments: items.reduce((s, i) => s + i.totalInvestments, 0),
     };
   });
 
@@ -109,12 +120,14 @@ export class InvestorFacade {
     const { search, showInactive, page, pageSize } = this.listFilters();
     this.listLoading.set(true);
 
-    this.investorSvc.list({
-      search:   search || undefined,
-      isActive: showInactive ? undefined : true,
-      page,
-      pageSize,
-    }).pipe(finalize(() => this.listLoading.set(false)))
+    this.investorSvc
+      .list({
+        search: search || undefined,
+        isActive: showInactive ? undefined : true,
+        page,
+        pageSize,
+      })
+      .pipe(finalize(() => this.listLoading.set(false)))
       .subscribe({
         next: (res) => {
           this.listItems.set(res.data);
@@ -122,10 +135,38 @@ export class InvestorFacade {
         },
         error: () => this.notify.error('Error al cargar inversionistas'),
       });
+    this.investorSvc
+      .list({
+        page,
+        pageSize,
+      })
+      .pipe(finalize(() => this.listLoading.set(false)))
+      .subscribe({
+        next: (res) => {
+          this.listItemsAll.set(res.data);
+        },
+        error: () => this.notify.error('Error al cargar inversionistas'),
+      });
+  }
+
+  checkInvestorExistence(personId: string): void {
+    if (!personId) { this.hasInvestorExistence.set(false); return; }
+    this.checkingInvestorExistence.set(true);
+    this.investorSvc.list({ personId })
+      .pipe(finalize(() => this.checkingInvestorExistence.set(false)))
+      .subscribe({
+        next: (res) => {
+          this.hasInvestorExistence.set(res.data.length > 0);
+        },
+        error: () => {
+          this.notify.error('Error al verificar la existencia del inversionista');
+          this.hasInvestorExistence.set(false);
+        }
+    });
   }
 
   updateListFilter(patch: Partial<InvestorListFilters>): void {
-    this.listFilters.update(f => ({ ...f, ...patch, page: patch.page ?? 1 }));
+    this.listFilters.update((f) => ({ ...f, ...patch, page: patch.page ?? 1 }));
     this.loadInvestors();
   }
 
@@ -138,7 +179,7 @@ export class InvestorFacade {
   }
 
   navigateToCreate(): void {
-    this.router.navigate(['/investors/new']);
+    this.router.navigate(['/investments/investors/new']);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -147,32 +188,31 @@ export class InvestorFacade {
 
   // ── Estado ────────────────────────────────────────────────
 
-  readonly detailLoading      = signal(true);
+  readonly detailLoading = signal(true);
   readonly detailActionLoading = signal(false);
-  readonly detail              = signal<InvestorDetail | null>(null);
-  readonly summary             = signal<InvestorSummary | null>(null);
-  readonly detailInvestments   = signal<InvestmentList[]>([]);
-  readonly detailCattle        = signal<CattleOwnership[]>([]);
-  readonly detailDecisions     = signal<SaleDecisionList[]>([]);
-  readonly detailContracts     = signal<ContractList[]>([]);
+  readonly detail = signal<InvestorDetail | null>(null);
+  readonly summary = signal<InvestorSummary | null>(null);
+  readonly detailInvestments = signal<InvestmentList[]>([]);
+  readonly detailCattle = signal<CattleOwnership[]>([]);
+  readonly detailDecisions = signal<SaleDecisionList[]>([]);
+  readonly detailContracts = signal<ContractList[]>([]);
 
   // ── Derived ───────────────────────────────────────────────
 
-  readonly hasPendingDecisions = computed(() =>
-    (this.summary()?.pendingDecisions ?? 0) > 0
+  readonly hasPendingDecisions = computed(
+    () => (this.summary()?.pendingDecisions ?? 0) > 0,
   );
 
-  readonly canDeactivate = computed(() =>
-    this.detail()?.isActive === true
-  );
+  readonly canDeactivate = computed(() => this.detail()?.isActive === true);
 
   readonly decisionBadgeColor = (type: string) => {
-    const map: Record<string, 'success' | 'danger' | 'warning' | 'secondary'> = {
-      reinvest: 'success',
-      withdraw: 'danger',
-      partial:  'warning',
-      pending:  'secondary',
-    };
+    const map: Record<string, 'success' | 'danger' | 'warning' | 'secondary'> =
+      {
+        reinvest: 'success',
+        withdraw: 'danger',
+        partial: 'warning',
+        pending: 'secondary',
+      };
     return map[type] ?? 'secondary';
   };
 
@@ -182,13 +222,14 @@ export class InvestorFacade {
     this.detailLoading.set(true);
 
     forkJoin({
-      investor:    this.investorSvc.getById(id),
-      summary:     this.investorSvc.getSummary(id),
+      investor: this.investorSvc.getById(id),
+      summary: this.investorSvc.getSummary(id),
       investments: this.investmentSvc.list({ investor: id }),
-      cattle:      this.cattleSvc.getByInvestor(id),
-      decisions:   this.decisionSvc.list({ investor: id }),
-      contracts:   this.investorSvc.getContracts(id),
-    }).pipe(finalize(() => this.detailLoading.set(false)))
+      cattle: this.cattleSvc.getByInvestor(id),
+      decisions: this.decisionSvc.list({ investor: id }),
+      contracts: this.investorSvc.getContracts(id),
+    })
+      .pipe(finalize(() => this.detailLoading.set(false)))
       .subscribe({
         next: (results) => {
           this.detail.set(results.investor.data);
@@ -214,7 +255,8 @@ export class InvestorFacade {
 
   deactivate(id: string, payload: DeactivateInvestorPayload = {}): void {
     this.detailActionLoading.set(true);
-    this.investorSvc.deactivate(id, payload)
+    this.investorSvc
+      .deactivate(id, payload)
       .pipe(finalize(() => this.detailActionLoading.set(false)))
       .subscribe({
         next: (res) => {
@@ -222,7 +264,9 @@ export class InvestorFacade {
             this.notify.success('Inversionista desactivado');
             this.refreshDetail();
           } else if (res.data.requiresForce) {
-            this.notify.warning('Existen dependencias. Usa forzar para continuar.');
+            this.notify.warning(
+              'Existen dependencias. Usa forzar para continuar.',
+            );
           }
         },
         error: () => this.notify.error('Error al desactivar'),
@@ -231,17 +275,22 @@ export class InvestorFacade {
 
   reactivate(id: string): void {
     this.detailActionLoading.set(true);
-    this.investorSvc.reactivate(id)
+    this.investorSvc
+      .reactivate(id)
       .pipe(finalize(() => this.detailActionLoading.set(false)))
       .subscribe({
-        next: () => { this.notify.success('Inversionista reactivado'); this.refreshDetail(); },
+        next: () => {
+          this.notify.success('Inversionista reactivado');
+          this.refreshDetail();
+        },
         error: () => this.notify.error('Error al reactivar'),
       });
   }
 
   createContract(investorId: string, payload: CreateContractPayload): void {
     this.detailActionLoading.set(true);
-    this.contractSvc.create(payload)
+    this.contractSvc
+      .create(payload)
       .pipe(finalize(() => this.detailActionLoading.set(false)))
       .subscribe({
         next: (res) => {
@@ -269,11 +318,15 @@ export class InvestorFacade {
   // ═══════════════════════════════════════════════════════════
 
   readonly formLoading = signal(false);
-  readonly formSaving  = signal(false);
+  readonly formSaving = signal(false);
 
-  loadInvestorForEdit(id: string, patchFn: (data: InvestorDetail) => void): void {
+  loadInvestorForEdit(
+    id: string,
+    patchFn: (data: InvestorDetail) => void,
+  ): void {
     this.formLoading.set(true);
-    this.investorSvc.getById(id)
+    this.investorSvc
+      .getById(id)
       .pipe(finalize(() => this.formLoading.set(false)))
       .subscribe({
         next: (res) => patchFn(res.data),
@@ -286,27 +339,37 @@ export class InvestorFacade {
 
   createInvestor(payload: CreateInvestorPayload): void {
     this.formSaving.set(true);
-    this.investorSvc.create(payload)
+    this.investorSvc
+      .create(payload)
       .pipe(finalize(() => this.formSaving.set(false)))
       .subscribe({
         next: (res) => {
           this.notify.success('Inversionista creado');
           this.router.navigate(['/investments/investors', res.data.id]);
         },
-        error: (err) => this.notify.error(err?.error?.message ?? 'Error al guardar'),
+        error: (err) =>
+          this.notify.error(
+            err?.error?.errors?.join(', ') ?? 'Error al guardar',
+            err?.error?.message ?? '',
+          ),
       });
   }
 
   updateInvestor(id: string, payload: UpdateInvestorPayload): void {
     this.formSaving.set(true);
-    this.investorSvc.update(id, payload)
+    this.investorSvc
+      .update(id, payload)
       .pipe(finalize(() => this.formSaving.set(false)))
       .subscribe({
         next: () => {
           this.notify.success('Inversionista actualizado');
           this.router.navigate(['/investments/investors', id]);
         },
-        error: (err) => this.notify.error(err?.error?.message ?? 'Error al guardar'),
+        error: (err) =>
+          this.notify.error(
+            err?.error?.errors?.join(', ') ?? 'Error al guardar',
+            err?.error?.message ?? '',
+          ),
       });
   }
 

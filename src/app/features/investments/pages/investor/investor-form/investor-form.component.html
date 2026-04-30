@@ -19,6 +19,23 @@
         title="Persona"
         subtitle="Vincula el inversionista con una persona registrada en el sistema">
         <app-person-search (personSelected)="onPersonSelected($event)" />
+        <!-- INICIO DE LA NUEVA VALIDACIÓN -->
+        <div class="mt-4">
+          @if (facade.checkingInvestorExistence()) {
+            <div class="flex items-center text-blue-600 text-sm">
+              <span class="btn-spinner mr-2"></span> <!-- Usa tu clase de spinner aquí -->
+              Verificando si la persona ya es inversionista...
+            </div>
+          }
+
+          @if (facade.hasInvestorExistence()) {
+            <app-alert type="warning" class="form-alert">
+              <strong>Atención inversionista existente</strong>
+              <p>Esta persona ya está registrada como inversionista. Por favor, selecciona otra persona.</p>
+            </app-alert>
+          } 
+        </div>
+        <!-- FIN DE LA NUEVA VALIDACIÓN -->
       </app-form-card>
     }
 

@@ -17,6 +17,7 @@ import { CheckboxToggleComponent } from '../../../../../shared/components/forms/
 import { PersonSearchComponent }   from '../../../../users/components/person-search/person-search.component';
 import type { PersonSimple }       from '../../../../users/models/user.model';
 import { SaleDecisionType }        from '../../../models/enums';
+import { AlertComponent } from "../../../../../shared/components/feedback/alert/alert.component";
 
 @Component({
   selector: 'app-investor-form',
@@ -28,7 +29,8 @@ import { SaleDecisionType }        from '../../../models/enums';
     PageHeaderComponent, LoaderComponent, FormCardComponent,
     InputFieldComponent, SelectFieldComponent, CheckboxToggleComponent,
     PersonSearchComponent,
-  ],
+    AlertComponent
+],
   templateUrl: './investor-form.component.html',
   styleUrl:    './investor-form.component.scss',
 })
@@ -53,6 +55,7 @@ export class InvestorFormComponent implements OnInit {
   ngOnInit(): void {
     this.buildForm();
     this.syncOperatorPercentage();
+    
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -72,8 +75,18 @@ export class InvestorFormComponent implements OnInit {
   }
 
   onPersonSelected(person: PersonSimple): void {
-    this.form.get('personId')?.setValue(person.id);
+    const personId = person.id;
+
+    this.form.get('personId')?.setValue(personId);
+    this.form.get('personId')?.markAsTouched();
+
+    if (personId) {
+      this.facade.checkInvestorExistence(personId);
+    } else {
+      this.facade.hasInvestorExistence.set(false);
+    }
   }
+
 
   onSubmit(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }

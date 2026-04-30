@@ -112,9 +112,9 @@ export function toInvestorList(raw: any): InvestorList {
     joinedDate: raw.joined_date,
     isActive: raw.is_active,
     hasActiveContract: raw.has_active_contract,
-    totalCattle: raw.total_cattle,
-    totalCapital: raw.total_capital,
-    totalInvestments: raw.total_investments,
+    totalCattle: Number(raw.total_cattle ?? 0),
+    totalCapital: Number(raw.total_capital ?? 0),
+    totalInvestments: Number(raw.total_investments ?? 0),
   };
 }
 

@@ -15,8 +15,8 @@ export interface InvestorList {
   isActive: boolean;
   hasActiveContract: boolean;
   totalCattle: number;
-  totalCapital: string;
-  totalInvestments: string;
+  totalCapital: number;
+  totalInvestments: number;
 }
 
 // ── Detalle ────────────────────────────────────────────────────────
@@ -134,6 +134,7 @@ export interface InvestorStatement {
 export interface InvestorFilters {
   search?: string;
   isActive?: boolean;
+  personId?: string;
   ordering?: string;
   page?: number;
   pageSize?: number;

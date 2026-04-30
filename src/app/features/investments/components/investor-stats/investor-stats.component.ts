@@ -8,6 +8,7 @@ export interface InvestorStats {
   total:        number;
   active:       number;
   totalCapital: number;
+  totalInvestments: number;
 }
 
 @Component({
@@ -21,4 +22,8 @@ export interface InvestorStats {
 export class InvestorStatsComponent {
   @Input({ required: true }) stats!: InvestorStats;
   fmt = (v: number) => formatCurrency(v);
+
+  ngOnChanges() {
+    console.log('STATS CHANGE:', this.stats);
+  }
 }

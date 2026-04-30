@@ -2,8 +2,9 @@ export interface ApiResponse<T> {
   success: boolean;
   message: string;
   data: T;
+  error_code?: string;
   pagination?: Pagination;
-  errors?: Record<string, string[]>;
+  errors?: string[];
 }
 
 export interface Pagination {

@@ -141,6 +141,7 @@ export class InvestorService {
     const map: Record<string, string> = {
       pageSize: 'page_size',
       isActive: 'is_active',
+      personId: 'person_id',
     };
     return Object.fromEntries(
       Object.entries(filters)
