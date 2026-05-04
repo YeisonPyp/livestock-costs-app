@@ -54,8 +54,6 @@ export class InvestorFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.buildForm();
-    this.syncOperatorPercentage();
-    
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -119,22 +117,11 @@ export class InvestorFormComponent implements OnInit {
     this.form = this.fb.group({
       personId:           ['', Validators.required],
       joinedDate:         [this.today, Validators.required],
-      investorPercentage: [60, [Validators.required, Validators.min(0), Validators.max(100)]],
-      operatorPercentage: [{ value: 40, disabled: true }],
       notifySales:        [true],
       notifyWeightGains:  [false],
       defaultSaleDecision:['pending'],
       isActive:           [true],
       notes:              [''],
-    });
-  }
-
-  private syncOperatorPercentage(): void {
-    this.form.get('investorPercentage')?.valueChanges.subscribe(val => {
-      const v = Number(val) || 0;
-      if (v >= 0 && v <= 100) {
-        this.form.get('operatorPercentage')?.setValue(100 - v, { emitEvent: false });
-      }
     });
   }
 

@@ -3,6 +3,7 @@
     label="Total Ventas"
     [value]="stats.total.toString()"
     color="blue"
+    [decimals]="0"
   >
     <svg
       icon
@@ -21,6 +22,7 @@
     label="Pendientes"
     [value]="stats.pending.toString()"
     [color]="stats.pending > 0 ? 'red' : 'green'"
+    [decimals]="0"
   >
     <svg
       icon
@@ -38,6 +40,7 @@
     label="Monto Neto Total"
     [value]="fmt(stats.totalNet)"
     color="green"
+    [decimals]="2"
   >
     <svg
       icon
@@ -55,6 +58,7 @@
     label="Cabezas Vendidas"
     [value]="stats.totalHeads.toString()"
     color="yellow"
+    [decimals]="0"
   >
     <svg
       icon

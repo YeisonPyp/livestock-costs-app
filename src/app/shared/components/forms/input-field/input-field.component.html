@@ -30,10 +30,11 @@
       [class.has-suffix]="suffix || suffixIcon || (type === 'password')"
       [attr.autocomplete]="autocomplete"
       [attr.maxlength]="maxLength || null"
-      [attr.min]="min || null"
-      [attr.max]="max || null"
-      [attr.step]="step || null"
+      [attr.min]="min ?? null"
+      [attr.max]="max ?? null"
+      [attr.step]="computedStep"
     />
+    <!-- ✅ CAMBIO: [attr.step]="computedStep" en vez de "step || null" -->
 
     @if (type === 'password') {
       <button type="button" class="field-icon suffix-icon toggle-password" (click)="togglePassword()" tabindex="-1">

@@ -61,27 +61,7 @@
           [options]="defaultDecisionOptions"
           hint="Se aplicará automáticamente si no toma una decisión a tiempo"
         />
-
-        <app-input-field
-          label="Porcentaje de Ganancia Inversionista"
-          [required]="true"
-          type="number"
-          formControlName="investorPercentage"
-          [control]="f['investorPercentage']"
-          placeholder="60"
-          [min]="0"
-          [max]="100"
-          errorMessage="Debe ser un valor entre 0 y 100"
-        />
-
-        <app-input-field
-          label="Porcentaje de Ganancia Operador"
-          type="number"
-          formControlName="operatorPercentage"
-          [control]="f['operatorPercentage']"
-          [disabled]="true"
-        />
-
+  
       </div>
 
       <div class="toggles-group">

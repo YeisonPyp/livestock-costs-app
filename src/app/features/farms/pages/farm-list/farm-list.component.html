@@ -7,7 +7,7 @@
 
 <!-- KPI Cards -->
 <div class="kpi-grid">
-  <app-kpi-card label="Total Fincas" [value]="stats().totalFarms.toString()" color="blue">
+  <app-kpi-card label="Total Fincas" [value]="stats().totalFarms.toString()" color="blue" [decimals]="0">
     <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
   </app-kpi-card>
 
@@ -15,11 +15,11 @@
     <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
   </app-kpi-card>
 
-  <app-kpi-card label="Ganado Total" [value]="stats().totalCattle.toString()" trendDescription="cabezas" color="yellow">
+  <app-kpi-card label="Ganado Total" [value]="stats().totalCattle.toString()" [decimals]="0" trendDescription="cabezas" color="yellow">
     <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
   </app-kpi-card>
 
-  <app-kpi-card label="Cap. Disponible" [value]="stats().availableCapacity.toString()" trendDescription="cabezas libres" color="purple">
+  <app-kpi-card label="Cap. Disponible" [value]="stats().availableCapacity.toString()" [decimals]="0" trendDescription="cabezas libres" color="purple">
     <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
   </app-kpi-card>
 </div>

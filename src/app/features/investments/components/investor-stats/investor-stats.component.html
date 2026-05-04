@@ -3,6 +3,7 @@
     label="Total Inversionistas"
     [value]="stats.total.toString()"
     color="blue"
+    [decimals]="0"
   >
     <svg
       icon
@@ -18,7 +19,7 @@
     </svg>
   </app-kpi-card>
 
-  <app-kpi-card label="Activos" [value]="stats.active.toString()" color="green">
+  <app-kpi-card label="Activos" [value]="stats.active.toString()" color="green" [decimals]="0">
     <svg
       icon
       viewBox="0 0 24 24"

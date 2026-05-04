@@ -24,6 +24,7 @@ export class KpiCardComponent {
   @Input() trendDescription = '';
 
   @Input() loading = false;
+  @Input() decimals = 2;
 
   @Input() color: 'blue' | 'green' | 'yellow' | 'red' | 'purple' = 'blue';
   @Input() trendColor: 'blue' | 'green' | 'yellow' | 'red' | 'purple' = 'blue';
@@ -36,23 +37,26 @@ export class KpiCardComponent {
 
   get formattedValue(): string {
 
+    const formatDecimal = `1.${this.decimals}-${this.decimals}`;
+
     if (this.value === null || this.value === undefined) return '';
 
     if (this.format === 'currency') {
+      
       return this.currencyPipe.transform(
         Number(this.value),
         this.currency,
         'symbol',
-        '1.0-0'
+        formatDecimal
       ) ?? '';
     }
 
     if (this.format === 'percent') {
-      return this.percentPipe.transform(Number(this.value) / 100) ?? '';
+      return this.percentPipe.transform(Number(this.value) / 100, formatDecimal) ?? '';
     }
 
     if (this.format === 'number') {
-      return this.decimalPipe.transform(Number(this.value), '1.0-0') ?? '';
+      return this.decimalPipe.transform(Number(this.value), formatDecimal) ?? '';
     }
 
     return String(this.value);

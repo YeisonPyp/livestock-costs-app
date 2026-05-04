@@ -17,12 +17,17 @@ export class AmountDisplayComponent {
   @Input() showSign = true;
   @Input() muted = false;
 
+  // ✅ nuevo
+  @Input() fractionDigits = 2;
+
   get formatted(): string {
+    const safeAmount = Number(this.amount) || 0;
+
     return new Intl.NumberFormat(this.locale, {
       style: 'currency',
       currency: this.currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(Math.abs(this.amount));
+      minimumFractionDigits: this.fractionDigits,
+      maximumFractionDigits: this.fractionDigits
+    }).format(Math.abs(safeAmount));
   }
 }

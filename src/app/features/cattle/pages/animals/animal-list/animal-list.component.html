@@ -29,9 +29,9 @@
 
 <!-- KPIs -->
 <div class="kpis-row">
-  <app-kpi-card label="Total Animales" [value]="kpis().total"     format="number" color="blue"   icon="activity"    [loading]="loading()" />
-  <app-kpi-card label="Machos"         [value]="kpis().male"      format="number" color="purple" icon="user"        [loading]="loading()" />
-  <app-kpi-card label="Hembras"        [value]="kpis().female"    format="number" color="green"  icon="user"        [loading]="loading()" />
+  <app-kpi-card label="Total Animales" [value]="kpis().total"     format="number" color="blue"   icon="activity"    [loading]="loading()" [decimals]="0"/>
+  <app-kpi-card label="Machos"         [value]="kpis().male"      format="number" color="purple" icon="user"        [loading]="loading()" [decimals]="0"/>
+  <app-kpi-card label="Hembras"        [value]="kpis().female"    format="number" color="green"  icon="user"        [loading]="loading()" [decimals]="0"/>
   <app-kpi-card label="Peso Promedio"  [value]="kpis().avgWeight" format="number" color="yellow" icon="trending-up" [loading]="loading()" suffix=" kg" />
 </div>
 

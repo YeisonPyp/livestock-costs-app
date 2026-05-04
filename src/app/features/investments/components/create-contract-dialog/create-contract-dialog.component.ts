@@ -8,6 +8,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { finalize } from 'rxjs';
 
 import { ContractService } from '../../services/contract.service';
+import { InputFieldComponent }     from '../../../../shared/components/forms/input-field/input-field.component';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { CONTRACT_TYPE_DISPLAY } from '../../models/contract.model';
 import { ContractType } from '../../models/enums';
@@ -23,7 +24,7 @@ interface DialogData {
   selector: 'app-create-contract-dialog',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, InputFieldComponent],
   templateUrl: './create-contract-dialog.component.html',
   styleUrl:    './create-contract-dialog.component.scss',
 })
@@ -46,6 +47,8 @@ export class CreateContractDialogComponent {
 
   readonly form: FormGroup;
 
+  get f() { return this.form.controls; }
+
   constructor() {
     this.form = this.fb.group({
       investorId:          [this.data.investor?.id ?? '', this.data.investor ? [] : [Validators.required]],
@@ -54,7 +57,7 @@ export class CreateContractDialogComponent {
       endDate:             [''],
       signedDate:          [''],
       investorPercentage:  [60, [Validators.required, Validators.min(0), Validators.max(100)]],
-      operatorPercentage:  [40, [Validators.required, Validators.min(0), Validators.max(100)]],
+      operatorPercentage:  [{ value: 40, disabled: true }],
       initialInvestment:   [null],
       notes:               [''],
     });
@@ -63,6 +66,15 @@ export class CreateContractDialogComponent {
     this.form.get('investorPercentage')?.valueChanges.subscribe(val => {
       if (val != null) {
         this.form.patchValue({ operatorPercentage: 100 - val }, { emitEvent: false });
+      }
+    });
+  }
+
+  private syncOperatorPercentage(): void {
+    this.form.get('investorPercentage')?.valueChanges.subscribe(val => {
+      const v = Number(val) || 0;
+      if (v >= 0 && v <= 100) {
+        this.form.get('operatorPercentage')?.setValue(100 - v, { emitEvent: false });
       }
     });
   }

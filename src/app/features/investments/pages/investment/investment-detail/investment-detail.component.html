@@ -90,7 +90,7 @@
         </svg>
       </app-kpi-card>
 
-      <app-kpi-card label="Cabezas Activas"
+      <app-kpi-card label="Cabezas Activas" [decimals]="0"
         [value]="facade.activeCattle().length.toString()" color="yellow">
         <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/>

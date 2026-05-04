@@ -60,8 +60,10 @@
               [required]="true"
               formControlName="amount"
               type="number"
-              placeholder="0"
+              placeholder="0.00"
               prefix="$"
+              [decimals]="2"
+              [min]="0"
             />
           </div>
 

@@ -11,7 +11,7 @@
 
   <!-- KPIs globales -->
   <div class="kpi-grid">
-    <app-kpi-card label="Capital Total"
+    <app-kpi-card label="Capital Total" [decimals]="2"
       [value]="formatCurrency(facade.totals().totalCapital)" color="blue">
       <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="12" y1="1" x2="12" y2="23"/>
@@ -19,7 +19,7 @@
       </svg>
     </app-kpi-card>
 
-    <app-kpi-card label="Inversionistas"
+    <app-kpi-card label="Inversionistas" [decimals]="0"
       [value]="facade.participation().length.toString()" color="green">
       <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -28,6 +28,7 @@
     </app-kpi-card>
 
     <app-kpi-card label="Cabezas en Portafolio"
+      [decimals]="0"
       [value]="facade.cattleOwners().length.toString()" color="yellow">
       <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10"/>
@@ -35,6 +36,7 @@
     </app-kpi-card>
 
     <app-kpi-card label="ROI Promedio"
+      [decimals]="1"
       [value]="facade.totals().avgRoi.toFixed(1) + '%'"
       [color]="facade.totals().avgRoi >= 0 ? 'green' : 'red'">
       <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
