@@ -8,7 +8,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatDialog } from '@angular/material/dialog';
 
 import { InvestorFacade }  from '../../../facades/investor.facade';
-import { CreateContractDialogComponent } from '../../../components/create-contract-dialog/create-contract-dialog.component';
+import { ContractDialogData, CreateContractDialogComponent } from '../../../components/create-contract-dialog/create-contract-dialog.component';
 
 import { PageHeaderComponent }     from '../../../../../shared/components/navigation/page-header/page-header.component';
 import { LoaderComponent }         from '../../../../../shared/components/feedback/loader/loader.component';
@@ -56,10 +56,15 @@ export class InvestorDetailComponent implements OnInit, OnDestroy {
     if (!investor) return;
 
     this.dialog.open(CreateContractDialogComponent, {
-      width: '600px',
-      data: { investor },
+      width: '640px',
+      data: {
+        investor,          // ← Investor fijo
+        // investors: null  ← No se envía lista
+      } as ContractDialogData,
     }).afterClosed().subscribe(result => {
-      if (result) this.facade.createContract(investor.id, result);
+      if (result) {
+        this.facade.loadDetail(investor.id); // Refrescar detalle
+      }
     });
   }
 }

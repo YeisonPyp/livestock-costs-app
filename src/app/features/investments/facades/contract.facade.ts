@@ -2,7 +2,7 @@
 
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { finalize } from 'rxjs';
+import { finalize, tap } from 'rxjs';
 
 import { ContractService }   from '../services/contract.service';
 import { InvestorService }   from '../services/investor.service';
@@ -176,6 +176,23 @@ export class ContractFacade {
   }
 
   // ── Acciones ──────────────────────────────────────────────
+
+  createContract(payload: CreateContractPayload) {
+    this.detailActionLoading.set(true);
+
+    return this.contractSvc.create(payload).pipe(
+      finalize(() => this.detailActionLoading.set(false)),
+      tap({
+        next: () => {
+          this.notify.success('Contrato creado');
+        },
+        error: (err) => {
+          this.notify.error(err.error?.message ?? 'Error al crear contrato');
+        },
+      })
+    );
+  }
+
 
   activateContract(id: string, payload: ActivateContractPayload = {}): void {
     this.detailActionLoading.set(true);

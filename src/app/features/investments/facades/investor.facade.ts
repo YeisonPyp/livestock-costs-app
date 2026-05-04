@@ -287,20 +287,6 @@ export class InvestorFacade {
       });
   }
 
-  createContract(investorId: string, payload: CreateContractPayload): void {
-    this.detailActionLoading.set(true);
-    this.contractSvc
-      .create(payload)
-      .pipe(finalize(() => this.detailActionLoading.set(false)))
-      .subscribe({
-        next: (res) => {
-          this.notify.success('Contrato creado');
-          this.router.navigate(['/investments/contracts', res.data.id]);
-        },
-        error: () => this.notify.error('Error al crear contrato'),
-      });
-  }
-
   // ── Navegación ────────────────────────────────────────────
 
   goToContracts(investorId: string): void {

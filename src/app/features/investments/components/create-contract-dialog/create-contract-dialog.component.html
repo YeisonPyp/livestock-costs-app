@@ -1,188 +1,258 @@
 <!-- create-contract-dialog.component.html -->
 
 <div class="dialog-container">
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- HEADER                                                  -->
+  <!-- ═══════════════════════════════════════════════════════ -->
   <div class="dialog-header">
-    <h2>Nuevo Contrato</h2>
-    <button class="close-btn" (click)="close()">×</button>
+    <div class="header-content">
+      <h2>{{ dialogTitle() }}</h2>
+      @if (hasFixedInvestor()) {
+        <span class="header-subtitle">{{ data.investor!.fullName }}</span>
+      }
+    </div>
+    <button type="button" class="close-btn" (click)="close()" aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- BODY                                                    -->
+  <!-- ═══════════════════════════════════════════════════════ -->
   <form [formGroup]="form" (ngSubmit)="submit()">
     <div class="dialog-body">
 
-      <!-- Inversionista (solo si no viene precargado) -->
-      @if (!data.investor) {
-        <div class="form-group">
-          <label class="form-label required">Inversionista</label>
-          <select formControlName="investorId" class="form-control">
-            <option value="">Seleccionar...</option>
-            @for (inv of data.investors ?? []; track inv.id) {
-              <option [value]="inv.id">{{ inv.code }} - {{ inv.fullName }}</option>
-            }
-          </select>
-          @if (form.get('investorId')?.touched && form.get('investorId')?.errors?.['required']) {
-            <span class="error-text">Seleccione un inversionista</span>
-          }
+      <!-- ── Inversionista ──────────────────────────────── -->
+      @if (!hasFixedInvestor()) {
+        <div class="form-section">
+          <app-select-field
+            label="Inversionista"
+            [required]="true"
+            formControlName="investorId"
+            [options]="investorOptions()"
+            placeholder="Seleccionar inversionista..."
+            [control]="f['investorId']"
+          />
         </div>
       } @else {
-        <div class="selected-investor">
-          <span class="label">Inversionista:</span>
-          <span class="value">{{ data.investor.code }} — {{ data.investor.fullName }}</span>
+        <div class="investor-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="badge-icon">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <div class="badge-info">
+            <span class="badge-code">{{ data.investor!.code }}</span>
+            <span class="badge-name">{{ data.investor!.fullName }}</span>
+          </div>
         </div>
       }
 
-      <!-- Archivo PDF -->
-      <div class="form-group">
-        <label class="form-label required">Archivo del Contrato (PDF)</label>
+      <!-- ── Archivo PDF ────────────────────────────────── -->
+      <div class="form-section">
+        <label class="section-label required">
+          Archivo del Contrato
+        </label>
+
         <div
-          class="file-upload"
+          class="file-dropzone"
           [class.has-file]="selectedFile()"
           [class.drag-over]="isDragOver()"
+          [class.has-error]="fileError()"
           (dragover)="onDragOver($event)"
-          (dragleave)="isDragOver.set(false)"
+          (dragleave)="onDragLeave($event)"
           (drop)="onDrop($event)">
 
           @if (selectedFile(); as file) {
-            <div class="file-info">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="file-icon">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-              </svg>
-              <span class="file-name">{{ file.name }}</span>
-              <span class="file-size">({{ (file.size / 1024 / 1024).toFixed(2) }} MB)</span>
-              <button type="button" class="remove-file" (click)="removeFile()">×</button>
+            <!-- Archivo seleccionado -->
+            <div class="file-preview">
+              <div class="file-icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                <span class="file-ext">PDF</span>
+              </div>
+              <div class="file-details">
+                <span class="file-name">{{ file.name }}</span>
+                <span class="file-size">{{ fileSizeFormatted }}</span>
+              </div>
+              <button
+                type="button"
+                class="file-remove"
+                (click)="removeFile()"
+                aria-label="Eliminar archivo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
             </div>
           } @else {
+            <!-- Prompt de carga -->
             <div class="upload-prompt">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="upload-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="upload-icon">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="17 8 12 3 7 8"/>
                 <line x1="12" y1="3" x2="12" y2="15"/>
               </svg>
-              <span>Arrastra el archivo aquí o</span>
-              <label class="browse-btn">
-                selecciona
-                <input type="file" accept=".pdf" (change)="onFileSelected($event)" hidden />
-              </label>
+              <div class="upload-text">
+                <span>Arrastra tu archivo aquí o</span>
+                <label class="upload-browse">
+                  selecciona un archivo
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    (change)="onFileSelected($event)"
+                    hidden
+                  />
+                </label>
+              </div>
+              <span class="upload-hint">PDF • Máximo 10 MB</span>
             </div>
           }
         </div>
+
         @if (fileError()) {
-          <span class="error-text">{{ fileError() }}</span>
+          <span class="field-error">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            {{ fileError() }}
+          </span>
         }
       </div>
 
-      <!-- Tipo y fecha de inicio -->
+      <!-- ── Tipo de contrato y Fecha de inicio ─────────── -->
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label required">Tipo de Contrato</label>
-          <select formControlName="contractType" class="form-control">
-            @for (type of typeOptions; track type.value) {
-              <option [value]="type.value">{{ type.label }}</option>
-            }
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label required">Fecha de Inicio</label>
-          <input type="date" formControlName="startDate" class="form-control" />
-          @if (form.get('startDate')?.touched && form.get('startDate')?.errors?.['required']) {
-            <span class="error-text">La fecha de inicio es requerida</span>
-          }
-        </div>
-      </div>
+        <app-select-field
+          label="Tipo de Contrato"
+          [required]="true"
+          formControlName="contractType"
+          [options]="typeOptions"
+          [control]="f['contractType']"
+        />
 
-      <!-- Fin y firma -->
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Fecha de Fin <span class="optional">(opcional)</span></label>
-          <input type="date" formControlName="endDate" class="form-control" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Fecha de Firma</label>
-          <input type="date" formControlName="signedDate" class="form-control" />
-        </div>
-      </div>
-
-      <!-- Porcentajes -->
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label required">% Inversionista</label>
-          <input
-            type="number"
-            formControlName="investorPercentage"
-            class="form-control"
-            min="0" max="100" step="0.01" />
-        </div>
-        <div class="form-group">
-          <label class="form-label required">% Operador</label>
-          <input
-            type="number"
-            formControlName="operatorPercentage"
-            class="form-control"
-            min="0" max="100" step="0.01" />
-        </div>
         <app-input-field
-          label="Porcentaje de Ganancia Inversionista"
+          label="Fecha de Inicio"
+          [required]="true"
+          type="date"
+          formControlName="startDate"
+          [control]="f['startDate']"
+          [max]="today"
+        />
+      </div>
+
+      <!-- ── Fecha fin y Fecha firma ────────────────────── -->
+      <div class="form-row">
+        <app-input-field
+          label="Fecha de Fin"
+          type="date"
+          formControlName="endDate"
+          [control]="f['endDate']"
+          hint="Opcional — dejar vacío si es indefinido"
+        />
+
+        <app-input-field
+          label="Fecha de Firma"
+          type="date"
+          formControlName="signedDate"
+          [control]="f['signedDate']"
+          [max]="today"
+          hint="Opcional"
+        />
+      </div>
+
+      <!-- ── Porcentajes ────────────────────────────────── -->
+      <div class="form-row">
+        <app-input-field
+          label="% Ganancia Inversionista"
           [required]="true"
           type="number"
           formControlName="investorPercentage"
           [control]="f['investorPercentage']"
+          suffix="%"
           placeholder="60"
           [min]="0"
           [max]="100"
-          errorMessage="Debe ser un valor entre 0 y 100"
+          [decimals]="2"
         />
 
         <app-input-field
-          label="Porcentaje de Ganancia Operador"
+          label="% Ganancia Operador"
           type="number"
           formControlName="operatorPercentage"
           [control]="f['operatorPercentage']"
+          suffix="%"
           [disabled]="true"
+          [decimals]="2"
         />
       </div>
-      @if (percentageErr()) {
-        <span class="error-text">{{ percentageErr() }}</span>
+
+      @if (percentageError) {
+        <div class="percentage-warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          {{ percentageError }}
+        </div>
       }
 
-      <!-- Inversión Inicial -->
-      <div class="form-group">
-        <label class="form-label">Inversión Inicial <span class="optional">(opcional)</span></label>
-        <input
-          type="number"
-          formControlName="initialInvestment"
-          class="form-control"
-          min="0" step="0.01"
-          placeholder="0.00" />
-      </div>
+      <!-- ── Inversión Inicial ──────────────────────────── -->
+      <app-input-field
+        label="Inversión Inicial"
+        type="number"
+        formControlName="initialInvestment"
+        [control]="f['initialInvestment']"
+        prefix="$"
+        placeholder="0.00"
+        [min]="0"
+        [decimals]="2"
+        hint="Opcional — Capital inicial del contrato"
+      />
 
-      <!-- Notas -->
-      <div class="form-group">
-        <label class="form-label">Notas</label>
+      <!-- ── Notas ──────────────────────────────────────── -->
+      <div class="form-section">
+        <label class="section-label" for="contract-notes">Notas</label>
         <textarea
+          id="contract-notes"
           formControlName="notes"
-          class="form-control form-textarea"
+          class="form-textarea"
           rows="3"
-          placeholder="Observaciones..."></textarea>
+          placeholder="Observaciones, acuerdos especiales, condiciones particulares..."
+        ></textarea>
       </div>
 
-    </div><!-- /dialog-body -->
+    </div>
 
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- FOOTER                                                  -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <div class="dialog-footer">
       <button type="button" class="btn btn-ghost" (click)="close()">
         Cancelar
       </button>
+
       <button
         type="submit"
         class="btn btn-primary"
-        [disabled]="submitting() || !isFormValid()">
+        [disabled]="submitting() || !isFormValid">
         @if (submitting()) {
-          <span class="spinner"></span>
+          <span class="btn-spinner"></span>
           Guardando...
         } @else {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="btn-icon">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
           Crear Contrato
         }
       </button>
     </div>
-
   </form>
 </div>

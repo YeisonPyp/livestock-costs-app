@@ -88,7 +88,7 @@ export class CattleOwnershipService {
       status: filters.status,
       ownership_type: filters.ownershipType,
       investment: filters.investment,
-      investor: filters.investor,
+      investment__investor: filters.investor,
       animal: filters.animal,
       lot: filters.lot,
       ordering: filters.ordering,
