@@ -246,15 +246,16 @@ export function toInvestmentList(raw: any): InvestmentList {
 }
 
 export function toInvestmentDetail(raw: any): InvestmentDetail {
+  const cs = raw.cattle_stats ?? {};
   return {
     ...toInvestmentList(raw),
     investorId: raw.investor_id,
     cattleStats: {
-      totalHeads: raw.cattle_stats.total_heads,
-      totalValue: raw.cattle_stats.total_value,
-      totalWeight: raw.cattle_stats.total_weight,
-      averageWeight: raw.cattle_stats.average_weight,
-      activeCount: raw.cattle_stats.active_count,
+      totalHeads: cs.count ?? 0,
+      totalValue: String(cs.total_purchase_value ?? 0),
+      totalWeight: '0',          // ⚠️ backend no lo envía
+      averageWeight: '0',        // ⚠️ backend no lo envía
+      activeCount: cs.count ?? 0, // o lógica distinta si aplica
     },
     canClose: raw.can_close,
     notes: raw.notes,

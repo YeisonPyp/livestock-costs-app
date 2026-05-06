@@ -1,5 +1,5 @@
 // select-field.component.ts
-import { Component, Input, forwardRef } from '@angular/core';
+import { Component, Input,  Output, EventEmitter, forwardRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, AbstractControl, FormControl } from '@angular/forms';
 
@@ -34,6 +34,8 @@ export class SelectFieldComponent implements ControlValueAccessor {
   @Input() errorMessage = '';                   // ← Input para mensaje de error
   @Input() disabled = false;
 
+  @Output() selectionChange = new EventEmitter<string | number>();
+
   readonly inputId = `select-${++nextId}`;
   value: string | number = '';
   private isDisabledByForm = false;
@@ -62,8 +64,11 @@ export class SelectFieldComponent implements ControlValueAccessor {
   }
 
   onChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
     this.value = (event.target as HTMLSelectElement).value;
-    this.onChangeFn(this.value);
+ 
+    this.onChangeFn(value);          // para reactive forms
+    this.selectionChange.emit(value); // 👈 para el padre
   }
 
   onBlur(): void {

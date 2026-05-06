@@ -28,8 +28,10 @@ import type {
 } from '../models/investment.model';
 import type { CattleOwnership } from '../models/cattle-ownership.model';
 import type { InvestorList }    from '../models/investor.model';
-import { InvestmentStatus }     from '../models/enums';
+import { ContractStatus, InvestmentStatus }     from '../models/enums';
 import { formatCurrency, parseDecimal } from '../../../core/utils/helpers';
+import { ContractService } from '../services/contract.service';
+import { consumerPollProducersForChange } from '@angular/core/primitives/signals';
 
 // ── Tipos locales ──────────────────────────────────────────────────────────
 
@@ -72,6 +74,7 @@ export class InvestmentFacade {
 
   private readonly investmentSvc = inject(InvestmentService);
   private readonly investorSvc   = inject(InvestorService);
+  private readonly contractSvc   = inject(ContractService);
   private readonly cattleSvc     = inject(CattleOwnershipService);
   private readonly router        = inject(Router);
   private readonly notify        = inject(NotificationService);
@@ -421,6 +424,8 @@ export class InvestmentFacade {
   readonly formInvestorsError   = signal<string | null>(null);
   readonly hasActiveInvestment  = signal(false);
   readonly checkingActive       = signal(false);
+  readonly hasActiveContract  = signal<boolean | null>(null);
+  readonly checkingContract     = signal(false);
 
   loadActiveInvestors(): void {
     this.formInvestorsLoading.set(true);
@@ -446,6 +451,42 @@ export class InvestmentFacade {
         },
         error: () => this.hasActiveInvestment.set(false),
       });
+  }
+
+  checkActiveContract(investorId: string): void {
+    if (!investorId) { this.hasActiveContract.set(null); return; }
+    this.checkingContract.set(true);
+    this.contractSvc.list({ investorId, status: ContractStatus.ACTIVE })
+      .pipe(finalize(() => this.checkingContract.set(false)))
+      .subscribe({
+        next: (res) => {
+          this.hasActiveContract.set(res.data.length > 0);
+        },
+        error: () => {
+          this.notify.error('Error al verificar contratos');
+          this.hasActiveContract.set(null);
+        },
+      });
+  }
+
+  validateInvestorSelection(investorId: string): void {
+    if (!investorId) {
+      this.resetValidationState();
+      return;
+    }
+
+    this.checkActiveInvestment(investorId);
+    this.checkActiveContract(investorId);
+  }
+
+  /**
+   * Resetea todos los estados de validación
+   */
+  resetValidationState(): void {
+    this.hasActiveInvestment.set(false);
+    this.hasActiveContract.set(null);
+    this.checkingActive.set(false);
+    this.checkingContract.set(false);
   }
 
   // ── UI helpers (usados en templates) ─────────────────────────

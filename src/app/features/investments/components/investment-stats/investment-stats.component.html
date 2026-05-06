@@ -22,7 +22,7 @@
 
     <app-kpi-card
       label="Activas"
-      [value]="stats.active.toString()"
+      [value]="(stats.active || 0).toString()"
       [loading]="stats.isLoading"
       color="green"
       [decimals]="0"
