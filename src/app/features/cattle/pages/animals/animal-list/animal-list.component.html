@@ -86,9 +86,12 @@
       [message]="hasActiveFilters ? 'No hay animales con los filtros aplicados.' : 'Usa la carga masiva para registrar animales.'">
     </app-empty-state>
   } @else {
+
+    <!-- Meta: rango + total -->
     <div class="table-meta">
       <span class="results-count">
-        Mostrando {{ animals().length }} de {{ pagination()?.count ?? animals().length }} animales
+        Mostrando <strong>{{ pageFrom }}–{{ pageTo }}</strong> de
+        <strong>{{ totalCount }}</strong> animales
       </span>
     </div>
 
@@ -116,9 +119,7 @@
             <td>{{ a.name || '—' }}</td>
             <td>{{ a.breed_name || '—' }}</td>
             <td>
-              <span class="category-label">
-                {{ getCategoryLabel(a.category) }}
-              </span>
+              <span class="category-label">{{ getCategoryLabel(a.category) }}</span>
             </td>
             <td>
               <span class="sex-badge" [class.male]="a.gender === 'M'" [class.female]="a.gender === 'F'">
@@ -146,8 +147,8 @@
             </td>
             <td class="text-right">
               <app-dropdown-menu [items]="[
-                { label: 'Ver Detalle', icon: 'eye',     routerLink: [a.id] },
-                { label: 'Editar',     icon: 'edit',     routerLink: [a.id, 'edit'] },
+                { label: 'Ver Detalle', icon: 'eye',  routerLink: [a.id] },
+                { label: 'Editar',     icon: 'edit', routerLink: [a.id, 'edit'] },
               ]" />
             </td>
           </tr>
@@ -155,19 +156,80 @@
       </tbody>
     </table>
 
-    <!-- Pagination -->
-    @if (pagination() && pagination().total_pages > 1) {
+    <!-- ═══════════════════════════════════════════════════════
+         PAGINACIÓN MEJORADA
+         ════════════════════════════════════════════════════ -->
+    @if (totalPages > 1) {
       <div class="pagination">
-        <button class="page-btn" [disabled]="currentPage === 1" (click)="load(currentPage - 1)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+
+        <!-- Ir a primera página -->
+        <button
+          class="page-btn page-btn--edge"
+          [disabled]="currentPage === 1"
+          (click)="load(1)"
+          title="Primera página"
+          aria-label="Primera página">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polyline points="11 17 6 12 11 7"/>
+            <polyline points="18 17 13 12 18 7"/>
+          </svg>
         </button>
-        @for (p of pagesArray; track p) {
-          <button class="page-btn" [class.active]="p === currentPage" (click)="load(p)">{{ p }}</button>
+
+        <!-- Página anterior -->
+        <button
+          class="page-btn"
+          [disabled]="currentPage === 1"
+          (click)="load(currentPage - 1)"
+          title="Página anterior"
+          aria-label="Página anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+
+        <!-- Ventana de páginas con separadores -->
+        @for (item of pageItems; track $index) {
+          @if (item === null) {
+            <!-- Separador "…" -->
+            <span class="page-ellipsis">…</span>
+          } @else {
+            <button
+              class="page-btn"
+              [class.active]="item === currentPage"
+              [attr.aria-current]="item === currentPage ? 'page' : null"
+              (click)="load(item)">
+              {{ item }}
+            </button>
+          }
         }
-        <button class="page-btn" [disabled]="currentPage === pagination().total_pages" (click)="load(currentPage + 1)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+
+        <!-- Página siguiente -->
+        <button
+          class="page-btn"
+          [disabled]="currentPage === totalPages"
+          (click)="load(currentPage + 1)"
+          title="Página siguiente"
+          aria-label="Página siguiente">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
         </button>
+
+        <!-- Ir a última página -->
+        <button
+          class="page-btn page-btn--edge"
+          [disabled]="currentPage === totalPages"
+          (click)="load(totalPages)"
+          title="Última página"
+          aria-label="Última página">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polyline points="13 17 18 12 13 7"/>
+            <polyline points="6 17 11 12 6 7"/>
+          </svg>
+        </button>
+
       </div>
     }
+
   }
 </div>

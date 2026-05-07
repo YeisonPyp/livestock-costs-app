@@ -189,22 +189,73 @@
 
 // ── Pagination ────────────────────────────────────────────────────────────────
 .pagination {
-  display: flex; align-items: center; justify-content: center;
-  gap: $space-1; padding: $space-4; border-top: 1px solid $slate-100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-1;
+  padding: $space-3 $space-4;
+  border-top: 1px solid $slate-100;
+  flex-wrap: wrap;
 }
 
 .page-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 34px; height: 34px; padding: 0 $space-2;
-  border: 1px solid $slate-200; border-radius: $border-radius;
-  background: $white; color: $slate-600;
-  font-size: $font-sm; font-weight: $weight-medium;
-  cursor: pointer; transition: all $transition-base;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 $space-2;
+  border: 1px solid $slate-200;
+  border-radius: $border-radius;
+  background: $white;
+  color: $slate-600;
+  font-size: $font-sm;
+  font-weight: $weight-medium;
+  cursor: pointer;
+  transition: all $transition-base;
+  user-select: none;
 
   svg { width: 16px; height: 16px; }
-  &:hover:not(:disabled) { border-color: $primary; color: $primary; }
-  &.active   { background: $primary; border-color: $primary; color: $white; }
-  &:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  &:hover:not(:disabled) {
+    border-color: $primary;
+    color: $primary;
+    background: $primary-muted;
+  }
+
+  &.active {
+    background: $primary;
+    border-color: $primary;
+    color: $white;
+    font-weight: $weight-semibold;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    pointer-events: none; // la página actual no es clicable
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  // Botones de ir al extremo (primera / última)
+  &--edge {
+    color: $slate-400;
+    &:hover:not(:disabled) { color: $primary; }
+  }
+}
+
+// Separador "…" entre grupos de páginas
+.page-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  font-size: $font-sm;
+  color: $slate-400;
+  letter-spacing: 0.05em;
+  user-select: none;
 }
 
 // ── Spin animation ────────────────────────────────────────────────────────────
