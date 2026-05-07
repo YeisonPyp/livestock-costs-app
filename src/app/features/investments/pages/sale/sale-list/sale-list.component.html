@@ -78,9 +78,9 @@
             <td class="text-center">
               @if (!sale.isFinalized) {
                 <app-badge
-                  [color]="(sale.pendingDecisionsCount ?? 0) > 0 ? 'warning' : 'success'"
+                  [color]="(sale.pendingDecisionsCount) > 0 ? 'warning' : 'success'"
                   size="sm">
-                  {{ sale.pendingDecisionsCount ?? 0 }} pend.
+                  {{ sale.pendingDecisionsCount }} pend.
                 </app-badge>
               } @else {
                 <app-badge color="secondary" size="sm">—</app-badge>

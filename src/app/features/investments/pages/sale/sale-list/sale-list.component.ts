@@ -12,7 +12,6 @@ import { LoaderComponent }        from '../../../../../shared/components/feedbac
 import { EmptyStateComponent }    from '../../../../../shared/components/feedback/empty-state/empty-state.component';
 import { BadgeComponent }         from '../../../../../shared/components/ui/badge/badge.component';
 import { AmountDisplayComponent } from '../../../../../shared/components/data-display/amount-display/amount-display.component';
-import { KpiCardComponent }       from '../../../../../shared/components/data-display/kpi-card/kpi-card.component';
 import { SaleCreateDrawerComponent } from '../../../components/sale-create-drawer/sale-create-drawer.component';
 import { SaleStatsComponent } from '../../../components/sale-stats/sale-stats.component';
 
@@ -24,7 +23,7 @@ import { SaleStatsComponent } from '../../../components/sale-stats/sale-stats.co
   imports: [
     RouterLink, FormsModule,
     PageHeaderComponent, LoaderComponent, EmptyStateComponent,
-    BadgeComponent, AmountDisplayComponent, KpiCardComponent,
+    BadgeComponent, AmountDisplayComponent,
     SaleCreateDrawerComponent, SaleStatsComponent,
   ],
   templateUrl: './sale-list.component.html',
