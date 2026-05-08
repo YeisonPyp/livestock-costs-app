@@ -103,21 +103,21 @@
           </tr>
         </thead>
         <tbody>
-          @for (m of facade.summary()?.movementsList?.slice(0, 5) ?? []; track m.date) {
+          @for (m of facade.summary()?.movementsList?.slice(0, 5) ?? []; track m.createdAt) {
             <tr>
-              <td class="date">{{ m.date | date:'dd MMM yyyy':'':'es' }}</td>
+              <td class="date">{{ m.createdAt | date:'dd MMM yyyy':'':'es' }}</td>
               <td>
-                <app-badge [color]="facade.movementColor(m.type)" size="sm">
-                  {{ m.type }}
+                <app-badge [color]="facade.movementColor(m.movementType)" size="sm">
+                  {{ m.movementTypeDisplay }}
                 </app-badge>
               </td>
               <td>{{ m.description }}</td>
               <td class="num"
-                [class.credit]="facade.movementSign(m.type) === '+'"
-                [class.debit]="facade.movementSign(m.type) === '−'">
-                {{ facade.movementSign(m.type) }}{{ facade.formatCOP(m.amount) }}
+                [class.credit]="facade.movementSign(m.movementType) === '+'"
+                [class.debit]="facade.movementSign(m.movementType) === '−'">
+                {{ facade.movementSign(m.movementType) }}{{ facade.formatCOP(m.amount) }}
               </td>
-              <td class="num">{{ facade.formatCOP(m.balance) }}</td>
+              <td class="num">{{ facade.formatCOP(m.balanceAfter) }}</td>
             </tr>
           }
         </tbody>
@@ -173,21 +173,21 @@
             </tr>
           </thead>
           <tbody>
-            @for (m of facade.summary()?.movementsList ?? []; track m.date + m.type) {
+            @for (m of facade.summary()?.movementsList ?? []; track m.createdAt) {
               <tr>
-                <td class="date">{{ m.date | date:'dd MMM yyyy':'':'es' }}</td>
+                <td class="date">{{ m.createdAt | date:'dd MMM yyyy':'':'es' }}</td>
                 <td>
-                  <app-badge [color]="facade.movementColor(m.type)" size="sm">
-                    {{ m.type }}
+                  <app-badge [color]="facade.movementColor(m.movementType)" size="sm">
+                    {{ m.movementTypeDisplay }}
                   </app-badge>
                 </td>
                 <td>{{ m.description }}</td>
                 <td class="num"
-                  [class.credit]="facade.movementSign(m.type) === '+'"
-                  [class.debit]="facade.movementSign(m.type) === '−'">
-                  {{ facade.movementSign(m.type) }}{{ facade.formatCOP(m.amount) }}
+                  [class.credit]="facade.movementSign(m.movementType) === '+'"
+                  [class.debit]="facade.movementSign(m.movementType) === '−'">
+                  {{ facade.movementSign(m.movementType) }}{{ facade.formatCOP(m.amount) }}
                 </td>
-                <td class="num">{{ facade.formatCOP(m.balance) }}</td>
+                <td class="num">{{ facade.formatCOP(m.balanceAfter) }}</td>
               </tr>
             }
           </tbody>

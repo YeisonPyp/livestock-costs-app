@@ -26,9 +26,9 @@ import type {
   UpdateInvestorPayload,
   DeactivateInvestorPayload,
 } from '../models/investor.model';
-import type { InvestmentList } from '../models/investment.model';
-import type { CattleOwnership } from '../models/cattle-ownership.model';
-import type { SaleDecisionList } from '../models/sale.model';
+import type { InvestmentList, InvestmentMovement } from '../models/investment.model';
+import type { CattleOwnership, CattleOwnershipSummary } from '../models/cattle-ownership.model';
+import type { SaleDecisionList, SaleDecisionSummary } from '../models/sale.model';
 import type {
   ContractList,
   CreateContractPayload,
@@ -71,9 +71,7 @@ export class InvestorFacade {
 
   private readonly investorSvc = inject(InvestorService);
   private readonly investmentSvc = inject(InvestmentService);
-  private readonly cattleSvc = inject(CattleOwnershipService);
   private readonly decisionSvc = inject(SaleDecisionService);
-  private readonly contractSvc = inject(ContractService);
   private readonly router = inject(Router);
   private readonly notify = inject(NotificationService);
 
@@ -193,9 +191,9 @@ export class InvestorFacade {
   readonly detail = signal<InvestorDetail | null>(null);
   readonly summary = signal<InvestorSummary | null>(null);
   readonly detailInvestments = signal<InvestmentList[]>([]);
-  readonly detailCattle = signal<CattleOwnership[]>([]);
-  readonly detailDecisions = signal<SaleDecisionList[]>([]);
-  readonly detailContracts = signal<ContractList[]>([]);
+  readonly detailMovements = signal<InvestmentMovement[]>([]);
+  readonly detailCattle = signal<CattleOwnershipSummary[]>([]);
+  readonly detailDecisions = signal<SaleDecisionSummary[]>([]);
 
   // ── Derived ───────────────────────────────────────────────
 
@@ -225,8 +223,6 @@ export class InvestorFacade {
       investor: this.investorSvc.getById(id),
       summary: this.investorSvc.getSummary(id),
       investments: this.investmentSvc.list({ investor: id }),
-      cattle: this.cattleSvc.getByInvestor(id),
-      decisions: this.decisionSvc.list({ investor: id }),
       contracts: this.investorSvc.getContracts(id),
     })
       .pipe(finalize(() => this.detailLoading.set(false)))
@@ -235,9 +231,9 @@ export class InvestorFacade {
           this.detail.set(results.investor.data);
           this.summary.set(results.summary.data);
           this.detailInvestments.set(results.investments.data);
-          this.detailCattle.set(results.cattle.data);
-          this.detailDecisions.set(results.decisions.data);
-          this.detailContracts.set(results.contracts.data);
+          this.detailMovements.set(results.summary.data.movementsList);
+          this.detailCattle.set(results.summary.data.cattleList);
+          this.detailDecisions.set(results.summary.data.decisiondList);
         },
         error: () => {
           this.notify.error('Error al cargar el inversionista');
@@ -366,8 +362,8 @@ export class InvestorFacade {
     this.detail.set(null);
     this.summary.set(null);
     this.detailInvestments.set([]);
+    this.detailMovements.set([]);
     this.detailCattle.set([]);
     this.detailDecisions.set([]);
-    this.detailContracts.set([]);
   }
 }

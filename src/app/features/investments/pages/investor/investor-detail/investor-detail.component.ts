@@ -19,6 +19,7 @@ import { AmountDisplayComponent }  from '../../../../../shared/components/data-d
 import { AlertComponent }          from '../../../../../shared/components/feedback/alert/alert.component';
 import { EmptyStateComponent }     from '../../../../../shared/components/feedback/empty-state/empty-state.component';
 import { formatCurrency, parseDecimal } from '../../../../../core/utils/helpers';
+import { TableColumn, TableComponent, TableConfig } from '../../../../../shared/components/data-display/table/table.component';
 
 @Component({
   selector: 'app-investor-detail',
@@ -29,7 +30,7 @@ import { formatCurrency, parseDecimal } from '../../../../../core/utils/helpers'
     RouterLink, MatTabsModule,
     PageHeaderComponent, LoaderComponent, KpiCardComponent,
     BadgeComponent, AvatarComponent, AmountDisplayComponent,
-    AlertComponent, EmptyStateComponent,
+    AlertComponent, EmptyStateComponent, TableComponent,
   ],
   templateUrl: './investor-detail.component.html',
   styleUrl:    './investor-detail.component.scss',
@@ -41,6 +42,58 @@ export class InvestorDetailComponent implements OnInit, OnDestroy {
 
   formatCurrency = formatCurrency;
   parseDecimal   = parseDecimal;
+
+  cattleColumns: TableColumn[] = [
+    {
+      key: 'gender',
+      label: 'Tipo',
+      sortable: true,
+    },
+    {
+      key: 'name',
+      label: 'Animal',
+      sortable: true,
+    },
+    {
+      key: 'entryDate',
+      label: 'Cantidad',
+      type: 'date',
+      sortable: true,
+    },
+    {
+      key: 'purchasePrice',
+      label: 'Valor Compra',
+      type: 'custom',
+      sortable: true,
+    },
+    {
+      key: 'currentValue',
+      label: 'Valor Actual',
+      type: 'custom',
+      sortable: true,
+    },
+    {
+      key: 'weightGain',
+      label: 'Ganancia Peso',
+      type: 'custom',
+    },
+    {
+      key: 'status',
+      label: 'Estado',
+      type: 'custom',
+      sortable: true,
+    },
+  ];
+
+  tableConfig: TableConfig = {
+    searchable: false,
+    paginated: true,
+    pageSize: 10,
+    striped: true,
+    hover: true,
+    bordered: false,
+    compact: false,
+  };
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');

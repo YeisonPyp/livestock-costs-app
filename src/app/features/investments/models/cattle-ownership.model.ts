@@ -88,3 +88,22 @@ export interface CattleOwnerReport {
   weightGain: string;
   acquisitionDate: string;
 }
+
+export interface CattleOwnershipSummary {
+  id: string;
+  tagNumber: string;
+  name: string;
+  breedName: string
+  gender: string;
+  category: string;
+  lotCode: string;
+  currentWeight: string;
+  currentValue: string;
+  ageMonths: string;
+  weightGain: string;
+  dailyGain: string;
+  purchasePrice: string;
+  status: CattleOwnershipStatus;
+  entryDate: string;
+  lastWeightDate: string;
+}

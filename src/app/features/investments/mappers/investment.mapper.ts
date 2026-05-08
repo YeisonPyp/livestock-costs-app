@@ -31,6 +31,7 @@ import {
   FinalizeResult,
   ParticipationReport,
   CattleOwnerReport,
+  CattleOwnershipSummary,
 } from '../models';
 
 // ── Contracts ──────────────────────────────────────────────────────
@@ -175,6 +176,7 @@ export function toInvestorSummary(raw: any): InvestorSummary {
     pendingDecisions: raw.pending_decisions,
     decisiondList: (raw.decisions_list ?? []).map(toSaleDecisionSummary),
     movementsList: (raw.movements_list ?? []).map(toInvestmentMovement),
+    cattleList: (raw.cattle_list ?? []).map(toCattleSummary),
   };
 }
 
@@ -329,6 +331,28 @@ export function toCattleOwnership(raw: any): CattleOwnership {
     status: raw.status,
   };
 }
+
+export function toCattleSummary(raw: any): CattleOwnershipSummary {
+  return {
+    id: raw.id,
+    tagNumber: raw.tag_number,
+    name: raw.name,
+    breedName: raw.breed_name,
+    gender: raw.gender,
+    category: raw.category,
+    lotCode: raw.lot_code,
+    currentWeight: raw.current_weight,
+    currentValue: raw.current_value,
+    ageMonths: raw.age_months,
+    weightGain: raw.weight_gain,
+    dailyGain: raw.daily_gain,
+    purchasePrice: raw.purchase_price,
+    status: raw.status,
+    entryDate: raw.entry_date,
+    lastWeightDate: raw.last_weight_date,
+  };
+}
+
 
 export function toWeightRecord(raw: any): WeightRecord {
   return {

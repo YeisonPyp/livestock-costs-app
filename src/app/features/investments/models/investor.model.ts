@@ -3,6 +3,8 @@
 import { SaleDecisionType } from './enums';
 import { ContractList } from './contract.model';
 import { SaleDecisionSummary } from './sale.model';
+import { CattleOwnershipSummary } from './cattle-ownership.model';
+import { InvestmentMovement } from './investment.model';
 
 // ── Listado ────────────────────────────────────────────────────────
 export interface InvestorList {
@@ -104,7 +106,8 @@ export interface InvestorSummary {
   };
   pendingDecisions: number;
   decisiondList: SaleDecisionSummary[];
-  movementsList: StatementMovement[];
+  movementsList: InvestmentMovement[];
+  cattleList: CattleOwnershipSummary[];
 }
 
 // ── Estado de cuenta ───────────────────────────────────────────────

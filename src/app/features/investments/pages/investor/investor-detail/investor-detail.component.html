@@ -238,44 +238,17 @@
       <mat-tab [label]="'Ganado (' + facade.detailCattle().length + ')'">
         <div class="tab-content">
           @if (facade.detailCattle().length === 0) {
-            <app-empty-state title="Sin ganado asignado" [compact]="true" />
+            <app-empty-state
+              title="Sin ganado asignado"
+              [compact]="true" />
           } @else {
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Tipo</th><th>Animal/Lote</th><th>Cantidad</th>
-                  <th>Valor Compra</th><th>Valor Actual</th><th>Ganancia Peso</th><th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (own of facade.detailCattle(); track own.id) {
-                  <tr>
-                    <td>{{ own.ownershipType }}</td>
-                    <td>{{ own.animal ?? own.lot ?? '—' }}</td>
-                    <td>{{ own.quantity }}</td>
-                    <td>
-                      <app-amount-display
-                        [amount]="parseDecimal(own.purchaseValue)"
-                        type="neutral" size="sm" />
-                    </td>
-                    <td>
-                      <app-amount-display
-                        [amount]="parseDecimal(own.currentValue)"
-                        type="neutral" size="sm" />
-                    </td>
-                    <td [class.positive]="parseDecimal(own.weightGain) > 0">
-                      {{ own.weightGain ? parseDecimal(own.weightGain).toFixed(1) + ' kg' : '—' }}
-                    </td>
-                    <td>
-                      <app-badge
-                        [color]="own.status === 'active' ? 'success' : own.status === 'sold' ? 'info' : 'secondary'">
-                        {{ own.status }}
-                      </app-badge>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
+
+            <app-table
+              [columns]="cattleColumns"
+              [data]="facade.detailCattle()"
+              [config]="tableConfig"
+              [hasActions]="false">
+            </app-table>
           }
         </div>
       </mat-tab>
@@ -299,7 +272,7 @@
               <tbody>
                 @for (d of facade.detailDecisions(); track d.id) {
                   <tr>
-                    <td>{{ d.saleEventId }}</td>
+                    <td>{{ d.id }}</td>
                     <td>
                       <app-amount-display
                         [amount]="parseDecimal(d.investorAmount)"
