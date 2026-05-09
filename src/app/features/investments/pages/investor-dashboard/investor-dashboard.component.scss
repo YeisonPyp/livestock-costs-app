@@ -1,163 +1,252 @@
 // investor-dashboard.component.scss
 @use '../../../../styles/variables' as *;
 
+// ── Tokens locales ────────────────────────────────────────────────
 $investor-primary: #185FA5;
 $investor-green:   #1D9E75;
 $investor-amber:   #BA7517;
 
-.dashboard { display: flex; flex-direction: column; gap: $space-5; }
+// ── Layout ────────────────────────────────────────────────────────
+
+.app-layout {
+  display:        flex;
+  flex-direction: column;
+  height:         100vh;
+  overflow:       hidden;
+  background:     $slate-50;
+}
+
+.dashboard {
+  display:        flex;
+  flex-direction: column;
+  gap:            $space-5;
+  padding:        $space-5;
+  overflow-y:     auto;
+  flex:           1;
+}
+
+// ── Skeleton loading ──────────────────────────────────────────────
+
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+%skeleton {
+  background:          linear-gradient(90deg, $slate-100 25%, $slate-200 50%, $slate-100 75%);
+  background-size:     1200px 100%;
+  animation:           shimmer 1.4s ease infinite;
+  border-radius:       $border-radius-sm;
+}
 
 // ── Profile ───────────────────────────────────────────────────────
 
 .profile-row {
-  display: flex;
-  align-items: center;
-  gap: $space-4;
-  background: $white;
-  border: 1px solid $border-color;
+  display:       flex;
+  align-items:   center;
+  gap:           $space-4;
+  background:    $white;
+  border:        1px solid $border-color;
   border-radius: $border-radius-md;
-  padding: $space-5;
-  box-shadow: $shadow-sm;
+  padding:       $space-5;
+  box-shadow:    $shadow-sm;
 }
 
 .avatar {
-  width: 52px; height: 52px;
-  border-radius: 50%;
-  background: $investor-primary;
-  color: $white;
-  display: flex; align-items: center; justify-content: center;
-  font-size: $font-lg; font-weight: $weight-bold;
-  flex-shrink: 0;
+  width:           52px;
+  height:          52px;
+  border-radius:   50%;
+  background:      $investor-primary;
+  color:           $white;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  font-size:       $font-lg;
+  font-weight:     $weight-bold;
+  flex-shrink:     0;
+  user-select:     none;
 }
 
 .profile-info { flex: 1; min-width: 0; }
 
 .profile-name {
-  display: flex;
+  display:     flex;
   align-items: center;
-  gap: $space-2;
-  font-size: $font-lg;
+  gap:         $space-2;
+  font-size:   $font-lg;
   font-weight: $weight-bold;
-  color: $slate-900;
+  color:       $slate-900;
 }
 
-.profile-meta { font-size: $font-sm; color: $slate-400; margin-top: 2px; }
+.profile-meta {
+  font-size:  $font-sm;
+  color:      $slate-400;
+  margin-top: 2px;
+}
 
 // ── KPIs ──────────────────────────────────────────────────────────
 
 .kpi-grid {
-  display: grid;
+  display:               grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: $space-4;
+  gap:                   $space-4;
 }
 
 .kpi-card {
-  background: $white;
-  border: 1px solid $border-color;
+  background:    $white;
+  border:        1px solid $border-color;
   border-radius: $border-radius-md;
-  padding: $space-4 $space-5;
-  box-shadow: $shadow-sm;
+  padding:       $space-4 $space-5;
+  box-shadow:    $shadow-sm;
+  transition:    border-color 200ms ease, background 200ms ease;
 
   &.kpi-alert {
-    border-color: rgba($danger, .3);
-    background: rgba($danger, .02);
+    border-color: rgba($danger, 0.35);
+    background:   rgba($danger, 0.025);
   }
 }
 
-.kpi-label { font-size: $font-xs; color: $slate-400; font-weight: $weight-medium; text-transform: uppercase; letter-spacing: .04em; margin-bottom: $space-2; }
-.kpi-value { font-size: $font-xl; font-weight: $weight-bold; color: $slate-900; line-height: 1.2;
-  &.profit    { color: $investor-green; }
+.kpi-label {
+  font-size:      $font-xs;
+  color:          $slate-400;
+  font-weight:    $weight-medium;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom:  $space-2;
+}
+
+.kpi-value {
+  font-size:   $font-xl;
+  font-weight: $weight-bold;
+  color:       $slate-900;
+  line-height: 1.2;
+
+  &.profit      { color: $investor-green; }
   &.text-danger { color: $danger; }
 }
-.kpi-sub   { font-size: $font-xs; color: $slate-400; margin-top: $space-1;
+
+.kpi-sub {
+  font-size:  $font-xs;
+  color:      $slate-400;
+  margin-top: $space-1;
+
   .text-danger { color: $danger; }
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────
 
 .tabs-nav {
-  display: flex;
-  gap: 0;
+  display:       flex;
+  gap:           0;
   border-bottom: 2px solid $border-color;
-  background: $white;
+  background:    $white;
   border-radius: $border-radius-md $border-radius-md 0 0;
-  overflow: hidden;
-  box-shadow: $shadow-sm;
+  overflow:      hidden;
+  box-shadow:    $shadow-sm;
+  flex-shrink:   0;
 }
 
 .tab-btn {
-  display: flex;
-  align-items: center;
-  gap: $space-2;
-  padding: $space-3 $space-5;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  font-size: $font-sm;
-  font-weight: $weight-medium;
-  color: $slate-500;
-  cursor: pointer;
+  display:          flex;
+  align-items:      center;
+  gap:              $space-2;
+  padding:          $space-3 $space-5;
+  background:       none;
+  border:           none;
+  border-bottom:    2px solid transparent;
+  margin-bottom:    -2px;
+  font-size:        $font-sm;
+  font-weight:      $weight-medium;
+  color:            $slate-500;
+  cursor:           pointer;
+  white-space:      nowrap;
   @include transition(color, border-color);
 
-  &.active  { color: $investor-primary; border-bottom-color: $investor-primary; }
+  &.active          { color: $investor-primary; border-bottom-color: $investor-primary; }
   &:hover:not(.active) { color: $slate-700; }
 }
 
 .tab-count {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 20px; height: 20px; padding: 0 6px;
-  background: $slate-100; color: $slate-600;
-  border-radius: 10px; font-size: $font-xs; font-weight: $weight-bold;
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  min-width:       20px;
+  height:          20px;
+  padding:         0 6px;
+  background:      $slate-100;
+  color:           $slate-600;
+  border-radius:   10px;
+  font-size:       $font-xs;
+  font-weight:     $weight-bold;
 }
 
 .tab-badge {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 18px; height: 18px; padding: 0 5px;
-  background: $danger; color: $white;
-  border-radius: 9px; font-size: $font-xs; font-weight: $weight-bold;
-  animation: pulse 2s infinite;
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  min-width:       18px;
+  height:          18px;
+  padding:         0 5px;
+  background:      $danger;
+  color:           $white;
+  border-radius:   9px;
+  font-size:       $font-xs;
+  font-weight:     $weight-bold;
+  animation:       pulse 2s infinite;
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50%       { opacity: .7; }
+  50%       { opacity: 0.7; }
 }
 
 // ── Content cards ─────────────────────────────────────────────────
 
 .two-col {
-  display: grid;
+  display:               grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: $space-5;
+  gap:                   $space-5;
 }
 
 .card {
-  background: $white;
-  border: 1px solid $border-color;
+  background:    $white;
+  border:        1px solid $border-color;
   border-radius: $border-radius-md;
-  padding: $space-5;
-  box-shadow: $shadow-sm;
+  padding:       $space-5;
+  box-shadow:    $shadow-sm;
 }
 
 .card-title {
-  font-size: $font-sm;
-  font-weight: $weight-bold;
-  color: $slate-700;
-  margin: 0 0 $space-4;
+  font-size:      $font-sm;
+  font-weight:    $weight-bold;
+  color:          $slate-700;
+  margin:         0 0 $space-4;
   text-transform: uppercase;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
 }
 
-.chart-wrap { height: 220px; position: relative; }
+.chart-wrap {
+  height:   220px;
+  position: relative;
+
+  .empty-msg {
+    position:  absolute;
+    inset:     0;
+    display:   flex;
+    align-items: center;
+    justify-content: center;
+    margin:    0;
+    padding:   0;
+  }
+}
 
 .section-label {
-  font-size: $font-xs;
-  font-weight: $weight-bold;
-  color: $slate-500;
+  font-size:      $font-xs;
+  font-weight:    $weight-bold;
+  color:          $slate-500;
   text-transform: uppercase;
-  letter-spacing: .06em;
-  margin-bottom: $space-3;
+  letter-spacing: 0.06em;
+  margin-bottom:  $space-3;
 }
 
 // ── Tables ────────────────────────────────────────────────────────
@@ -165,25 +254,75 @@ $investor-amber:   #BA7517;
 .table-scroll { overflow-x: auto; }
 
 .data-table {
-  width: 100%; border-collapse: collapse;
-  th, td { padding: $space-3 $space-4; text-align: left; font-size: $font-sm; border-bottom: 1px solid $border-color; vertical-align: middle; }
-  th     { background: $slate-50; font-size: $font-xs; font-weight: $weight-semibold; color: $slate-600; text-transform: uppercase; letter-spacing: .04em; }
-  tbody tr:hover  { background: $slate-50; }
-  tbody tr:last-child td { border-bottom: none; }
-  .num    { text-align: right; }
-  .date   { color: $slate-400; font-size: $font-xs; white-space: nowrap; }
+  width:            100%;
+  border-collapse:  collapse;
+
+  th, td {
+    padding:        $space-3 $space-4;
+    text-align:     left;
+    font-size:      $font-sm;
+    border-bottom:  1px solid $border-color;
+    vertical-align: middle;
+  }
+
+  th {
+    background:     $slate-50;
+    font-size:      $font-xs;
+    font-weight:    $weight-semibold;
+    color:          $slate-600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    position:       sticky;
+    top:            0;
+    z-index:        1;
+  }
+
+  tbody tr:hover           { background: $slate-50; }
+  tbody tr:last-child td   { border-bottom: none; }
+
+  .num  { text-align:  right; }
+  .date { color: $slate-400; font-size: $font-xs; white-space: nowrap; }
 }
 
-.tag-num { font-family: monospace; font-size: $font-sm; font-weight: $weight-semibold; color: $slate-800; }
+// ── Utilities ─────────────────────────────────────────────────────
+
+.tag-num {
+  font-family: monospace;
+  font-size:   $font-sm;
+  font-weight: $weight-semibold;
+  color:       $slate-800;
+}
+
 .gain-badge {
-  display: inline-block; padding: 2px 6px;
-  border-radius: 4px; font-size: $font-xs; font-weight: $weight-semibold;
-  background: $slate-100; color: $slate-600;
-  &.credit { background: rgba($investor-green, .1); color: $investor-green; }
+  display:       inline-block;
+  padding:       2px 6px;
+  border-radius: 4px;
+  font-size:     $font-xs;
+  font-weight:   $weight-semibold;
+  background:    $slate-100;
+  color:         $slate-600;
+
+  &.credit { background: rgba($investor-green, 0.1); color: $investor-green; }
 }
 
 .credit { color: $investor-green; font-weight: $weight-semibold; }
 .debit  { color: $danger;         font-weight: $weight-semibold; }
 .muted  { color: $slate-300; }
 
-.empty-msg { font-size: $font-sm; color: $slate-400; text-align: center; padding: $space-6 0; margin: 0; }
+.empty-msg {
+  font-size:  $font-sm;
+  color:      $slate-400;
+  text-align: center;
+  padding:    $space-6 0;
+  margin:     0;
+}
+
+// ── Responsive ────────────────────────────────────────────────────
+
+@media (max-width: 640px) {
+  .dashboard   { padding: $space-3; gap: $space-4; }
+  .kpi-grid    { grid-template-columns: repeat(2, 1fr); }
+  .tabs-nav    { overflow-x: auto; }
+  .tab-btn     { padding: $space-3; }
+  .two-col     { grid-template-columns: 1fr; }
+}

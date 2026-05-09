@@ -14,8 +14,10 @@ import { InvestorService }     from '../services/investor.service';
 import { SaleDecisionService } from '../services/sale-decision.service';
 import { NotificationService } from '../../../core/services/notification.service';
 
-import type { InvestorSummary, StatementMovement } from '../models/investor.model';
-import type { SaleDecisionList, MakeDecisionPayload } from '../models/sale.model';
+import type { InvestorSummary } from '../models/investor.model';
+import type { SaleDecisionList, SaleDecisionSummary, MakeDecisionPayload } from '../models/sale.model';
+import type { CattleOwnershipSummary } from '../models/cattle-ownership.model';
+import type { InvestmentMovement } from '../models/investment.model';
 import { SaleDecisionType, InvestmentMovementType } from '../models/enums';
 import { parseDecimal } from '../../../core/utils/helpers';
 
@@ -55,24 +57,31 @@ export class InvestorDashboardFacade {
   readonly summary   = signal<InvestorSummary | null>(null);
   readonly activeTab = signal<DashboardTab>('resumen');
 
-  readonly decisionSaving   = signal(false);
-  readonly partialModalOpen = signal(false);
+  readonly decisionSaving           = signal(false);
+  readonly partialModalOpen         = signal(false);
   readonly pendingDecisionForPartial = signal<SaleDecisionList | null>(null);
 
-  // ── Computed ──────────────────────────────────────────────────
+  // ── Computed — Investor ───────────────────────────────────────
 
   readonly investor = computed(() => this.summary()?.investor ?? null);
 
   readonly initials = computed(() => {
     const name = this.investor()?.name ?? '';
-    return name.split(' ').slice(0, 2).map(n => n[0] ?? '').join('').toUpperCase();
+    return name
+      .split(' ')
+      .slice(0, 2)
+      .map(n => n[0] ?? '')
+      .join('')
+      .toUpperCase();
   });
+
+  // ── Computed — KPIs ───────────────────────────────────────────
 
   readonly kpis = computed<DashboardKpis | null>(() => {
     const s = this.summary();
     if (!s) return null;
-    const capital  = parseDecimal(s.investments.totalCapital);
-    const profits  = parseDecimal(s.investments.totalProfits);
+    const capital = parseDecimal(s.investments.totalCapital);
+    const profits = parseDecimal(s.investments.totalProfits);
     return {
       currentCapital:   capital,
       totalProfits:     profits,
@@ -83,39 +92,56 @@ export class InvestorDashboardFacade {
     };
   });
 
-  readonly pendingDecisions = computed<SaleDecisionList[]>(() =>
-    (this.summary() as any)?.decisions_list?.filter(
-      (d: any) => d.decisionType === SaleDecisionType.PENDING
-    ) ?? []
+  // ── Computed — Listas ya mapeadas por el InvestorSummary mapper ──
+  //    El mapper convierte decisions_list → decisiondList (typo histórico)
+  //    y movements_list → movementsList / cattle_list → cattleList.
+  //    Usamos los campos camelCase del modelo tipado; no hace falta `as any`.
+
+  readonly pendingDecisions = computed<SaleDecisionSummary[]>(() =>
+    (this.summary()?.decisiondList ?? []).filter(
+      d => d.isPending
+    )
   );
 
-  readonly processedDecisions = computed<SaleDecisionList[]>(() =>
-    (this.summary() as any)?.decisions_list?.filter(
-      (d: any) => d.decisionType !== SaleDecisionType.PENDING
-    ) ?? []
+  readonly processedDecisions = computed<SaleDecisionSummary[]>(() =>
+    (this.summary()?.decisiondList ?? []).filter(
+      d => !d.isPending
+    )
   );
 
   readonly pendingCount = computed(() => this.pendingDecisions().length);
 
-  // ── Chart data (pura, sin dependencia de Chart.js) ────────────
+  readonly movements = computed<InvestmentMovement[]>(
+    () => this.summary()?.movementsList ?? []
+  );
+
+  readonly cattleList = computed<CattleOwnershipSummary[]>(
+    () => this.summary()?.cattleList ?? []
+  );
+
+  // ── Computed — Chart data (pura, sin dependencia de Chart.js) ─
 
   readonly capitalChartData = computed<CapitalChartData>(() => {
-    const movements = [...((this.summary() as any)?.movements_list ?? [])].reverse();
+    // movementsList ya viene mapeado por toInvestmentMovement (camelCase)
+    const movements = [...this.movements()].reverse();
     return {
-      labels: movements.map((m: any) =>
-        new Date(m.createdAt ?? m.created_at).toLocaleDateString('es-CO', {
-          month: 'short', day: 'numeric',
+      labels: movements.map(m =>
+        new Date(m.createdAt).toLocaleDateString('es-CO', {
+          month: 'short',
+          day:   'numeric',
         })
       ),
-      values: movements.map((m: any) => parseDecimal(m.balanceAfter ?? m.balance_after)),
+      values: movements.map(m => parseDecimal(m.balanceAfter)),
     };
   });
 
   readonly portfolioChartData = computed<PortfolioChartData>(() => {
     const s = this.summary();
     if (!s) return { labels: [], values: [], colors: [] };
+
     const pending = this.pendingDecisions()
       .reduce((acc, d) => acc + parseDecimal(d.investorAmount), 0);
+
     return {
       labels: ['Ganado activo', 'Capital líquido', 'En decisión'],
       values: [
@@ -132,23 +158,31 @@ export class InvestorDashboardFacade {
   load(): void {
     this.loading.set(true);
     this.error.set('');
-    this.investorSvc.getMySummary()
+    this.investorSvc
+      .getMySummary()
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: (res) => this.summary.set(res.data),
-        error: () => this.error.set('No se pudo cargar tu información. Intenta de nuevo.'),
+        next:  (res) => this.summary.set(res.data),
+        error: ()    => this.error.set('No se pudo cargar tu información. Intenta de nuevo.'),
       });
   }
 
   // ── Tabs ──────────────────────────────────────────────────────
 
-  setTab(tab: DashboardTab): void { this.activeTab.set(tab); }
+  setTab(tab: DashboardTab): void {
+    this.activeTab.set(tab);
+  }
 
   // ── Decisiones ────────────────────────────────────────────────
 
-  onDecide(decision: SaleDecisionList, type: SaleDecisionType): void {
+  /**
+   * Recibe un SaleDecisionSummary del template y lo convierte a
+   * SaleDecisionList mínimo necesario para el flujo de decisión.
+   */
+  onDecide(decision: SaleDecisionSummary, type: SaleDecisionType): void {
     if (type === SaleDecisionType.PARTIAL) {
-      this.pendingDecisionForPartial.set(decision);
+      // Adaptamos SaleDecisionSummary al shape que espera partialModal
+      this.pendingDecisionForPartial.set(decision as unknown as SaleDecisionList);
       this.partialModalOpen.set(true);
       return;
     }
@@ -174,11 +208,16 @@ export class InvestorDashboardFacade {
 
   private submitDecision(id: string, payload: MakeDecisionPayload): void {
     this.decisionSaving.set(true);
-    this.decisionSvc.makeDecision(id, payload)
+    this.decisionSvc
+      .makeDecision(id, payload)
       .pipe(finalize(() => this.decisionSaving.set(false)))
       .subscribe({
-        next: () => { this.notify.success('Decisión registrada'); this.load(); },
-        error: (err) => this.notify.error(err?.error?.message || 'Error al registrar la decisión'),
+        next:  () => {
+          this.notify.success('Decisión registrada');
+          this.load();
+        },
+        error: (err) =>
+          this.notify.error(err?.error?.message || 'Error al registrar la decisión'),
       });
   }
 
@@ -186,18 +225,20 @@ export class InvestorDashboardFacade {
 
   formatCOP(value: number | string): string {
     return new Intl.NumberFormat('es-CO', {
-      style: 'currency', currency: 'COP', maximumFractionDigits: 0,
+      style:                'currency',
+      currency:             'COP',
+      maximumFractionDigits: 0,
     }).format(typeof value === 'string' ? parseFloat(value) : value);
   }
 
   movementColor(type: string): 'success' | 'danger' {
-    const credits = [
+    const credits: string[] = [
       InvestmentMovementType.CONTRIBUTION,
       InvestmentMovementType.SALE_PROFIT,
       InvestmentMovementType.REINVESTMENT,
       InvestmentMovementType.SALE_REVENUE,
     ];
-    return credits.includes(type as InvestmentMovementType) ? 'success' : 'danger';
+    return credits.includes(type) ? 'success' : 'danger';
   }
 
   movementSign(type: string): '+' | '−' {
@@ -206,13 +247,17 @@ export class InvestorDashboardFacade {
 
   deadlineClass(deadline: string | null): 'urgent' | 'warning' | 'ok' | '' {
     if (!deadline) return '';
-    const days = Math.ceil((new Date(deadline).getTime() - Date.now()) / 86_400_000);
+    const days = Math.ceil(
+      (new Date(deadline).getTime() - Date.now()) / 86_400_000
+    );
     return days <= 0 ? 'urgent' : days <= 3 ? 'warning' : 'ok';
   }
 
   deadlineLabel(deadline: string | null): string {
     if (!deadline) return 'Sin vencimiento';
-    const days = Math.ceil((new Date(deadline).getTime() - Date.now()) / 86_400_000);
+    const days = Math.ceil(
+      (new Date(deadline).getTime() - Date.now()) / 86_400_000
+    );
     if (days <= 0)  return 'Vence hoy';
     if (days === 1) return 'Vence mañana';
     return `${days} días restantes`;
@@ -221,7 +266,12 @@ export class InvestorDashboardFacade {
   formatWeight(w?: string | null): string {
     if (!w) return '—';
     const n = parseFloat(w);
-    return isNaN(n) ? '—' : `${n.toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} kg`;
+    return isNaN(n)
+      ? '—'
+      : `${n.toLocaleString('es-CO', {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        })} kg`;
   }
 
   readonly parseDecimal = parseDecimal;

@@ -1,34 +1,54 @@
 // pages/investor-dashboard/investor-dashboard.component.ts
+//
+// MEJORAS PRINCIPALES:
+// 1. Los charts se construyen automáticamente al cargar los datos,
+//    sin esperar que el usuario navegue a otra tab y vuelva.
+// 2. Se usa effect() para reaccionar a cambios de datos y reconstruir
+//    los charts cuando el summary cambia.
+// 3. Se usan los tipos correctos del facade (SaleDecisionSummary en vez de SaleDecisionList).
+// 4. La tab "Ganado" muestra cattleList del summary correctamente.
 
 import {
-  Component, OnInit, AfterViewInit, OnDestroy,
-  ChangeDetectionStrategy, inject,
-  ViewChild, ElementRef
+  Component,
+  OnInit,
+  OnDestroy,
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  inject,
+  effect,
+  ViewChild,
+  ElementRef,
+  untracked,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import Chart from 'chart.js/auto';
 
-import { InvestorDashboardFacade } from '../../facades/investor-dashboard.facade';
-import { DecisionCardComponent }   from '../../components/decision-card/decision-card.component';
-import { PartialDecisionModalComponent } from '../../components/partial-decision-modal/partial-decision-modal.component';
+import { InvestorDashboardFacade, DashboardTab } from '../../facades/investor-dashboard.facade';
+import { DecisionCardComponent }                 from '../../components/decision-card/decision-card.component';
+import { PartialDecisionModalComponent }         from '../../components/partial-decision-modal/partial-decision-modal.component';
+import { LoaderComponent }                       from '../../../../shared/components/feedback/loader/loader.component';
+import { AlertComponent }                        from '../../../../shared/components/feedback/alert/alert.component';
+import { BadgeComponent }                        from '../../../../shared/components/ui/badge/badge.component';
+import { AmountDisplayComponent }               from '../../../../shared/components/data-display/amount-display/amount-display.component';
+import { NavbarComponent }                       from '../../../../shared/components/navigation/navbar/navbar.component';
 
-import { LoaderComponent }        from '../../../../shared/components/feedback/loader/loader.component';
-import { AlertComponent }         from '../../../../shared/components/feedback/alert/alert.component';
-import { BadgeComponent }         from '../../../../shared/components/ui/badge/badge.component';
-import { AmountDisplayComponent } from '../../../../shared/components/data-display/amount-display/amount-display.component';
-
-import type { SaleDecisionList } from '../../models/sale.model';
-import { SaleDecisionType } from '../../models/enums';
+import type { SaleDecisionSummary } from '../../models/sale.model';
+import { SaleDecisionType }         from '../../models/enums';
 
 @Component({
-  selector: 'app-investor-dashboard',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [InvestorDashboardFacade],
+  selector:         'app-investor-dashboard',
+  standalone:       true,
+  changeDetection:  ChangeDetectionStrategy.OnPush,
+  providers:        [InvestorDashboardFacade],
   imports: [
     CommonModule,
-    LoaderComponent, AlertComponent, BadgeComponent,
-    AmountDisplayComponent, DecisionCardComponent, PartialDecisionModalComponent,
+    LoaderComponent,
+    AlertComponent,
+    BadgeComponent,
+    DecisionCardComponent,
+    PartialDecisionModalComponent,
+    NavbarComponent,
   ],
   templateUrl: './investor-dashboard.component.html',
   styleUrl:    './investor-dashboard.component.scss',
@@ -37,6 +57,7 @@ export class InvestorDashboardComponent
   implements OnInit, AfterViewInit, OnDestroy {
 
   readonly facade = inject(InvestorDashboardFacade);
+  private  readonly cdr = inject(ChangeDetectorRef);
 
   @ViewChild('capitalCanvas')   capitalCanvas!:   ElementRef<HTMLCanvasElement>;
   @ViewChild('portfolioCanvas') portfolioCanvas!: ElementRef<HTMLCanvasElement>;
@@ -44,11 +65,51 @@ export class InvestorDashboardComponent
   private capitalChart?:   Chart;
   private portfolioChart?: Chart;
 
-  ngOnInit(): void { this.facade.load(); }
+  // Indica si el DOM del canvas ya está disponible
+  private viewReady = false;
+
+  constructor() {
+    /**
+     * Efecto reactivo: se dispara cada vez que summary() cambia.
+     * Si estamos en la tab "resumen" y el DOM está listo, reconstruye los charts.
+     * Esto garantiza que al cargar la página los charts aparezcan
+     * sin intervención manual del usuario.
+     */
+    effect(() => {
+      const summary = this.facade.summary();
+      const tab     = this.facade.activeTab();
+
+      // Leemos las señales para que el efecto sea reactivo a ellas.
+      // Usamos untracked() para los valores que solo necesitamos leer
+      // pero no queremos que disparen el efecto de nuevo.
+      if (!summary || tab !== 'resumen') return;
+
+      // Pequeño tick para que el CD haya actualizado el DOM
+      untracked(() => {
+        requestAnimationFrame(() => {
+          if (this.viewReady) {
+            this.buildCharts();
+            this.cdr.markForCheck();
+          }
+        });
+      });
+    });
+  }
+
+  // ── Lifecycle ─────────────────────────────────────────────────
+
+  ngOnInit(): void {
+    this.facade.load();
+  }
 
   ngAfterViewInit(): void {
-    // Los charts se construyen una vez que haya datos.
-    // La señal se observa desde aquí para no meter Chart.js en el facade.
+    this.viewReady = true;
+
+    // Si los datos ya cargaron antes de que AfterViewInit se ejecutara
+    // (raro pero posible), construimos los charts inmediatamente.
+    if (this.facade.summary() && this.facade.activeTab() === 'resumen') {
+      requestAnimationFrame(() => this.buildCharts());
+    }
   }
 
   ngOnDestroy(): void {
@@ -58,16 +119,17 @@ export class InvestorDashboardComponent
 
   // ── Tabs ──────────────────────────────────────────────────────
 
-  setTab(tab: 'resumen' | 'ganado' | 'movimientos' | 'decisiones'): void {
+  setTab(tab: DashboardTab): void {
     this.facade.setTab(tab);
-    if (tab === 'resumen') {
-      setTimeout(() => this.buildCharts(), 80);
+    if (tab === 'resumen' && this.viewReady) {
+      // Esperamos un frame para que Angular renderice los canvas
+      requestAnimationFrame(() => this.buildCharts());
     }
   }
 
   // ── Decisiones ────────────────────────────────────────────────
 
-  onDecide(event: { decision: SaleDecisionList; type: SaleDecisionType }): void {
+  onDecide(event: { decision: SaleDecisionSummary; type: SaleDecisionType }): void {
     this.facade.onDecide(event.decision, event.type);
   }
 
@@ -77,9 +139,8 @@ export class InvestorDashboardComponent
 
   // ── Charts ────────────────────────────────────────────────────
 
-  /** Llamado desde el template cuando los datos estén listos y el tab sea "resumen". */
   buildCharts(): void {
-    if (!this.capitalCanvas || !this.portfolioCanvas) return;
+    if (!this.capitalCanvas?.nativeElement || !this.portfolioCanvas?.nativeElement) return;
     this.buildCapitalChart();
     this.buildPortfolioChart();
   }
@@ -94,24 +155,25 @@ export class InvestorDashboardComponent
       data: {
         labels,
         datasets: [{
-          data:            values,
-          borderColor:     '#185FA5',
-          backgroundColor: 'rgba(24,95,165,0.08)',
-          borderWidth:     1.5,
-          fill:            true,
-          tension:         0.35,
-          pointRadius:     0,
+          data:             values,
+          borderColor:      '#185FA5',
+          backgroundColor:  'rgba(24,95,165,0.08)',
+          borderWidth:      1.5,
+          fill:             true,
+          tension:          0.35,
+          pointRadius:      0,
           pointHoverRadius: 4,
         }],
       },
       options: {
-        responsive: true,
+        responsive:          true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false },
+          legend:  { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx) => `$${Number(ctx.parsed?.y ?? 0).toLocaleString('es-CO')}`,
+              label: (ctx) =>
+                `$${Number(ctx.parsed?.y ?? 0).toLocaleString('es-CO')}`,
             },
           },
         },
@@ -119,7 +181,7 @@ export class InvestorDashboardComponent
           x: { ticks: { font: { size: 11 } } },
           y: {
             ticks: {
-              font: { size: 11 },
+              font:     { size: 11 },
               callback: v => `$${(+v / 1_000_000).toFixed(1)}M`,
             },
           },
@@ -131,21 +193,26 @@ export class InvestorDashboardComponent
   private buildPortfolioChart(): void {
     this.portfolioChart?.destroy();
     const { labels, values, colors } = this.facade.portfolioChartData();
+    if (!values.some(v => v > 0)) return;
 
     this.portfolioChart = new Chart(this.portfolioCanvas.nativeElement, {
       type: 'doughnut',
       data: {
         labels,
-        datasets: [{ data: values, backgroundColor: colors, borderWidth: 0 }],
+        datasets: [{
+          data:            values,
+          backgroundColor: colors,
+          borderWidth:     0,
+        }],
       },
       options: {
-        responsive: true,
+        responsive:          true,
         maintainAspectRatio: false,
-        cutout: '68%',
+        cutout:              '68%',
         plugins: {
           legend: {
             position: 'bottom',
-            labels: { font: { size: 12 }, padding: 12, boxWidth: 10 },
+            labels:   { font: { size: 12 }, padding: 12, boxWidth: 10 },
           },
           tooltip: {
             callbacks: {
