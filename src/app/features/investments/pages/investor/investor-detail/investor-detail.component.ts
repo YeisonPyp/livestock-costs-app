@@ -51,7 +51,7 @@ export class InvestorDetailComponent implements OnInit, OnDestroy {
     },
     {
       key: 'name',
-      label: 'Animal',
+      label: 'Animal (Arete)',
       sortable: true,
     },
     {

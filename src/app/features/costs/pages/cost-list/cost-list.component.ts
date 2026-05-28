@@ -22,6 +22,8 @@ import { PageHeaderComponent } from '../../../../shared/components/navigation/pa
 import { KpiCardComponent } from '../../../../shared/components/data-display/kpi-card/kpi-card.component';
 import { PaginationParams, TableColumn, TableComponent, TableConfig } from '../../../../shared/components/data-display/table/table.component';
 import { ConfirmDialogComponent } from '../../../../shared/components/feedback/confirm-dialog/confirm-dialog.component';
+import { ExportReportModalComponent } from '../../../../shared/components/overlays/export-report-modal/export-report-modal.component';
+import { ExportReportPayload, ExportReportConfig  } from '../../../../shared/components/overlays/export-report-modal/export-report-modal.types';
 
 const PAGE_SIZE = 10; // fuente única de verdad
 
@@ -38,6 +40,7 @@ const PAGE_SIZE = 10; // fuente única de verdad
     KpiCardComponent,
     TableComponent,
     SafeDatePipe,
+    ExportReportModalComponent,
   ],
   templateUrl: './cost-list.component.html',
   styleUrl: './cost-list.component.scss',
@@ -277,44 +280,20 @@ export class CostListComponent implements OnInit {
     this.onFilterChange();
   }
 
-  private downloadFile(blob: Blob, filename: string): void {
-    const url = window.URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-
-    window.URL.revokeObjectURL(url);
-  }
   // ── Export ──────────────────────────────────────────────────────────────────
-  exportExcel(): void {
-    this.costSvc.exportExcel(this.activeFilters()).subscribe((blob) => {
-      const file = new Blob([blob]);
-      const url = window.URL.createObjectURL(file);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'reporte_costos.xlsx';
-      a.click();
-      window.URL.revokeObjectURL(url);
-    });
-  }
 
-  exportPdf(): void {
-    this.costSvc.exportPdf(this.activeFilters()).subscribe((blob) => {
-      const file = new Blob([blob], { type: 'application/pdf' });
+  // ── Estado modal ───────────────────────────────────────────────────────────
+  showExport = signal(false);
 
-      const url = window.URL.createObjectURL(file);
+  readonly exportConfig: ExportReportConfig = {
+    title: 'Exportar Reporte de Costos',
+    subtitle: 'Seleccione el rango de fechas o exporte toda la información.',
+    showExcel: true,
+    showPdf: true,
+    allDataLabel: 'Traer toda la información',
+  };
 
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'reporte_costos.pdf';
-      a.click();
-
-      window.URL.revokeObjectURL(url);
-    });
-  }
-  
+  // ── Filtros actuales de la pantalla ───────────────────────────────────────
   activeFilters = computed<Partial<CostFilters>>(() => {
     const filters: Partial<CostFilters> = {};
 
@@ -325,6 +304,62 @@ export class CostListComponent implements OnInit {
 
     return filters;
   });
+
+  onExport(payload: ExportReportPayload): void {
+    const filters = this.buildExportFilters(payload);
+
+    const request$ =
+      payload.format === 'excel'
+        ? this.costSvc.exportExcel(filters)
+        : this.costSvc.exportPdf(filters);
+
+    const fileName =
+      payload.format === 'excel'
+        ? 'reporte_costos.xlsx'
+        : 'reporte_costos.pdf';
+
+    const mimeType =
+      payload.format === 'excel'
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'application/pdf';
+
+    request$.subscribe({
+      next: (blob) => this.downloadFile(blob, fileName, mimeType),
+      error: (error) => {
+        console.error('Error exportando reporte de costos', error);
+      },
+    });
+  }
+
+  private buildExportFilters(payload: ExportReportPayload): Partial<CostFilters> {
+    const filters: Partial<CostFilters> = {
+      ...this.activeFilters(),
+    };
+
+    // El rango de fechas del modal debe tener prioridad
+    delete filters.start_date;
+    delete filters.end_date;
+
+    if (!payload.allData) {
+      filters.start_date = payload.startDate!;
+      filters.end_date = payload.endDate!;
+    }
+
+    return filters;
+  }
+
+  private downloadFile(blob: Blob, fileName: string, mimeType: string): void {
+    const file = new Blob([blob], { type: mimeType });
+    const url = window.URL.createObjectURL(file);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+  }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
   catName(id: string): string {
