@@ -32,45 +32,41 @@
 @if (loadingKpis()) {
   <app-loader message="Calculando totales..." />
 } @else if (totals()) {
-  <!-- KPIs -->
-<div class="kpis-row">
-  <app-kpi-card
-    label="Ingresos"
-    [value]="totals()?.income_total ?? 0"
-    format="currency"
-    color="green"
-    icon="trending-up"
-    [loading]="loadingKpis()"
-  />
-
-  <app-kpi-card
-    label="Egresos"
-    [value]="totals()?.expense_total ?? 0"
-    format="currency"
-    color="red"
-    icon="trending-down"
-    [loading]="loadingKpis()"
-  />
-
-  <app-kpi-card
-    label="Balance"
-    [value]="totals()?.balance ?? 0"
-    format="currency"
-    color="blue"
-    icon="dollar-sign"
-    [loading]="loadingKpis()"
-  />
-
-  <app-kpi-card
-    label="Registros"
-    [value]="totals()?.count ?? 0"
-    format="number"
-    color="purple"
-    icon="file-text"
-    [loading]="loadingKpis()"
-    [decimals]="0"
-  />
-</div>
+  <div class="kpis-row">
+    <app-kpi-card
+      label="Ingresos"
+      [value]="totals()?.income_total ?? 0"
+      format="currency"
+      color="green"
+      icon="trending-up"
+      [loading]="loadingKpis()"
+    />
+    <app-kpi-card
+      label="Egresos"
+      [value]="totals()?.expense_total ?? 0"
+      format="currency"
+      color="red"
+      icon="trending-down"
+      [loading]="loadingKpis()"
+    />
+    <app-kpi-card
+      label="Balance"
+      [value]="totals()?.balance ?? 0"
+      format="currency"
+      color="blue"
+      icon="dollar-sign"
+      [loading]="loadingKpis()"
+    />
+    <app-kpi-card
+      label="Registros"
+      [value]="totals()?.count ?? 0"
+      format="number"
+      color="purple"
+      icon="file-text"
+      [loading]="loadingKpis()"
+      [decimals]="0"
+    />
+  </div>
 }
 
 <!-- ── Filters ───────────────────────────────────────────────────────────────── -->
@@ -80,19 +76,24 @@
     <!-- Búsqueda -->
     <div class="filter-search">
       <svg class="filter-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
       <input
         type="text"
         class="filter-input"
         placeholder="Buscar descripción..."
-        [value]="searchTerm"
+        [value]="searchTerm()"
         (input)="onSearchChange($any($event.target).value)"
       />
     </div>
 
     <!-- Categoría -->
-    <select class="filter-select" [(ngModel)]="categoryFilter" (change)="onFilterChange()">
+    <select
+      class="filter-select"
+      [value]="categoryFilter()"
+      (change)="onCategoryChange($any($event.target).value)"
+    >
       <option value="">Todas las categorías</option>
       @for (cat of categories(); track cat.id) {
         <option [value]="cat.id">{{ cat.name }}</option>
@@ -100,14 +101,25 @@
     </select>
 
     <!-- Rango de fechas -->
-    <input type="date" class="filter-input filter-input--date" [(ngModel)]="startDate" (change)="onFilterChange()" />
-    <input type="date" class="filter-input filter-input--date" [(ngModel)]="endDate"   (change)="onFilterChange()" />
+    <input
+      type="date"
+      class="filter-input filter-input--date"
+      [value]="startDate()"
+      (change)="onStartDateChange($any($event.target).value)"
+    />
+    <input
+      type="date"
+      class="filter-input filter-input--date"
+      [value]="endDate()"
+      (change)="onEndDateChange($any($event.target).value)"
+    />
 
     <!-- Limpiar -->
     @if (hasActiveFilters()) {
       <button class="btn btn-ghost-sm" (click)="clearFilters()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
         Limpiar
       </button>
@@ -128,145 +140,96 @@
   emptyMessage="No se encontraron costos con los filtros aplicados"
   (paginationParamsChange)="onPaginationParamsChange($event)"
   (rowClick)="viewCost($event)"
->
-</app-table>
+/>
 
-<!--
-  ┌─────────────────────────────────────────────────────────────────────────────┐
-  │  TEMPLATE DE ACCIONES                                                       │
-  │  • let-row  →  recibe el objeto Cost de esa fila                            │
-  │  • cada botón llama al método del componente con la fila completa           │
-  └─────────────────────────────────────────────────────────────────────────────┘
--->
+<!-- Acciones de fila -->
 <ng-template #costActions let-row>
-
-  <!-- Ver detalle -->
-  <button
-    class="action-btn action-btn--view"
-    title="Ver detalle"
-    (click)="openViewModal(row)"
-  >
+  <button class="action-btn action-btn--view" title="Ver detalle" (click)="openViewModal(row)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
       <circle cx="12" cy="12" r="3"/>
     </svg>
   </button>
-
-  <!-- Editar -->
-  <button
-    class="action-btn action-btn--edit"
-    title="Editar"
-    (click)="editCost(row)"
-  >
+  <button class="action-btn action-btn--edit" title="Editar" (click)="editCost(row)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
       <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
     </svg>
   </button>
-
-  <!-- Eliminar -->
-  <button
-    class="action-btn action-btn--delete"
-    title="Eliminar"
-    (click)="confirmDelete(row)"
-  >
+  <button class="action-btn action-btn--delete" title="Eliminar" (click)="confirmDelete(row)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <polyline points="3 6 5 6 21 6"/>
       <path d="M19 6l-1 14H6L5 6"/>
       <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
     </svg>
   </button>
-
 </ng-template>
 
+<!-- Modal de detalle -->
 <app-modal
-  [isOpen]="isViewModalOpen"
+  [isOpen]="isViewModalOpen()"
   title="Detalle del costo"
   size="lg"
   [showFooter]="false"
   (close)="closeViewModal()"
 >
-
-@if (selectedCost) {
-
-  <div class="cost-detail">
-
-    <div class="detail-grid">
-
-      <div class="detail-item">
-        <label>Categoría</label>
-        <span>
-          {{ selectedCost.category.code }} - {{ selectedCost.category.name }}
-        </span>
+  @if (selectedCost()) {
+    <div class="cost-detail">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <label>Categoría</label>
+          <span>{{ selectedCost()!.category.code }} - {{ selectedCost()!.category.name }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Finca</label>
+          <span>{{ selectedCost()!.farm.code }} - {{ selectedCost()!.farm.name }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Fecha</label>
+          <span>{{ selectedCost()!.date | safeDate:'date':'long' }}</span>
+        </div>
+        <div class="detail-item">
+          <label>Monto</label>
+          <span
+            class="amount"
+            [class.amount-income]="selectedCost()!.is_income"
+            [class.amount-expense]="selectedCost()!.is_expense"
+          >
+            $ {{ selectedCost()!.signed_amount | number:'1.0-2' }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <label>Metodo de pago</label>
+          <span>{{ selectedCost()!.payment_method }}</span>
+        </div>
       </div>
 
-      <div class="detail-item">
-        <label>Finca</label>
-        <span>
-          {{ selectedCost.farm.code }} - {{ selectedCost.farm.name }}
-        </span>
+      <div class="detail-block">
+        <label>Descripción</label>
+        <p>{{ selectedCost()!.description }}</p>
       </div>
 
-      <div class="detail-item">
-        <label>Fecha</label>
-        <span>
-          {{ selectedCost.date | safeDate:'date':'long' }}
-        </span>
-      </div>
+      @if (selectedCost()!.notes) {
+        <div class="detail-block">
+          <label>Notas</label>
+          <p>{{ selectedCost()!.notes }}</p>
+        </div>
+      }
 
-      <div class="detail-item">
-        <label>Monto</label>
-        <span
-          class="amount"
-          [class.amount-income]="selectedCost.is_income"
-          [class.amount-expense]="selectedCost.is_expense"
-        >
-          $ {{ selectedCost.signed_amount | number:'1.0-2' }}
-        </span>
+      <div class="detail-meta">
+        <div>
+          <label>Creado por </label>
+          <span>{{ selectedCost()!.created_by_name || '—' }}</span>
+        </div>
+        <div>
+          <label>Creado el </label>
+          <span>{{ selectedCost()!.created_at | safeDate:'datetime' }}</span>
+        </div>
+        <div>
+          <label>Actualizado </label>
+          <span>{{ selectedCost()!.updated_at | safeDate:'datetime' }}</span>
+        </div>
       </div>
-
-      <div class="detail-item">
-        <label>Metodo de pago</label>
-        <span>
-          {{ selectedCost.payment_method }}
-        </span>
-      </div>
-
     </div>
-
-    <div class="detail-block">
-      <label>Descripción</label>
-      <p>{{ selectedCost.description }}</p>
-    </div>
-
-    @if (selectedCost.notes) {
-    <div class="detail-block">
-      <label>Notas</label>
-      <p>{{ selectedCost.notes }}</p>
-    </div>
-    }
-
-    <div class="detail-meta">
-
-      <div>
-        <label>Creado por </label>
-        <span>{{ selectedCost.created_by_name || '—' }}</span>
-      </div>
-
-      <div>
-        <label>Creado el </label>
-        <span>{{ selectedCost.created_at | safeDate:'datetime' }}</span>
-      </div>
-
-      <div>
-        <label>Actualizado </label>
-        <span>{{ selectedCost.updated_at | safeDate:'datetime' }}</span>
-      </div>
-
-    </div>
-
-  </div>
-
   }
-
 </app-modal>

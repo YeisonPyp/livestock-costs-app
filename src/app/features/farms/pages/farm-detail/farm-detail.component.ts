@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -21,6 +21,9 @@ import { EmptyStateComponent } from '../../../../shared/components/feedback/empt
 import { ProgressBarComponent } from '../../../../shared/components/ui/progress-bar/progress-bar.component';
 import { BadgeComponent } from '../../../../shared/components/ui/badge/badge.component';
 import { StatsCardComponent } from '../../../../shared/components/data-display/stats-card/stats-card.component';
+import { ExportReportModalComponent } from '../../../../shared/components/overlays/export-report-modal/export-report-modal.component';
+import { ExportReportPayload, ExportReportConfig  } from '../../../../shared/components/overlays/export-report-modal/export-report-modal.types';
+
 
 @Component({
   selector: 'app-farm-detail',
@@ -36,6 +39,7 @@ import { StatsCardComponent } from '../../../../shared/components/data-display/s
     ProgressBarComponent,
     EmptyStateComponent,
     TableComponent,
+    ExportReportModalComponent,
   ],
   templateUrl: './farm-detail.component.html',
   styleUrl:    './farm-detail.component.scss',
@@ -51,6 +55,8 @@ export class FarmDetailComponent implements OnInit {
   summary   = signal<FarmSummary | null>(null);
   employees = signal<Employee[]>([]);
   loading   = signal(true);
+  startDate = '';
+  endDate   = '';
 
   private activeFilters(): Partial<CostFilters> {
     const farmId = this.farm()?.id;
@@ -182,7 +188,87 @@ export class FarmDetailComponent implements OnInit {
       });
   }
 
-    // ── Export ──────────────────────────────────────────────────────────────────
+  // ── Export ──────────────────────────────────────────────────────────────────
+
+  // ── Estado modal ───────────────────────────────────────────────────────────
+  showExport = signal(false);
+
+  readonly exportConfig: ExportReportConfig = {
+    title: 'Exportar Reporte de Costos',
+    subtitle: 'Seleccione el rango de fechas o exporte toda la información.',
+    showExcel: true,
+    showPdf: true,
+    allDataLabel: 'Traer toda la información',
+  };
+
+  activeFiltersCosts = computed<Partial<CostFilters>>(() => {
+    const filters: Partial<CostFilters> = {};
+    const farmId = this.farm()?.id;
+
+    if (farmId) filters.farm_id = farmId;
+    if (this.startDate) filters.start_date = this.startDate;
+    if (this.endDate) filters.end_date = this.endDate;
+
+    return filters;
+  });
+
+  onExport(payload: ExportReportPayload): void {
+    const filters = this.buildExportFilters(payload);
+
+    const request$ =
+      payload.format === 'excel'
+        ? this.costSvc.exportExcel(filters)
+        : this.costSvc.exportPdf(filters);
+
+    const fileName =
+      payload.format === 'excel'
+        ? 'reporte_costos.xlsx'
+        : 'reporte_costos.pdf';
+
+    const mimeType =
+      payload.format === 'excel'
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'application/pdf';
+
+    request$.subscribe({
+      next: (blob) => this.downloadFile(blob, fileName, mimeType),
+      error: (error) => {
+        console.error('Error exportando reporte de costos', error);
+      },
+    });
+  }
+
+  private buildExportFilters(payload: ExportReportPayload): Partial<CostFilters> {
+    const filters: Partial<CostFilters> = {
+      ...this.activeFilters(),
+    };
+
+    // El rango de fechas del modal debe tener prioridad
+    delete filters.start_date;
+    delete filters.end_date;
+
+    if (!payload.allData) {
+      filters.start_date = payload.startDate!;
+      filters.end_date = payload.endDate!;
+    }
+
+    return filters;
+  }
+
+  private downloadFile(blob: Blob, fileName: string, mimeType: string): void {
+    const file = new Blob([blob], { type: mimeType });
+    const url = window.URL.createObjectURL(file);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    a.remove();
+
+    window.URL.revokeObjectURL(url);
+  }
+
+
   exportExcel(): void {
     this.costSvc.exportExcel(this.activeFilters()).subscribe((blob) => {
       const file = new Blob([blob]);

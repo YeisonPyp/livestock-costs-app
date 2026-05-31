@@ -1,9 +1,10 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+
 import { CostService } from '../../services/cost.service';
 import { CategoryService } from '../../services/category.service';
 import {
@@ -12,7 +13,6 @@ import {
   CostTotals,
   CostFilters,
   CostDetail,
-  CategoryType,
 } from '../../models/cost.model';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { SafeDatePipe } from '../../../../shared/pipes/safe-date.pipe';
@@ -20,12 +20,20 @@ import { LoaderComponent } from '../../../../shared/components/feedback/loader/l
 import { ModalComponent } from '../../../../shared/components/overlays/modal/modal.component';
 import { PageHeaderComponent } from '../../../../shared/components/navigation/page-header/page-header.component';
 import { KpiCardComponent } from '../../../../shared/components/data-display/kpi-card/kpi-card.component';
-import { PaginationParams, TableColumn, TableComponent, TableConfig } from '../../../../shared/components/data-display/table/table.component';
+import {
+  PaginationParams,
+  TableColumn,
+  TableComponent,
+  TableConfig,
+} from '../../../../shared/components/data-display/table/table.component';
 import { ConfirmDialogComponent } from '../../../../shared/components/feedback/confirm-dialog/confirm-dialog.component';
 import { ExportReportModalComponent } from '../../../../shared/components/overlays/export-report-modal/export-report-modal.component';
-import { ExportReportPayload, ExportReportConfig  } from '../../../../shared/components/overlays/export-report-modal/export-report-modal.types';
+import {
+  ExportReportPayload,
+  ExportReportConfig,
+} from '../../../../shared/components/overlays/export-report-modal/export-report-modal.types';
 
-const PAGE_SIZE = 10; // fuente única de verdad
+const PAGE_SIZE = 10;
 
 @Component({
   selector: 'app-cost-list',
@@ -52,7 +60,9 @@ export class CostListComponent implements OnInit {
   private notSvc = inject(NotificationService);
   private router = inject(Router);
 
-  // ── Signals ────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // SIGNALS DE DATOS
+  // ══════════════════════════════════════════════════════════════════════════
   costs = signal<Cost[]>([]);
   categories = signal<Category[]>([]);
   totals = signal<CostTotals | null>(null);
@@ -60,33 +70,63 @@ export class CostListComponent implements OnInit {
   loading = signal(true);
   loadingKpis = signal(true);
 
-  // ── Filters ────────────────────────────────────────────────────────────────
-  private search$ = new Subject<string>();
-  searchTerm = '';
-  categoryFilter: string | '' = '';
-  startDate = '';
-  endDate = '';
-  ordering = '-date';
-  currentPage = 1;
-  isViewModalOpen = false;
-  selectedCost: CostDetail | null = null;
+  // ══════════════════════════════════════════════════════════════════════════
+  // SIGNALS DE FILTROS  ← ¡AQUÍ ESTÁ EL CAMBIO CLAVE!
+  // Antes eran propiedades planas → computed() no las detectaba
+  // Ahora son signals → computed() se recalcula automáticamente
+  // ══════════════════════════════════════════════════════════════════════════
+  searchTerm = signal('');
+  categoryFilter = signal('');
+  startDate = signal('');
+  endDate = signal('');
+  ordering = signal('-date');
+  currentPage = signal(1);
 
-  hasActiveFilters = computed(
-    () =>
-      !!(
-        this.searchTerm ||
-        this.categoryFilter ||
-        this.startDate ||
-        this.endDate
-      ),
+  // ── Debounce de búsqueda ────────────────────────────────────────────────
+  private search$ = new Subject<string>();
+
+  // ── Modal de detalle ────────────────────────────────────────────────────
+  isViewModalOpen = signal(false);
+  selectedCost = signal<CostDetail | null>(null);
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // COMPUTED: ahora SÍ se recalcula cuando cambian los signals
+  // ══════════════════════════════════════════════════════════════════════════
+
+  /** Indica si hay algún filtro activo (para mostrar botón "Limpiar") */
+  hasActiveFilters = computed(() =>
+    !!(
+      this.searchTerm() ||
+      this.categoryFilter() ||
+      this.startDate() ||
+      this.endDate()
+    ),
   );
 
-  // ── Table config ───────────────────────────────────────────────────────────
-  // pageSize centralizado: una sola constante para el componente y la tabla
+  /** Filtros activos para enviar al backend */
+  activeFilters = computed<Partial<CostFilters>>(() => {
+    const filters: Partial<CostFilters> = {};
+
+    const search = this.searchTerm();
+    const category = this.categoryFilter();
+    const start = this.startDate();
+    const end = this.endDate();
+
+    if (search) filters.search = search;
+    if (category) filters.category = category;
+    if (start) filters.start_date = start;
+    if (end) filters.end_date = end;
+
+    return filters;
+  });
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // TABLE CONFIG
+  // ══════════════════════════════════════════════════════════════════════════
   readonly PAGE_SIZE = PAGE_SIZE;
 
   tableConfig: TableConfig = {
-    searchable: false, // buscador propio arriba
+    searchable: false,
     paginated: true,
     serverPagination: true,
     pageSize: PAGE_SIZE,
@@ -95,29 +135,28 @@ export class CostListComponent implements OnInit {
   };
 
   columns: TableColumn[] = [
-    {
-      key: 'date',
-      label: 'Fecha',
-      sortable: true,
-      type: 'date'
-    },
-    {
-      key: 'category_name',
-      label: 'Categoría'
-    },
-    {
-      key: 'description',
-      label: 'Descripción'
-    },
-    {
-      key: 'signed_amount',
-      label: 'Valor',
-      type: 'currency',
-      align: 'right'
-    }
+    { key: 'date', label: 'Fecha', sortable: true, type: 'date' },
+    { key: 'category_name', label: 'Categoría' },
+    { key: 'description', label: 'Descripción' },
+    { key: 'signed_amount', label: 'Valor', type: 'currency', align: 'right' },
   ];
 
-  // ── Lifecycle ───────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // EXPORT CONFIG
+  // ══════════════════════════════════════════════════════════════════════════
+  showExport = signal(false);
+
+  readonly exportConfig: ExportReportConfig = {
+    title: 'Exportar Reporte de Costos',
+    subtitle: 'Seleccione el rango de fechas o exporte toda la información.',
+    showExcel: true,
+    showPdf: true,
+    allDataLabel: 'Traer toda la información',
+  };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // LIFECYCLE
+  // ══════════════════════════════════════════════════════════════════════════
   ngOnInit(): void {
     this.loadCategories();
     this.loadTotals();
@@ -125,15 +164,19 @@ export class CostListComponent implements OnInit {
 
     this.search$
       .pipe(debounceTime(350), distinctUntilChanged())
-      .subscribe(() => {
-        this.currentPage = 1;
+      .subscribe((term) => {
+        this.searchTerm.set(term);
+        this.currentPage.set(1);
         this.loadCosts();
+        this.loadTotals();
       });
   }
 
-  // ── Loaders ─────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // LOADERS
+  // ══════════════════════════════════════════════════════════════════════════
   private loadCategories(): void {
-    this.catSvc.getAll().subscribe({
+    this.catSvc.getMovable(true).subscribe({
       next: (r) => {
         if (r.success) this.categories.set(r.data);
       },
@@ -152,65 +195,108 @@ export class CostListComponent implements OnInit {
     });
   }
 
-  loadCosts(page = this.currentPage): void {
-  this.loading.set(true);
-  this.currentPage = page;
+  loadCosts(): void {
+    this.loading.set(true);
 
-  const filters: CostFilters = {
-    ...this.activeFilters(),
-    page,
-    page_size: PAGE_SIZE,
-    ordering: this.ordering,
-  };
+    const filters: CostFilters = {
+      ...this.activeFilters(),
+      page: this.currentPage(),
+      page_size: PAGE_SIZE,
+      ordering: this.ordering(),
+    };
 
-  this.costSvc.getAll(filters).subscribe({
-    next: (r) => {
-      if (r.success) {
-        this.costs.set(r.data);
-        this.pagination.set(r.pagination ?? null);
-      }
-      this.loading.set(false);
-    },
-    error: () => this.loading.set(false),
-  });
-}
+    this.costSvc.getAll(filters).subscribe({
+      next: (r) => {
+        if (r.success) {
+          this.costs.set(r.data);
+          this.pagination.set(r.pagination ?? null);
+        }
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
+  }
 
-  // ── Table events ────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // FILTER EVENTS  ← adaptados para signals
+  // ══════════════════════════════════════════════════════════════════════════
 
   /**
-   * Llamado por la tabla cuando cambia página, orden o búsqueda.
-   * Se mapea al formato de filtros del servicio.
+   * Búsqueda con debounce:
+   * El input dispara search$.next() → el debounce espera 350ms
+   * → actualiza searchTerm signal → carga datos
    */
+  onSearchChange(value: string): void {
+    this.search$.next(value);
+  }
+
+  /**
+   * Cambio de categoría o fechas (sin debounce, efecto inmediato)
+   */
+  onCategoryChange(value: string): void {
+    this.categoryFilter.set(value);
+    this.currentPage.set(1);
+    this.loadCosts();
+    this.loadTotals();
+  }
+
+  onStartDateChange(value: string): void {
+    this.startDate.set(value);
+    this.currentPage.set(1);
+    this.loadCosts();
+    this.loadTotals();
+  }
+
+  onEndDateChange(value: string): void {
+    this.endDate.set(value);
+    this.currentPage.set(1);
+    this.loadCosts();
+    this.loadTotals();
+  }
+
+  clearFilters(): void {
+    this.searchTerm.set('');
+    this.categoryFilter.set('');
+    this.startDate.set('');
+    this.endDate.set('');
+    this.ordering.set('-date');
+    this.currentPage.set(1);
+    this.loadCosts();
+    this.loadTotals();
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // TABLE EVENTS
+  // ══════════════════════════════════════════════════════════════════════════
   onPaginationParamsChange(params: PaginationParams): void {
-    this.currentPage = params.page ?? 1;
+    this.currentPage.set(params.page ?? 1);
 
     if (params.sort_by) {
-      this.ordering =
+      this.ordering.set(
         params.sort_direction === 'desc'
           ? `-${params.sort_by}`
-          : params.sort_by;
+          : params.sort_by,
+      );
     }
 
     if (params.search !== undefined) {
-      this.searchTerm = params.search;
+      this.searchTerm.set(params.search);
     }
 
-    this.loadCosts(this.currentPage);
+    this.loadCosts();
   }
 
-  // ── Acciones de fila ────────────────────────────────────────────────────────
-
-  /** Navegar a la pantalla de edición del costo */
+  // ══════════════════════════════════════════════════════════════════════════
+  // ROW ACTIONS
+  // ══════════════════════════════════════════════════════════════════════════
   editCost(cost: Cost): void {
     this.router.navigate(['/costs/costs/', cost.id, 'edit']);
   }
 
-  /** Ver detalle (opcional) */
   viewCost(cost: Cost): void {
     this.router.navigate(['/costs', cost.id]);
   }
 
-  /** Confirmar y eliminar */
   confirmDelete(cost: Cost): void {
     this.dialog
       .open(ConfirmDialogComponent, {
@@ -235,76 +321,34 @@ export class CostListComponent implements OnInit {
         this.loadTotals();
       },
       error: (err) => {
-        console.error('Error save costs', err);
-        this.notSvc.error(err?.error?.message || 'Error al guardar el costo');
+        console.error('Error eliminando costo', err);
+        this.notSvc.error(err?.error?.message || 'Error al eliminar el costo');
       },
     });
   }
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // VIEW MODAL
+  // ══════════════════════════════════════════════════════════════════════════
   openViewModal(cost: Cost): void {
-    this.isViewModalOpen = true;
-    this.selectedCost = null;
+    this.isViewModalOpen.set(true);
+    this.selectedCost.set(null);
 
     this.costSvc.getById(cost.id).subscribe({
       next: (r) => {
-        if (r.success) {
-          this.selectedCost = r.data;
-        }
+        if (r.success) this.selectedCost.set(r.data);
       },
     });
   }
 
   closeViewModal(): void {
-    this.isViewModalOpen = false;
-    this.selectedCost = null;
+    this.isViewModalOpen.set(false);
+    this.selectedCost.set(null);
   }
 
-  // ── Filters ─────────────────────────────────────────────────────────────────
-  onSearchChange(val: string): void {
-    this.searchTerm = val;
-    this.search$.next(val);
-  }
-
-  onFilterChange(): void {
-    this.currentPage = 1;
-    this.loadCosts();
-    this.loadTotals();
-  }
-
-  clearFilters(): void {
-    this.searchTerm = '';
-    this.categoryFilter = '';
-    this.startDate = '';
-    this.endDate = '';
-    this.ordering = '-date';
-    this.onFilterChange();
-  }
-
-  // ── Export ──────────────────────────────────────────────────────────────────
-
-  // ── Estado modal ───────────────────────────────────────────────────────────
-  showExport = signal(false);
-
-  readonly exportConfig: ExportReportConfig = {
-    title: 'Exportar Reporte de Costos',
-    subtitle: 'Seleccione el rango de fechas o exporte toda la información.',
-    showExcel: true,
-    showPdf: true,
-    allDataLabel: 'Traer toda la información',
-  };
-
-  // ── Filtros actuales de la pantalla ───────────────────────────────────────
-  activeFilters = computed<Partial<CostFilters>>(() => {
-    const filters: Partial<CostFilters> = {};
-
-    if (this.searchTerm) filters.search = this.searchTerm;
-    if (this.categoryFilter) filters.category = this.categoryFilter;
-    if (this.startDate) filters.start_date = this.startDate;
-    if (this.endDate) filters.end_date = this.endDate;
-
-    return filters;
-  });
-
+  // ══════════════════════════════════════════════════════════════════════════
+  // EXPORT
+  // ══════════════════════════════════════════════════════════════════════════
   onExport(payload: ExportReportPayload): void {
     const filters = this.buildExportFilters(payload);
 
@@ -325,21 +369,24 @@ export class CostListComponent implements OnInit {
 
     request$.subscribe({
       next: (blob) => this.downloadFile(blob, fileName, mimeType),
-      error: (error) => {
-        console.error('Error exportando reporte de costos', error);
+      error: (err) => {
+        console.error('Error exportando reporte', err);
+        this.notSvc.error('Error al exportar el reporte');
       },
     });
   }
 
   private buildExportFilters(payload: ExportReportPayload): Partial<CostFilters> {
-    const filters: Partial<CostFilters> = {
-      ...this.activeFilters(),
-    };
+    // Filtros base de la pantalla (search, category)
+    const filters: Partial<CostFilters> = {};
 
-    // El rango de fechas del modal debe tener prioridad
-    delete filters.start_date;
-    delete filters.end_date;
+    const search = this.searchTerm();
+    const category = this.categoryFilter();
 
+    if (search) filters.search = search;
+    if (category) filters.category = category;
+
+    // Fechas del modal tienen prioridad
     if (!payload.allData) {
       filters.start_date = payload.startDate!;
       filters.end_date = payload.endDate!;
@@ -361,7 +408,9 @@ export class CostListComponent implements OnInit {
     window.URL.revokeObjectURL(url);
   }
 
-  // ── Helpers ─────────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // HELPERS
+  // ══════════════════════════════════════════════════════════════════════════
   catName(id: string): string {
     return this.categories().find((x) => x.id === id)?.name ?? '—';
   }
