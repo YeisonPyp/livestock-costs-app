@@ -1,4 +1,11 @@
-import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  signal,
+  computed,
+  effect,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -94,13 +101,14 @@ export class CostListComponent implements OnInit {
   // ══════════════════════════════════════════════════════════════════════════
 
   /** Indica si hay algún filtro activo (para mostrar botón "Limpiar") */
-  hasActiveFilters = computed(() =>
-    !!(
-      this.searchTerm() ||
-      this.categoryFilter() ||
-      this.startDate() ||
-      this.endDate()
-    ),
+  hasActiveFilters = computed(
+    () =>
+      !!(
+        this.searchTerm() ||
+        this.categoryFilter() ||
+        this.startDate() ||
+        this.endDate()
+      ),
   );
 
   /** Filtros activos para enviar al backend */
@@ -176,9 +184,12 @@ export class CostListComponent implements OnInit {
   // LOADERS
   // ══════════════════════════════════════════════════════════════════════════
   private loadCategories(): void {
-    this.catSvc.getMovable(true).subscribe({
+    this.catSvc.getMovable({has_entries: true,})
+    .subscribe({
       next: (r) => {
-        if (r.success) this.categories.set(r.data);
+        if (r.success) {
+          this.categories.set(r.data);
+        }
       },
     });
   }
@@ -358,9 +369,7 @@ export class CostListComponent implements OnInit {
         : this.costSvc.exportPdf(filters);
 
     const fileName =
-      payload.format === 'excel'
-        ? 'reporte_costos.xlsx'
-        : 'reporte_costos.pdf';
+      payload.format === 'excel' ? 'reporte_costos.xlsx' : 'reporte_costos.pdf';
 
     const mimeType =
       payload.format === 'excel'
@@ -376,7 +385,9 @@ export class CostListComponent implements OnInit {
     });
   }
 
-  private buildExportFilters(payload: ExportReportPayload): Partial<CostFilters> {
+  private buildExportFilters(
+    payload: ExportReportPayload,
+  ): Partial<CostFilters> {
     // Filtros base de la pantalla (search, category)
     const filters: Partial<CostFilters> = {};
 

@@ -35,16 +35,8 @@ export class CategoryService {
   }
 
   /** Only leaf categories where costs can be recorded (is_movement=true) */
-  getMovable(hasEntries?: boolean): Observable<ApiResponse<Category[]>> {
-    let params = {};
-
-    if (hasEntries !== undefined) {
-      params = {
-        has_entries: hasEntries
-      };
-    }
-
-    return this.api.get(`${this.base}/movable/`, { params });
+  getMovable(params?: Record<string, any>): Observable<ApiResponse<Category[]>> {
+    return this.api.get(`${this.base}/movable/`, params );
   }
 
   getParents(): Observable<ApiResponse<Category[]>> {
