@@ -297,13 +297,17 @@ export function toClosureStatus(raw: any): ClosureStatus {
   };
 }
 
+
 export function toGlobalSummary(raw: any): GlobalInvestmentSummary {
   return {
-    totalInvestors: raw.total_investors,
-    totalCapital: raw.total_capital,
-    totalActiveInvestments: raw.total_active_investments,
-    totalHeads: raw.total_heads,
-    totalProfit: raw.total_profit,
+    totalInvested:        raw.total_invested ?? 0,
+    totalCurrentCapital:  raw.total_current_capital ?? 0,
+    totalProfits:         raw.total_profits ?? 0,
+    totalCosts:           raw.total_costs ?? 0,
+    activeCount:          raw.active_count ?? 0,
+    closedCount:          raw.closed_count ?? 0,
+    totalClosedCapital:   raw.total_closed_capital ?? 0,
+    avgRoi:               raw.avg_roi ?? 0,
   };
 }
 

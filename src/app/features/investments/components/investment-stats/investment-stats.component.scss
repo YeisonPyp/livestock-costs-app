@@ -1,9 +1,27 @@
-@use "../../../../styles/variables" as *;
+@use '../../../../styles/variables' as *;
+
 .kpi-section {
-  margin-bottom: $space-5;
+  margin-bottom: $space-6;
 }
+
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: $space-4;
+
+  // Si muestras 8 KPIs: 4 columnas
+  grid-template-columns: repeat(4, 1fr);
+
+  // Si muestras 4 KPIs, también funciona con repeat(4, 1fr)
+
+  @include respond-below($bp-xl) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @include respond-below($bp-lg) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include respond-below($bp-sm) {
+    grid-template-columns: 1fr;
+  }
 }

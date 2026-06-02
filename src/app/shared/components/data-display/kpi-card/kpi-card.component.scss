@@ -3,11 +3,15 @@
 
 $kpi-colors: (
   'blue':   ($primary,       $primary-muted),
-  'green':  (#16a34a,        rgba(#16a34a,.08)),
+  'green':  (#16a34a,        rgba(#16a34a, .08)),
   'yellow': ($warning-hover, $warning-muted),
   'red':    ($danger-hover,  $danger-muted),
-  'purple': (#9333ea,        rgba(#9333ea,.08)),
+  'purple': (#9333ea,        rgba(#9333ea, .08)),
 );
+
+// ═════════════════════════════════════════════════════════════════════════════
+// BASE
+// ═════════════════════════════════════════════════════════════════════════════
 
 .kpi-card {
   background: $white;
@@ -20,8 +24,24 @@ $kpi-colors: (
   gap: $space-3;
   @include transition(box-shadow, transform);
 
-  &:hover { box-shadow: $shadow-md; transform: translateY(-1px); }
+  &:hover {
+    box-shadow: $shadow-md;
+    transform: translateY(-1px);
+  }
+
+  &--loading {
+    pointer-events: none;
+
+    &:hover {
+      box-shadow: $shadow-sm;
+      transform: none;
+    }
+  }
 }
+
+// ═════════════════════════════════════════════════════════════════════════════
+// HEADER
+// ═════════════════════════════════════════════════════════════════════════════
 
 .kpi-header {
   display: flex;
@@ -38,21 +58,40 @@ $kpi-colors: (
 }
 
 .kpi-icon {
-  width: 36px; height: 36px;
+  width: 36px;
+  height: 36px;
   @include flex-center;
   border-radius: $border-radius;
-  svg, mat-icon { width: 18px; height: 18px; }
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
 }
+
+// ═════════════════════════════════════════════════════════════════════════════
+// COLOR VARIANTS
+// ═════════════════════════════════════════════════════════════════════════════
 
 @each $name, $pair in $kpi-colors {
   $color: list.nth($pair, 1);
   $bg:    list.nth($pair, 2);
 
   .kpi-card.color-#{$name} {
-    .kpi-icon { background: $bg; color: $color; }
-    .kpi-value { color: $slate-900; }
+    .kpi-icon {
+      background: $bg;
+      color: $color;
+    }
+
+    .kpi-value {
+      color: $slate-900;
+    }
   }
 }
+
+// ═════════════════════════════════════════════════════════════════════════════
+// VALUE
+// ═════════════════════════════════════════════════════════════════════════════
 
 .kpi-value {
   margin: 0;
@@ -63,6 +102,10 @@ $kpi-colors: (
   line-height: 1;
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// TREND
+// ═════════════════════════════════════════════════════════════════════════════
+
 .kpi-trend {
   display: flex;
   align-items: center;
@@ -70,7 +113,11 @@ $kpi-colors: (
   font-size: $font-xs;
   font-weight: $weight-semibold;
 
-  svg { width: 14px; height: 14px; flex-shrink: 0; }
+  svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
 
   &.trend-up   { color: $success; }
   &.trend-down { color: $danger;  }
@@ -80,4 +127,60 @@ $kpi-colors: (
   color: $slate-400;
   font-weight: $weight-normal;
   margin-left: 2px;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// SKELETON
+// ═════════════════════════════════════════════════════════════════════════════
+
+.kpi-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+
+  .kpi-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.skeleton-label {
+  width: 90px;
+  height: 12px;
+  border-radius: 4px;
+  background: $slate-100;
+  animation: kpi-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: $border-radius;
+  background: $slate-100;
+  animation: kpi-pulse 1.5s ease-in-out infinite;
+  animation-delay: 0.05s;
+}
+
+.skeleton-value {
+  width: 140px;
+  height: 28px;
+  border-radius: 6px;
+  background: $slate-100;
+  animation: kpi-pulse 1.5s ease-in-out infinite;
+  animation-delay: 0.1s;
+}
+
+.skeleton-trend {
+  width: 100px;
+  height: 14px;
+  border-radius: 4px;
+  background: $slate-100;
+  animation: kpi-pulse 1.5s ease-in-out infinite;
+  animation-delay: 0.15s;
+}
+
+@keyframes kpi-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
 }

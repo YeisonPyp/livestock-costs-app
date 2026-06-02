@@ -1,55 +1,102 @@
-<div class="kpi-card" [class]="'color-' + color">
+<div class="kpi-card" [class]="'color-' + color" [class.kpi-card--loading]="loading">
 
-  <div class="kpi-header">
+  @if (loading) {
+    <!-- ── Skeleton ── -->
+    <div class="kpi-skeleton">
+      <div class="kpi-header">
+        <div class="skeleton-label"></div>
+        <div class="skeleton-icon"></div>
+      </div>
+      <div class="skeleton-value"></div>
+      <div class="skeleton-trend"></div>
+    </div>
+  } @else {
+    <!-- ── Header: label + icon ── -->
+    <div class="kpi-header">
+      <span class="kpi-label">{{ label }}</span>
 
-    <span class="kpi-label">
-      {{ label }}
-    </span>
-
-    <div class="kpi-icon">
-        @if (iconPath) {
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path [attr.d]="iconPath"/>
+      <div class="kpi-icon">
+        @if (iconElements) {
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            @for (el of iconElements; track $index) {
+              @switch (el.type) {
+                @case ('path') {
+                  <path [attr.d]="el.attrs['d']" />
+                }
+                @case ('circle') {
+                  <circle
+                    [attr.cx]="el.attrs['cx']"
+                    [attr.cy]="el.attrs['cy']"
+                    [attr.r]="el.attrs['r']"
+                  />
+                }
+                @case ('line') {
+                  <line
+                    [attr.x1]="el.attrs['x1']"
+                    [attr.y1]="el.attrs['y1']"
+                    [attr.x2]="el.attrs['x2']"
+                    [attr.y2]="el.attrs['y2']"
+                  />
+                }
+                @case ('polyline') {
+                  <polyline [attr.points]="el.attrs['points']" />
+                }
+                @case ('rect') {
+                  <rect
+                    [attr.x]="el.attrs['x']"
+                    [attr.y]="el.attrs['y']"
+                    [attr.width]="el.attrs['width']"
+                    [attr.height]="el.attrs['height']"
+                    [attr.rx]="el.attrs['rx']"
+                  />
+                }
+                @case ('polygon') {
+                  <polygon [attr.points]="el.attrs['points']" />
+                }
+              }
+            }
           </svg>
         } @else {
-          <ng-content select="[icon]"></ng-content>
+          <!-- Fallback: ícono proyectado desde el padre -->
+          <ng-content select="[icon]" />
         }
       </div>
-
-  </div>
-
-  <p class="kpi-value">
-    {{ formattedValue }}
-  </p>
-
-  @if (trend !== undefined) {
-
-    <div class="kpi-trend" [class]="trend >= 0 ? 'trend-up' : 'trend-down'">
-
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-
-        @if (trend >= 0) {
-          <polyline points="18 15 12 9 6 15"/>
-        } @else {
-          <polyline points="6 9 12 15 18 9"/>
-        }
-
-      </svg>
-
-      <span>
-        {{ trendLabel ?? (trend >= 0 ? '+' : '') + trend + '%' }}
-      </span>
-
-      @if (trendDescription) {
-        <span class="trend-description">
-          {{ trendDescription }}
-        </span>
-      }
-
     </div>
 
-  }
+    <!-- ── Value ── -->
+    <p class="kpi-value">{{ formattedValue }}</p>
 
+    <!-- ── Trend (opcional) ── -->
+    @if (trend !== undefined) {
+      <div class="kpi-trend" [class]="trend >= 0 ? 'trend-up' : 'trend-down'">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          @if (trend >= 0) {
+            <polyline points="18 15 12 9 6 15" />
+          } @else {
+            <polyline points="6 9 12 15 18 9" />
+          }
+        </svg>
+
+        <span>{{ trendLabel ?? (trend >= 0 ? '+' : '') + trend + '%' }}</span>
+
+        @if (trendDescription) {
+          <span class="trend-description">{{ trendDescription }}</span>
+        }
+      </div>
+    }
+  }
 </div>

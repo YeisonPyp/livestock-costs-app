@@ -98,13 +98,15 @@ export interface ClosureStatus {
 
 // ── Global summary ─────────────────────────────────────────────────
 export interface GlobalInvestmentSummary {
-  totalInvestors: number;
-  totalCapital: string;
-  totalActiveInvestments: number;
-  totalHeads: number;
-  totalProfit: string;
+  totalInvested: number;
+  totalCurrentCapital: number;
+  totalProfits: number;
+  totalCosts: number;
+  activeCount: number;
+  closedCount: number;
+  totalClosedCapital: number;
+  avgRoi: number;
 }
-
 // ── Payloads ───────────────────────────────────────────────────────
 export interface CreateInvestmentPayload {
   investorId: string;
