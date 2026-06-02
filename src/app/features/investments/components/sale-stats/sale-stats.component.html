@@ -1,73 +1,49 @@
-<div class="kpi-grid">
-  <app-kpi-card
-    label="Total Ventas"
-    [value]="stats.total.toString()"
-    color="blue"
-    [decimals]="0"
-  >
-    <svg
-      icon
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-    >
-      <path d="M12 2L2 7l10 5 10-5-10-5z" />
-      <path d="M2 17l10 5 10-5" />
-      <path d="M2 12l10 5 10-5" />
-    </svg>
-  </app-kpi-card>
+<section class="kpi-section">
+  <div class="kpi-grid">
 
-  <app-kpi-card
-    label="Pendientes"
-    [value]="stats.pending.toString()"
-    [color]="stats.pending > 0 ? 'red' : 'green'"
-    [decimals]="0"
-  >
-    <svg
-      icon
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  </app-kpi-card>
+    <!-- Total Ventas -->
+    <app-kpi-card
+      label="Total Ventas"
+      [value]="stats.total"
+      format="number"
+      [decimals]="0"
+      [loading]="stats.isLoading"
+      color="blue"
+      icon="package"
+    />
 
-  <app-kpi-card
-    label="Monto Neto Total"
-    [value]="fmt(stats.totalNet)"
-    color="green"
-    [decimals]="2"
-  >
-    <svg
-      icon
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-    >
-      <line x1="12" y1="1" x2="12" y2="23" />
-      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-    </svg>
-  </app-kpi-card>
+    <!-- Pendientes -->
+    <app-kpi-card
+      label="Pendientes"
+      [value]="stats.pending"
+      format="number"
+      [decimals]="0"
+      [loading]="stats.isLoading"
+      [color]="stats.pending > 0 ? 'yellow' : 'green'"
+      icon="clock"
+    />
 
-  <app-kpi-card
-    label="Cabezas Vendidas"
-    [value]="stats.totalHeads.toString()"
-    color="yellow"
-    [decimals]="0"
-  >
-    <svg
-      icon
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-    >
-      <circle cx="12" cy="12" r="10" />
-    </svg>
-  </app-kpi-card>
-</div>
+    <!-- Total Cabezas -->
+    <app-kpi-card
+      label="Total Cabezas"
+      [value]="stats.totalHeads"
+      format="number"
+      [decimals]="0"
+      [loading]="stats.isLoading"
+      color="purple"
+      icon="layers"
+    />
+
+    <!-- Monto Neto Total -->
+    <app-kpi-card
+      label="Monto Neto Total"
+      [value]="stats.totalNet"
+      format="currency"
+      [decimals]="0"
+      [loading]="stats.isLoading"
+      color="green"
+      icon="dollar-sign"
+    />
+
+  </div>
+</section>

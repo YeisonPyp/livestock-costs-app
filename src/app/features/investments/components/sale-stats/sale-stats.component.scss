@@ -1,7 +1,19 @@
-@use "../../../../styles/variables" as *;
+@use '../../../../styles/variables' as *;
+
+.kpi-section {
+  margin-bottom: $space-6;
+}
+
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: $space-4;
-  margin-bottom: $space-5;
+
+  @include respond-below($bp-lg) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include respond-below($bp-sm) {
+    grid-template-columns: 1fr;
+  }
 }

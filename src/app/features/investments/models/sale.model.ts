@@ -99,11 +99,15 @@ export type SaleDecisionDetail = SaleDecisionList;
 // ── Payloads ───────────────────────────────────────────────────────
 export interface CreateSaleEventPayload {
   saleDate: string;
-  items: SaleEventItemInput[];
-  saleCosts?: number;
+  description: string;
   buyerId?: string | null;
-  description?: string;
-  evidenceFile?: File;
+  saleCosts?: number;
+  notes?: string;
+  items: {
+    animalId: string;
+    weight: number;
+    pricePerKg: number;
+  }[];
 }
 
 export interface GenerateDecisionsPayload {

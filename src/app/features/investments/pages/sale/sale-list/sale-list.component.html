@@ -1,50 +1,130 @@
-<!-- sale-list.component.html -->
+<!-- ── Page Header ──────────────────────────────────────────────────────── -->
+<app-page-header
+  title="Ventas de Ganado"
+  subtitle="Eventos de venta y decisiones de inversionistas"
+>
+  <div class="header-actions">
+    <button class="btn btn-ghost" (click)="showExportModal = true">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        class="btn-icon"
+      >
+        <path
+          d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"
+        />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+        <polyline points="10 9 9 9 8 9" />
+      </svg>
+      Reportes
+    </button>
 
-<app-page-header title="Ventas de Ganado" subtitle="Eventos de venta y decisiones de inversionistas">
-  <button class="btn btn-primary" (click)="facade.openDrawer()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-    Nueva Venta
-  </button>
+    <button class="btn btn-primary" (click)="facade.openDrawer()">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        class="btn-icon"
+      >
+        <line x1="12" y1="5" x2="12" y2="19" />
+        <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+      Nueva Venta
+    </button>
+  </div>
 </app-page-header>
 
-<!-- KPIs -->
+<!-- ── Export Modal ──────────────────────────────────────────────────────── -->
+<app-export-report-modal
+  [isOpen]="showExportModal"
+  [config]="exportConfig"
+  (exportRequest)="onExport($event)"
+  (closed)="showExportModal = false"
+/>
+
+<!-- ── KPIs ──────────────────────────────────────────────────────────────── -->
 <app-sale-stats [stats]="facade.listStats()" />
 
-<!-- Drawer de creación -->
+<!-- ── Drawer de creación ───────────────────────────────────────────────── -->
 @if (facade.showDrawer()) {
   <app-sale-create-drawer
     (saved)="facade.onSaleSaved()"
-    (cancel)="facade.closeDrawer()" />
+    (cancel)="facade.closeDrawer()"
+  />
 }
 
-<!-- Filtros -->
+<!-- ── Filtros ───────────────────────────────────────────────────────────── -->
 <div class="filters-card">
   <div class="filters-row">
-    <div class="filter-item">
-      <label class="filter-label">Estado</label>
-      <select class="filter-select"
-        [ngModel]="facade.filterStatus()"
-        (ngModelChange)="facade.applyFilter($event)">
-        <option value="">Todas</option>
-        <option value="false">Pendientes</option>
-        <option value="true">Finalizadas</option>
-      </select>
+    <!-- Búsqueda -->
+    <div class="filter-search">
+      <svg
+        class="filter-search__icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      <input
+        type="text"
+        class="filter-input"
+        placeholder="Buscar descripción, comprador..."
+        [value]="facade.searchTerm()"
+        (input)="onSearchChange($any($event.target).value)"
+      />
     </div>
+
+    <!-- Estado -->
+    <select
+      class="filter-select"
+      [value]="facade.filterStatus()"
+      (change)="onStatusFilterChange($any($event.target).value)"
+    >
+      <option value="">Todas</option>
+      <option value="false">Pendientes</option>
+      <option value="true">Finalizadas</option>
+    </select>
+
+    <!-- Limpiar -->
+    @if (facade.hasActiveFilters()) {
+      <button class="btn btn-ghost-sm" (click)="clearFilters()">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          class="btn-icon"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+        Limpiar
+      </button>
+    }
   </div>
 </div>
 
-<!-- Contenido -->
+<!-- ── Tabla ─────────────────────────────────────────────────────────────── -->
 @if (facade.listLoading()) {
   <app-loader [overlay]="false" type="spinner" />
-}
-@else if (facade.listItems().length === 0) {
+} @else if (facade.listItems().length === 0) {
   <app-empty-state
     title="Sin ventas registradas"
-    message="Registra el primer evento de venta." />
-}
-@else {
+    [message]="
+      facade.hasActiveFilters()
+        ? 'No se encontraron ventas con los filtros aplicados.'
+        : 'Registra el primer evento de venta.'
+    "
+  />
+} @else {
   <div class="table-card">
     <table class="data-table">
       <thead>
@@ -63,23 +143,37 @@
       </thead>
       <tbody>
         @for (sale of facade.listItems(); track sale.id) {
-          <tr>
+          <tr
+            class="table-row"
+            (click)="facade.navigateToDetail(sale.id)"
+          >
             <td class="date-cell">{{ sale.saleDate }}</td>
             <td class="desc-cell">{{ sale.description }}</td>
             <td>{{ sale.buyerName || '—' }}</td>
             <td class="text-center">{{ sale.totalHeads }}</td>
-            <td class="text-center">{{ sale.totalWeight }}</td>
-            <td class="text-center">{{ facade.formatCurrency(facade.parseDecimal(sale.pricePerKg)) }}</td>
+            <td class="text-center">
+              {{ facade.formatWeight(sale.totalWeight) }}
+            </td>
+            <td class="text-center">
+              {{
+                facade.formatCurrency(facade.parseDecimal(sale.pricePerKg))
+              }}
+            </td>
             <td class="text-right">
               <app-amount-display
                 [amount]="facade.parseDecimal(sale.netAmount)"
-                type="income" size="sm" />
+                type="income"
+                size="sm"
+              />
             </td>
             <td class="text-center">
               @if (!sale.isFinalized) {
                 <app-badge
-                  [color]="(sale.pendingDecisionsCount) > 0 ? 'warning' : 'success'"
-                  size="sm">
+                  [color]="
+                    sale.pendingDecisionsCount > 0 ? 'warning' : 'success'
+                  "
+                  size="sm"
+                >
                   {{ sale.pendingDecisionsCount }} pend.
                 </app-badge>
               } @else {
@@ -87,13 +181,29 @@
               }
             </td>
             <td class="text-center">
-              <app-badge [color]="sale.isFinalized ? 'success' : 'warning'">
+              <app-badge
+                [color]="sale.isFinalized ? 'success' : 'warning'"
+                size="sm"
+              >
                 {{ sale.isFinalized ? 'Finalizada' : 'Pendiente' }}
               </app-badge>
             </td>
-            <td>
-              <a [routerLink]="[sale.id]" class="btn-link">
-                Ver <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;vertical-align:middle"><polyline points="9 18 15 12 9 6"/></svg>
+            <td class="text-right">
+              <a
+                [routerLink]="[sale.id]"
+                class="btn-link"
+                (click)="$event.stopPropagation()"
+              >
+                Ver
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  class="btn-link__icon"
+                >
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
               </a>
             </td>
           </tr>
@@ -102,18 +212,44 @@
     </table>
   </div>
 
-  @if (facade.totalPages() > 1) {
+  <!-- Paginación -->
+  @if (facade.showPagination()) {
     <div class="pagination">
-      <button class="btn btn-sm btn-outline"
-        [disabled]="facade.currentPage() === 1"
-        (click)="facade.goToPage(facade.currentPage() - 1)">
-        ← Anterior
+      <button
+        class="pagination__btn"
+        [disabled]="!facade.canGoPrevious()"
+        (click)="facade.previousPage()"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        Anterior
       </button>
-      <span class="page-info">{{ facade.currentPage() }} / {{ facade.totalPages() }}</span>
-      <button class="btn btn-sm btn-outline"
-        [disabled]="facade.currentPage() === facade.totalPages()"
-        (click)="facade.goToPage(facade.currentPage() + 1)">
-        Siguiente →
+
+      <span class="pagination__info">
+        Página {{ facade.pagination().currentPage }} de
+        {{ facade.pagination().totalPages }}
+      </span>
+
+      <button
+        class="pagination__btn"
+        [disabled]="!facade.canGoNext()"
+        (click)="facade.nextPage()"
+      >
+        Siguiente
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
       </button>
     </div>
   }

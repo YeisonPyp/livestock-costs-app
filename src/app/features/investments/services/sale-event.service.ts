@@ -47,7 +47,12 @@ export class SaleEventService {
   // ── Fase 1: Crear ─────────────────────────────────────────────────
 
   create(payload: CreateSaleEventPayload): Observable<ApiResponse<SaleEventDetail>> {
-    return this.api.post<any>(ENDPOINTS.SALE_EVENTS, this.buildCreateFormData(payload)).pipe(
+    const body = this.buildCreateBody(payload);
+  
+  // ← Temporal: verificar el body
+  console.log('📤 Create sale body:', JSON.stringify(body, null, 2));
+
+    return this.api.post<any>(ENDPOINTS.SALE_EVENTS, body).pipe(
       map(res => ({ ...res, data: toSaleEventDetail(res.data) }))
     );
   }
@@ -121,20 +126,64 @@ export class SaleEventService {
     };
   }
 
-  private buildCreateFormData(payload: CreateSaleEventPayload): FormData {
-    const fd = new FormData();
-    fd.append('sale_date', payload.saleDate);
-    fd.append('items', JSON.stringify(
-      payload.items.map(i => ({
+  // sale-event.service.ts
+
+  private buildCreateBody(payload: CreateSaleEventPayload): Record<string, any> {
+    const body: Record<string, any> = {
+      // ✅ Campos requeridos
+      sale_date: payload.saleDate,
+      items: payload.items.map(item => ({
+        animal_id: item.animalId,
+        weight: item.weight,
+        price_per_kg: item.pricePerKg,
+      })),
+    };
+
+    // ✅ Campos opcionales — solo si tienen valor
+    if (payload.description) {
+      body['description'] = payload.description;
+    }
+
+    if (payload.saleCosts != null && payload.saleCosts > 0) {
+      body['sale_costs'] = payload.saleCosts;
+    }
+
+    if (payload.buyerId) {
+      body['buyer_id'] = payload.buyerId;
+    }
+
+    return body;
+  }
+
+private buildCreateFormData(payload: CreateSaleEventPayload): FormData {
+  const fd = new FormData();
+
+  // Campos requeridos
+  fd.append('sale_date', payload.saleDate);
+  fd.append(
+    'items',
+    JSON.stringify(
+      payload.items.map((i) => ({
         animal_id: i.animalId,
         weight: i.weight,
         price_per_kg: i.pricePerKg,
-      }))
-    ));
-    if (payload.saleCosts != null) fd.append('sale_costs', String(payload.saleCosts));
-    if (payload.buyerId)           fd.append('buyer_id', payload.buyerId);
-    if (payload.description)       fd.append('description', payload.description);
-    if (payload.evidenceFile)      fd.append('evidence_file', payload.evidenceFile);
-    return fd;
+      })),
+    ),
+  );
+
+  // Campos opcionales — solo si tienen valor
+  if (payload.description) {
+    fd.append('description', payload.description);
   }
+
+  if (payload.saleCosts != null && payload.saleCosts > 0) {
+    fd.append('sale_costs', String(payload.saleCosts));
+  }
+
+  if (payload.buyerId) {
+    fd.append('buyer_id', payload.buyerId);
+  }
+
+  return fd;
+}
 }

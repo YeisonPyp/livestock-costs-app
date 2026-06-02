@@ -124,8 +124,8 @@
 
                 <td>
                   <div class="investor-cell">
-                    <span class="investor-code">{{ inv.investorCode ?? '—' }}</span>
-                    <span class="investor-name">{{ inv.investorName ?? '—' }}</span>
+                    <span class="investor-code">{{ inv.investorCode }}</span>
+                    <span class="investor-name">{{ inv.investorName }}</span>
                   </div>
                 </td>
 
@@ -155,13 +155,13 @@
                 </td>
 
                 <td class="text-center">
-                  <span class="roi-badge" [class]="facade.getRoiClass(inv.roi ?? '0')">
-                    {{ facade.formatRoi(inv.roi ?? '0') }}
+                  <span class="roi-badge" [class]="facade.getRoiClass(inv.roi)">
+                    {{ facade.formatRoi(inv.roi) }}
                   </span>
                 </td>
 
                 <td class="text-center">
-                  <span class="cattle-badge">{{ inv.cattleCount ?? 0 }}</span>
+                  <span class="cattle-badge">{{ inv.cattleCount }}</span>
                 </td>
 
                 <td class="text-center">
@@ -174,7 +174,7 @@
 
                 <td class="text-center">
                   <a [routerLink]="[inv.id]" class="btn-link"
-                    [attr.aria-label]="'Ver inversión ' + (inv.investorCode ?? '')">
+                    [attr.aria-label]="'Ver inversión ' + (inv.investorCode)">
                     Ver →
                   </a>
                 </td>
