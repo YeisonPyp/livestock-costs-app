@@ -80,6 +80,27 @@ export class WeightBulkImportComponent implements OnInit {
 
   isSelectionMode = computed(() => this.mode() === 'selection');
 
+  // Agrega estos computed al componente
+
+  resultErrors = computed(() => this.result()?.errors ?? []);
+
+  hasAnimalsToSelect = computed(() => 
+    (this.result()?.animals?.length ?? 0) > 0
+  );
+
+  // Muestra resultado cuando hay resultado y NO hay paso de selección activo
+  showResult = computed(() => 
+    this.result() !== null && !this.showSelectionStep()
+  );
+
+  // En selection mode, muestra errores si hay resultado pero no animales
+  showErrorsInSelectionMode = computed(() =>
+    this.isSelectionMode() && 
+    this.result() !== null && 
+    !this.showSelectionStep() &&
+    this.hasErrors()
+  );
+
   // ── Lifecycle ───────────────────────────────────────────────────────────────
   ngOnInit(): void {
     console.log('WeightBulkImport initialized with mode:', this.mode());
@@ -139,7 +160,6 @@ export class WeightBulkImportComponent implements OnInit {
       this.snack.open('Debes seleccionar un archivo', 'Cerrar', { duration: 3000 });
       return;
     }
-
     if (!this.pricePerKg() || this.pricePerKg()! <= 0) {
       this.snack.open('El precio por kg debe ser mayor a cero', 'Cerrar', { duration: 3000 });
       return;
@@ -150,41 +170,45 @@ export class WeightBulkImportComponent implements OnInit {
     this.showSelectionStep.set(false);
     this.selectedAnimalIds.set(new Set());
 
-    // Determinar si necesitamos los animales
-    const needAnimals = this.isSelectionMode();
-    console.log('Submitting with mode:', this.mode(), 'needAnimals:', needAnimals);
-
-    this.svc.bulkWeightFile(this.file()!, this.pricePerKg()!, needAnimals).subscribe({
+    this.svc.bulkWeightFile(this.file()!, this.pricePerKg()!, this.isSelectionMode()).subscribe({
       next: r => {
-        console.log('Response received:', r);
-        this.uploading.set(false);
-        this.result.set(r.data);
+        const data        = r.data;
+        const recorded    = data?.recorded   ?? 0;
+        const errors      = data?.errors     ?? [];
+        const animals     = data?.animals    ?? [];
 
-        if (r.data.recorded && r.data.recorded > 0) {
+        this.uploading.set(false);
+        this.result.set(data);
+
+        // Notificar éxito si hubo registros
+        if (recorded > 0) {
           this.snack.open(
-            `✅ ${r.data.recorded} pesajes registrados`,
+            `✅ ${recorded} pesajes registrados`,
             'Cerrar',
             { duration: 5000, panelClass: 'snack-success' }
           );
-          this.importSuccess.emit(r.data.recorded);
+          this.importSuccess.emit(recorded);
+        }
 
-          // Si es modo selección y hay animales, mostrar paso de selección
-          if (this.isSelectionMode() && r.data.animals && r.data.animals.length > 0) {
-            console.log('Showing selection step with animals:', r.data.animals);
-            this.showSelectionStep.set(true);
-            // Seleccionar todos por defecto
-            this.selectAll();
-          }
-        } else if (r.data.errors?.length > 0) {
+        // Notificar errores siempre (independiente del modo)
+        if (errors.length > 0) {
           this.snack.open(
-            '⚠️ No se registraron pesajes. Revise los errores.',
+            recorded > 0
+              ? `⚠️ ${recorded} pesajes registrados, pero ${errors.length} con errores.`
+              : `⚠️ No se registraron pesajes. ${errors.length} errores encontrados.`,
             'Cerrar',
-            { duration: 5000, panelClass: 'snack-warning' }
+            { duration: 6000, panelClass: 'snack-warning' }
           );
         }
+
+        // Mostrar selección SOLO si hay animales
+        if (this.isSelectionMode() && animals.length > 0) {
+          this.showSelectionStep.set(true);
+          this.selectAll();
+        }
+        // Si selection mode pero sin animales → showResult() mostrará los errores
       },
       error: e => {
-        console.error('Error:', e);
         this.uploading.set(false);
         this.snack.open(
           e?.error?.message || 'Error al procesar archivo',
