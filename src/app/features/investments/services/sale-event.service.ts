@@ -48,10 +48,6 @@ export class SaleEventService {
 
   create(payload: CreateSaleEventPayload): Observable<ApiResponse<SaleEventDetail>> {
     const body = this.buildCreateBody(payload);
-  
-  // ← Temporal: verificar el body
-  console.log('📤 Create sale body:', JSON.stringify(body, null, 2));
-
     return this.api.post<any>(ENDPOINTS.SALE_EVENTS, body).pipe(
       map(res => ({ ...res, data: toSaleEventDetail(res.data) }))
     );

@@ -328,8 +328,7 @@ submitCreate(payload: CreateSaleEventPayload, onSuccess: () => void): void {
     },
     error: (err) => {
       // Este error solo se alcanza si falla el PASO 1 (crear venta)
-      this.createError.set(
-        err?.error?.message || 'Error al registrar la venta.'
+      this.createError.set(err?.error?.errors || 'Error al registrar la venta.'
       );
     },
   });
