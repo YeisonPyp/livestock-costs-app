@@ -24,11 +24,6 @@
   <!-- ── Body ───────────────────────────────────────────────────────────── -->
   <div class="drawer-body">
 
-    <!-- Error global -->
-    @if (facade.createError()) {
-      <app-alert type="danger" [message]="facade.createError()" />
-    }
-
     <!-- ══════════════════════════════════════════════════════════════════ -->
     <!-- ANIMALES                                                          -->
     <!-- ══════════════════════════════════════════════════════════════════ -->
@@ -346,11 +341,16 @@
         </div>
       }
     </section>
+        <!-- Error global -->
+    @if (facade.createError()) {
+      <app-alert type="danger" [message]="facade.createError()" />
+    }
 
   </div><!-- /drawer-body -->
 
   <!-- ── Footer ─────────────────────────────────────────────────────────── -->
   <div class="drawer-footer">
+    
     <button type="button" class="btn btn-ghost" (click)="onCancel()">
       Cancelar
     </button>
