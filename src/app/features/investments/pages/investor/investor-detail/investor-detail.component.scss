@@ -1,5 +1,6 @@
 // investor-detail.component.scss
 @use '../../../../../styles/variables' as *;
+@use 'sass:color';
 
 .profile-card {
   display: flex;
@@ -174,4 +175,216 @@
   &.btn-sm { padding: $space-1 $space-3; font-size: $font-xs; }
 
   .btn-icon { width: 14px; height: 14px; }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PROFILE CARD
+// ══════════════════════════════════════════════════════════════════════════════
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: $space-5;
+  padding: $space-5 $space-6;
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+  margin-bottom: $space-6;
+
+  @media (max-width: $bp-sm) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-3;
+  }
+}
+
+.profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-code {
+  display: block;
+  font-size: $font-xs;
+  font-weight: $weight-semibold;
+  color: $primary;
+  margin-bottom: $space-1;
+  letter-spacing: 0.05em;
+}
+
+.profile-name {
+  margin: 0 0 $space-2;
+  font-size: 1.25rem;
+  font-weight: $weight-bold;
+  color: $slate-900;
+  line-height: 1.2;
+}
+
+.profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-3;
+  font-size: $font-xs;
+  color: $slate-500;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// KPIs
+// ══════════════════════════════════════════════════════════════════════════════
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $space-4;
+  margin-bottom: $space-6;
+
+  @media (max-width: $bp-lg) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: $bp-sm) { grid-template-columns: 1fr; }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════════════════════════════════════════
+
+.tabs-container {
+  background: $white;
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+}
+
+.tab-content {
+  padding: $space-5;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RESUMEN (summary-grid)
+// ══════════════════════════════════════════════════════════════════════════════
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $space-5;
+
+  @media (max-width: $bp-lg) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: $bp-sm) { grid-template-columns: 1fr; }
+}
+
+.summary-block {
+  h4 {
+    font-size: $font-sm;
+    font-weight: $weight-bold;
+    color: $slate-500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 $space-3;
+    padding-bottom: $space-2;
+    border-bottom: 2px solid $border-color;
+  }
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-2 0;
+  border-bottom: 1px solid rgba($border-color, 0.5);
+
+  &:last-child { border-bottom: none; }
+}
+
+.lbl {
+  font-size: $font-xs;
+  color: $slate-500;
+}
+
+.val {
+  font-size: $font-sm;
+  font-weight: $weight-semibold;
+  color: $slate-800;
+
+  &--warn { color: #d97706; }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ROW ACTION BUTTONS (en actionsTemplate)
+// ══════════════════════════════════════════════════════════════════════════════
+
+.btn-row-action {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  padding: 0.3125rem 0.625rem;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  background: $white;
+  color: $primary;
+  font-size: $font-xs;
+  font-weight: $weight-semibold;
+  text-decoration: none;
+  transition: all 0.15s;
+  white-space: nowrap;
+
+  svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+  &:hover {
+    background: $primary;
+    color: $white;
+    border-color: $primary;
+  }
+
+  &--warning {
+    color: #d97706;
+    border-color: #fde68a;
+    background: #fffbeb;
+
+    &:hover {
+      background: #d97706;
+      color: $white;
+      border-color: #d97706;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CELDAS CUSTOM (vía cellClass en las columnas)
+// ══════════════════════════════════════════════════════════════════════════════
+
+:host ::ng-deep {
+  .cell-income {
+    color: #065f46;
+    font-weight: 600;
+  }
+
+  .cell-expense {
+    color: #991b1b;
+    font-weight: 600;
+  }
+
+  .cell-gain-positive {
+    color: #065f46;
+    font-weight: 600;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ALERT LINK
+// ══════════════════════════════════════════════════════════════════════════════
+
+.alert-link {
+  color: inherit;
+  font-weight: $weight-semibold;
+  text-decoration: underline;
+
+  &:hover { opacity: 0.8; }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// STATUS ALERT SPACING
+// ══════════════════════════════════════════════════════════════════════════════
+
+.status-alert {
+  margin-bottom: $space-4;
 }

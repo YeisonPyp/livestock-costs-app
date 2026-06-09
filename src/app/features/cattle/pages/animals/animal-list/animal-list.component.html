@@ -1,53 +1,102 @@
 <!-- animal-list.component.html -->
-<app-page-header title="Animales" subtitle="Inventario completo de tu hato ganadero">
-  <div class="header-actions">
-    <!-- Registrar peso desde archivo -->
-    <button class="btn" (click)="showWeightImport.set(true)">
+
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE HEADER                                                              -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+
+<app-page-header
+  title="Animales"
+  subtitle="Inventario completo de tu hato ganadero"
+>
+  <div class="header-btns">
+    <button class="btn btn-outline" (click)="showWeightImport.set(true)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
       Subir Pesajes
     </button>
-
-    @if (showWeightImport()) {
-      <app-weight-bulk-import
-        (close)="showWeightImport.set(false)"
-        (importSuccess)="onWeightImportSuccess($event)"
-      />
-    }
-
-    <!-- Carga masiva -->
-    <button class="btn" (click)="showBulkImport.set(true)">
+    <button class="btn btn-primary" (click)="showBulkImport.set(true)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
       Carga Masiva
     </button>
-    @if (showBulkImport()) {
-      <app-animal-bulk-import
-        (close)="showBulkImport.set(false)"
-        (importSuccess)="onImportSuccess($event)"
-      />
-    }
   </div>
 </app-page-header>
 
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- KPIs                                                                     -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
 
-<!-- KPIs -->
 <div class="kpis-row">
-  <app-kpi-card label="Total Animales" [value]="kpis().total"     format="number" color="blue"   icon="activity"    [loading]="loading()" [decimals]="0"/>
-  <app-kpi-card label="Machos"         [value]="kpis().male"      format="number" color="purple" icon="user"        [loading]="loading()" [decimals]="0"/>
-  <app-kpi-card label="Hembras"        [value]="kpis().female"    format="number" color="green"  icon="user"        [loading]="loading()" [decimals]="0"/>
-  <app-kpi-card label="Peso Promedio"  [value]="kpis().avgWeight" format="number" color="yellow" icon="trending-up" [loading]="loading()" suffix=" kg" />
+  <app-kpi-card
+    label="Total Animales" [value]="kpis().total"
+    format="number" color="blue" icon="activity"
+    [loading]="loading()" [decimals]="0"
+  />
+  <app-kpi-card
+    label="Machos" [value]="kpis().male"
+    format="number" color="purple" icon="user"
+    [loading]="loading()" [decimals]="0"
+  />
+  <app-kpi-card
+    label="Hembras" [value]="kpis().female"
+    format="number" color="green" icon="user"
+    [loading]="loading()" [decimals]="0"
+  />
+  <app-kpi-card
+    label="Peso Promedio" [value]="kpis().avgWeight"
+    format="number" color="yellow" icon="trending-up"
+    [loading]="loading()" suffix=" kg"
+  />
 </div>
 
-<!-- Filters -->
-<div class="filters-card">
-  <div class="filters-row">
-    <div class="search-wrap">
-      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-      <input class="search-input" type="text" placeholder="Buscar por arete o nombre..."
-        [value]="searchTerm"
-        (input)="searchTerm = $any($event.target).value; search$.next(searchTerm)" />
-    </div>
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- TABLE (con filtros integrados)                                           -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
 
-    <select class="filter-select" [(ngModel)]="statusFilter" (change)="onFilter()">
+<app-table
+  [columns]="columns"
+  [data]="animals()"
+  [loading]="loading()"
+  [hasActions]="true"
+  [actionsTemplate]="animalActions"
+  [totalItems]="totalCount"
+  [serverTotalPages]="totalPages"
+  [config]="{
+    serverPagination: true,
+    searchable: true,
+    searchPlaceholder: 'Buscar por arete o nombre...',
+    exportable: true,
+    exportFormats: ['excel', 'pdf'],
+    exportFileName: 'animales',
+    showFirstLastPage: true,
+    pageSize: 15,
+    pageSizeOptions: [10, 15, 25, 50],
+    hover: true,
+    striped: true,
+    showResultCount: true
+  }"
+  [emptyMessage]="hasActiveFilters
+    ? 'No hay animales con los filtros aplicados.'
+    : 'Usa la carga masiva para registrar animales.'"
+  [emptyIcon]="hasActiveFilters ? 'filter' : 'table'"
+  (paginationParamsChange)="onParamsChange($event)"
+  (rowClick)="onAnimalClick($event)"
+  (exportData)="onExport($event)"
+>
+
+  <!-- ── Filtros ──────────────────────────────────────────────────────────── -->
+  <ng-container table-filters>
+    <select
+      class="filter-select"
+      [(ngModel)]="statusFilter"
+      (ngModelChange)="onFilter()"
+    >
       <option value="">Todos los estados</option>
       <option value="active">Activo</option>
       <option value="sold">Vendido</option>
@@ -55,181 +104,82 @@
       <option value="transferred">Trasladado</option>
     </select>
 
-    <select class="filter-select" [(ngModel)]="sexFilter" (change)="onFilter()">
+    <select
+      class="filter-select"
+      [(ngModel)]="sexFilter"
+      (ngModelChange)="onFilter()"
+    >
       <option value="">Todos los sexos</option>
       <option value="M">Macho</option>
       <option value="F">Hembra</option>
     </select>
 
-    <select class="filter-select" [(ngModel)]="breedFilter" (change)="onFilter()">
+    <select
+      class="filter-select"
+      [(ngModel)]="breedFilter"
+      (ngModelChange)="onFilter()"
+    >
       <option value="">Todas las razas</option>
-      @for (b of breeds(); track b.id) { <option [value]="b.id">{{ b.name }}</option> }
+      @for (b of breeds(); track b.id) {
+        <option [value]="b.id">{{ b.name }}</option>
+      }
     </select>
 
-    <select class="filter-select" [(ngModel)]="lotFilter" (change)="onFilter()">
+    <select
+      class="filter-select"
+      [(ngModel)]="lotFilter"
+      (ngModelChange)="onFilter()"
+    >
       <option value="">Todos los lotes</option>
-      @for (l of lots(); track l.id) { <option [value]="l.id">{{ l.name }}</option> }
+      @for (l of lots(); track l.id) {
+        <option [value]="l.id">{{ l.name }}</option>
+      }
     </select>
 
     @if (hasActiveFilters) {
-      <button class="btn-clear" (click)="clearFilters()">✕ Limpiar</button>
+      <button class="btn-clear-filters" (click)="clearFilters()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+        Limpiar
+      </button>
     }
-  </div>
-</div>
+  </ng-container>
 
-<!-- Table -->
-<div class="table-card">
-  @if (loading()) {
-    <app-loader [overlay]="false" type="bars" />
-  } @else if (animals().length === 0) {
-    <app-empty-state icon="activity" title="Sin animales"
-      [message]="hasActiveFilters ? 'No hay animales con los filtros aplicados.' : 'Usa la carga masiva para registrar animales.'">
-    </app-empty-state>
-  } @else {
+  <!-- ── Botones header (derecha) ─────────────────────────────────────────── -->
+  <!-- Vacío: los botones de export ya los maneja app-table internamente.
+       Si necesitas más botones aquí, usa este slot. -->
 
-    <!-- Meta: rango + total -->
-    <div class="table-meta">
-      <span class="results-count">
-        Mostrando <strong>{{ pageFrom }}–{{ pageTo }}</strong> de
-        <strong>{{ totalCount }}</strong> animales
-      </span>
-    </div>
+</app-table>
 
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th class="sortable" (click)="sortBy('tag_number')">Arete {{ sortIcon('tag_number') }}</th>
-          <th>Nombre</th>
-          <th>Raza</th>
-          <th>Categoría</th>
-          <th>Sexo</th>
-          <th>Lote</th>
-          <th class="sortable text-right" (click)="sortBy('current_weight')">Peso {{ sortIcon('current_weight') }}</th>
-          <th class="text-right">Ganancia</th>
-          <th class="text-right">GMD</th>
-          <th class="sortable" (click)="sortBy('entry_date')">Ingreso {{ sortIcon('entry_date') }}</th>
-          <th>Estado</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (a of animals(); track a.id) {
-          <tr>
-            <td><a [routerLink]="[a.id]" class="tag-link">{{ a.tag_number }}</a></td>
-            <td>{{ a.name || '—' }}</td>
-            <td>{{ a.breed_name || '—' }}</td>
-            <td>
-              <span class="category-label">{{ getCategoryLabel(a.category) }}</span>
-            </td>
-            <td>
-              <span class="sex-badge" [class.male]="a.gender === 'M'" [class.female]="a.gender === 'F'">
-                {{ sexLabels[a.gender] }}
-              </span>
-            </td>
-            <td class="lot-cell">{{ a.lot_code || '—' }}</td>
-            <td class="text-right weight-cell">{{ formatWeight(a.current_weight) }}</td>
-            <td class="text-right">
-              @if (a.weight_gain) {
-                <span class="gain-badge" [class.positive]="+a.weight_gain > 0">
-                  +{{ formatWeight(a.weight_gain) }}
-                </span>
-              } @else { <span class="muted">—</span> }
-            </td>
-            <td class="text-right gmd-cell">
-              {{ a.daily_gain ? (a.daily_gain | number:'1.2-2') + ' kg/d' : '—' }}
-            </td>
-            <td class="date-cell">{{ formatDate(a.entry_date) }}</td>
-            <td>
-              <app-badge
-                [label]="getStatusLabel(a.status)"
-                [color]="getStatusColor(a.status)"
-              />
-            </td>
-            <td class="text-right">
-              <app-dropdown-menu [items]="[
-                { label: 'Ver Detalle', icon: 'eye',  routerLink: [a.id] },
-                { label: 'Editar',     icon: 'edit', routerLink: [a.id, 'edit'] },
-              ]" />
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- ROW ACTIONS TEMPLATE                                                     -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
 
-    <!-- ═══════════════════════════════════════════════════════
-         PAGINACIÓN MEJORADA
-         ════════════════════════════════════════════════════ -->
-    @if (totalPages > 1) {
-      <div class="pagination">
+<ng-template #animalActions let-row>
+  <app-dropdown-menu
+    [items]="[
+      { label: 'Ver Detalle', icon: 'eye',  routerLink: [row.id] },
+      { label: 'Editar',      icon: 'edit', routerLink: [row.id, 'edit'] }
+    ]"
+  />
+</ng-template>
 
-        <!-- Ir a primera página -->
-        <button
-          class="page-btn page-btn--edge"
-          [disabled]="currentPage === 1"
-          (click)="load(1)"
-          title="Primera página"
-          aria-label="Primera página">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <polyline points="11 17 6 12 11 7"/>
-            <polyline points="18 17 13 12 18 7"/>
-          </svg>
-        </button>
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- MODALS                                                                   -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
 
-        <!-- Página anterior -->
-        <button
-          class="page-btn"
-          [disabled]="currentPage === 1"
-          (click)="load(currentPage - 1)"
-          title="Página anterior"
-          aria-label="Página anterior">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </button>
+@if (showBulkImport()) {
+  <app-animal-bulk-import
+    (close)="showBulkImport.set(false)"
+    (importSuccess)="onImportSuccess($event)"
+  />
+}
 
-        <!-- Ventana de páginas con separadores -->
-        @for (item of pageItems; track $index) {
-          @if (item === null) {
-            <!-- Separador "…" -->
-            <span class="page-ellipsis">…</span>
-          } @else {
-            <button
-              class="page-btn"
-              [class.active]="item === currentPage"
-              [attr.aria-current]="item === currentPage ? 'page' : null"
-              (click)="load(item)">
-              {{ item }}
-            </button>
-          }
-        }
-
-        <!-- Página siguiente -->
-        <button
-          class="page-btn"
-          [disabled]="currentPage === totalPages"
-          (click)="load(currentPage + 1)"
-          title="Página siguiente"
-          aria-label="Página siguiente">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </button>
-
-        <!-- Ir a última página -->
-        <button
-          class="page-btn page-btn--edge"
-          [disabled]="currentPage === totalPages"
-          (click)="load(totalPages)"
-          title="Última página"
-          aria-label="Última página">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-            <polyline points="13 17 18 12 13 7"/>
-            <polyline points="6 17 11 12 6 7"/>
-          </svg>
-        </button>
-
-      </div>
-    }
-
-  }
-</div>
+@if (showWeightImport()) {
+  <app-weight-bulk-import
+    (close)="showWeightImport.set(false)"
+    (importSuccess)="onWeightImportSuccess($event)"
+  />
+}

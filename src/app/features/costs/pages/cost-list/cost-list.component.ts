@@ -27,12 +27,8 @@ import { LoaderComponent } from '../../../../shared/components/feedback/loader/l
 import { ModalComponent } from '../../../../shared/components/overlays/modal/modal.component';
 import { PageHeaderComponent } from '../../../../shared/components/navigation/page-header/page-header.component';
 import { KpiCardComponent } from '../../../../shared/components/data-display/kpi-card/kpi-card.component';
-import {
-  PaginationParams,
-  TableColumn,
-  TableComponent,
-  TableConfig,
-} from '../../../../shared/components/data-display/table/table.component';
+import { TableComponent } from '../../../../shared/components/data-display/table/table.component';
+import { TableColumn, TableConfig, PaginationParams } from '../../../../shared/components/data-display/table/table.types';
 import { ConfirmDialogComponent } from '../../../../shared/components/feedback/confirm-dialog/confirm-dialog.component';
 import { ExportReportModalComponent } from '../../../../shared/components/overlays/export-report-modal/export-report-modal.component';
 import {

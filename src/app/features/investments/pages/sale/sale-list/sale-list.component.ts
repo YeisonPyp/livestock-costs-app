@@ -14,12 +14,8 @@ import { BadgeComponent } from '../../../../../shared/components/ui/badge/badge.
 import { AmountDisplayComponent } from '../../../../../shared/components/data-display/amount-display/amount-display.component';
 import { SaleCreateDrawerComponent } from '../../../components/sale-create-drawer/sale-create-drawer.component';
 import { SaleStatsComponent } from '../../../components/sale-stats/sale-stats.component';
-import {
-  TableComponent,
-  TableColumn,
-  TableConfig,
-  PaginationParams,
-} from '../../../../../shared/components/data-display/table/table.component';
+import { TableComponent } from '../../../../../shared/components/data-display/table/table.component';
+import { TableColumn, TableConfig, PaginationParams } from '../../../../../shared/components/data-display/table/table.types';
 import { ExportReportModalComponent } from '../../../../../shared/components/overlays/export-report-modal/export-report-modal.component';
 import {
   ExportReportPayload,

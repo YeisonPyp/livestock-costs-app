@@ -147,3 +147,95 @@
 
 .bc-link { color: $primary; text-decoration: none; font-size: $font-sm; &:hover { text-decoration: underline; } }
 .bc-sep  { margin: 0 $space-2; color: $slate-400; font-size: $font-sm; }
+
+
+// investment-detail.component.scss
+// (agrega esto al SCSS existente, el resto de tus estilos se mantienen)
+
+// ── Filtros dentro de app-table (movimientos) ─────────────────────────────────
+
+.filter-select {
+  padding: 0.4375rem 0.625rem;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  font-size: $font-xs;
+  font-family: $font-family;
+  color: $slate-700;
+  background: $white;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px $primary-muted;
+  }
+}
+
+.filter-date {
+  padding: 0.4375rem 0.625rem;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  font-size: $font-xs;
+  font-family: $font-family;
+  color: $slate-700;
+  background: $white;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  min-width: 130px;
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px $primary-muted;
+  }
+}
+
+.btn-clear-filters {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid $danger-muted;
+  border-radius: $border-radius;
+  background: $danger-muted;
+  color: $danger;
+  font-size: $font-xs;
+  font-weight: $weight-semibold;
+  font-family: $font-family;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+
+  svg { width: 13px; height: 13px; }
+
+  &:hover {
+    background: $danger;
+    color: $white;
+    border-color: $danger;
+  }
+}
+
+// ── Celdas custom (vía cellClass en las columnas) ─────────────────────────────
+
+:host ::ng-deep {
+  .cell-income {
+    color: #065f46;
+    font-weight: 600;
+  }
+
+  .cell-expense {
+    color: #991b1b;
+    font-weight: 600;
+  }
+
+  .cell-gain-positive {
+    color: #065f46;
+    font-weight: 600;
+  }
+}
+
+// ── Tab content spacing ───────────────────────────────────────────────────────
+
+.tab-content {
+  padding: $space-5 0;
+}

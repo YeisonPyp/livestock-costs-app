@@ -355,6 +355,14 @@ export class InvestorFacade {
       });
   }
 
+  goToInvestment(investmentId: string): void {
+    this.router.navigate(['/investments/investments', investmentId]);
+  }
+
+  goToDecision(decisionId: string): void {
+    this.router.navigate(['/investments/decisions', decisionId]);
+  }
+
   // ── Utilidades ────────────────────────────────────────────
 
   /** Resetea el estado de detalle al abandonar la página. */

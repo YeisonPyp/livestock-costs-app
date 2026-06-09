@@ -2,8 +2,8 @@
 
 <app-page-header
   [title]="facade.detail()?.investorName ?? 'Inversión'"
-  [subtitle]="facade.detail()?.investorCode ?? ''">
-
+  [subtitle]="facade.detail()?.investorCode ?? ''"
+>
   <ng-container breadcrumb>
     <a routerLink="/investments/investments" class="bc-link">Inversiones</a>
     <span class="bc-sep">/</span>
@@ -34,22 +34,23 @@
   </ng-container>
 </app-page-header>
 
-<!-- Loading -->
+<!-- ── Loading ─────────────────────────────────────────────────────────────── -->
 @if (facade.detailLoading()) {
   <app-loader [overlay]="false" type="spinner" />
 }
 
-<!-- Error -->
+<!-- ── Error ───────────────────────────────────────────────────────────────── -->
 @else if (facade.detailError()) {
   <app-empty-state
     title="Error"
     [message]="facade.detailErrorMessage()"
-    icon="alert-circle">
+    icon="alert-circle"
+  >
     <button class="btn btn-outline" (click)="facade.goBackToList()">Volver al listado</button>
   </app-empty-state>
 }
 
-<!-- Contenido -->
+<!-- ── Contenido ───────────────────────────────────────────────────────────── -->
 @if (facade.detail(); as investment) {
 
   <!-- Alertas de estado -->
@@ -99,14 +100,15 @@
     </div>
   </section>
 
-  <!-- Panel aporte/retiro (presentacional) -->
+  <!-- Panel aporte/retiro -->
   @if (facade.activePanel()) {
     <app-capital-operation-panel
       [type]="facade.activePanel()!"
       [maxAmount]="facade.availableForWithdraw()"
       [loading]="facade.operationLoading()"
       (submitted)="facade.activePanel() === 'contribute' ? onContribute($event) : onWithdraw($event)"
-      (cancelled)="facade.closePanel()" />
+      (cancelled)="facade.closePanel()"
+    />
   }
 
   <!-- Modal de cierre -->
@@ -115,13 +117,16 @@
       [closureStatus]="facade.closureStatus()"
       [loading]="facade.closingLoading()"
       (confirmed)="facade.confirmClose()"
-      (cancelled)="facade.closeCloseModal()" />
+      (cancelled)="facade.closeCloseModal()"
+    />
   }
 
-  <!-- Tabs -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- TABS                                                                  -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
   <mat-tab-group class="investment-tabs">
 
-    <!-- TAB: Resumen -->
+    <!-- ── TAB: Resumen ──────────────────────────────────────────────────── -->
     <mat-tab label="Resumen">
       <div class="tab-content">
         <div class="detail-grid">
@@ -133,8 +138,7 @@
               <div class="detail-row">
                 <dt>Inversionista</dt>
                 <dd>
-                  <button class="btn-link"
-                    (click)="facade.goToInvestor(investment.investorId)">
+                  <button class="btn-link" (click)="facade.goToInvestor(investment.investorId)">
                     {{ investment.investorCode }} — {{ investment.investorName }}
                   </button>
                 </dd>
@@ -172,24 +176,27 @@
             <dl class="detail-list">
               <div class="detail-row">
                 <dt>Capital Inicial</dt>
-                <dd><app-amount-display [amount]="facade.parseDecimal(investment.initialCapital)" type="neutral" size="sm" /></dd>
+                <dd><app-amount-display [amount]="facade.parseDecimal(investment.initialCapital)" type="neutral" size="sm"/></dd>
               </div>
               <div class="detail-row">
                 <dt>Aportes</dt>
-                <dd><app-amount-display [amount]="facade.parseDecimal(investment.totalContributions)" type="income" size="sm" /></dd>
+                <dd><app-amount-display [amount]="facade.parseDecimal(investment.totalContributions)" type="income" size="sm"/></dd>
               </div>
               <div class="detail-row">
                 <dt>Retiros</dt>
-                <dd><app-amount-display [amount]="facade.parseDecimal(investment.totalWithdrawals)" type="expense" size="sm" /></dd>
+                <dd><app-amount-display [amount]="facade.parseDecimal(investment.totalWithdrawals)" type="expense" size="sm"/></dd>
               </div>
               <div class="detail-row">
                 <dt>Ganancias</dt>
-                <dd><app-amount-display [amount]="facade.parseDecimal(investment.totalProfits)"
-                  [type]="facade.parseDecimal(investment.totalProfits) >= 0 ? 'income' : 'expense'" size="sm" /></dd>
+                <dd><app-amount-display
+                  [amount]="facade.parseDecimal(investment.totalProfits)"
+                  [type]="facade.parseDecimal(investment.totalProfits) >= 0 ? 'income' : 'expense'"
+                  size="sm"/>
+                </dd>
               </div>
               <div class="detail-row highlight">
                 <dt>Capital Actual</dt>
-                <dd><app-amount-display [amount]="facade.parseDecimal(investment.currentCapital)" type="neutral" size="md" /></dd>
+                <dd><app-amount-display [amount]="facade.parseDecimal(investment.currentCapital)" type="neutral" size="md"/></dd>
               </div>
             </dl>
           </div>
@@ -202,14 +209,15 @@
                 <div class="detail-row"><dt>Cabezas activas</dt><dd>{{ cs.totalHeads }}</dd></div>
                 <div class="detail-row"><dt>Peso total</dt><dd>{{ cs.totalWeight }} kg</dd></div>
                 <div class="detail-row"><dt>Peso promedio</dt><dd>{{ cs.averageWeight }} kg</dd></div>
-                <div class="detail-row"><dt>Valor estimado</dt>
-                  <dd><app-amount-display [amount]="facade.parseDecimal(cs.totalValue)" type="neutral" size="sm" /></dd>
+                <div class="detail-row">
+                  <dt>Valor estimado</dt>
+                  <dd><app-amount-display [amount]="facade.parseDecimal(cs.totalValue)" type="neutral" size="sm"/></dd>
                 </div>
               </dl>
             </div>
           }
 
-          <!-- Estado de cierre -->
+          <!-- Bloqueos para cierre -->
           @if (!facade.canClose() && facade.closureStatus()?.blocking?.length) {
             <div class="detail-card detail-card--warning">
               <h3 class="card-title">Bloqueos para cierre</h3>
@@ -220,129 +228,110 @@
               </ul>
             </div>
           }
+
         </div>
       </div>
     </mat-tab>
 
-    <!-- TAB: Movimientos -->
+    <!-- ── TAB: Movimientos ──────────────────────────────────────────────── -->
     <mat-tab [label]="'Movimientos (' + facade.movements().length + ')'">
       <div class="tab-content">
 
-        <!-- Filtros de movimientos -->
-        <div class="movement-filters">
-          <select class="native-select"
-            [ngModel]="facade.movementFilters().type"
-            (ngModelChange)="facade.applyMovementFilter({ type: $event })">
-            @for (opt of movementTypeOptions; track opt.value) {
-              <option [value]="opt.value">{{ opt.label }}</option>
-            }
-          </select>
-          <input type="date" class="native-input"
-            [ngModel]="facade.movementFilters().dateFrom"
-            (ngModelChange)="facade.applyMovementFilter({ dateFrom: $event })"
-            placeholder="Desde" />
-          <input type="date" class="native-input"
-            [ngModel]="facade.movementFilters().dateTo"
-            (ngModelChange)="facade.applyMovementFilter({ dateTo: $event })"
-            placeholder="Hasta" />
-          @if (facade.movementFilters().type || facade.movementFilters().dateFrom || facade.movementFilters().dateTo) {
-            <button class="btn btn-ghost btn-sm" (click)="facade.clearMovementFilters()">
-              Limpiar
-            </button>
-          }
-        </div>
-
-        @if (facade.movementsLoading()) {
-          <app-loader [overlay]="false" type="spinner" />
-        } @else if (facade.movements().length === 0) {
-          <app-empty-state title="Sin movimientos" [compact]="true" />
-        } @else {
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Fecha</th><th>Tipo</th><th>Descripción</th>
-                <th class="text-right">Monto</th><th class="text-right">Saldo</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (mov of facade.movements(); track mov.id) {
-                <tr>
-                  <td class="date-cell">{{ mov.effectiveDate | safeDate:'date':'short' }}</td>
-                  <td>
-                    <app-badge [color]="mov.isCredit ? 'success' : 'danger'" size="sm">
-                      {{ mov.movementTypeDisplay }}
-                    </app-badge>
-                  </td>
-                  <td>{{ mov.description }}</td>
-                  <td class="text-right">
-                    <app-amount-display
-                      [amount]="facade.parseDecimal(mov.amount)"
-                      [type]="mov.isCredit ? 'income' : 'expense'" size="sm" />
-                  </td>
-                  <td class="text-right">
-                    <app-amount-display
-                      [amount]="facade.parseDecimal(mov.balanceAfter)"
-                      type="neutral" size="sm" />
-                  </td>
-                </tr>
+        <app-table
+          [columns]="movementColumns"
+          [data]="facade.movements()"
+          [loading]="facade.movementsLoading()"
+          [config]="{
+            searchable: false,
+            paginated: true,
+            pageSize: 10,
+            pageSizeOptions: [10, 25, 50],
+            striped: true,
+            hover: false,
+            exportable: true,
+            exportFormats: ['excel', 'pdf'],
+            exportFileName: 'movimientos-inversion',
+            showFirstLastPage: true,
+            showResultCount: true
+          }"
+          emptyMessage="Sin movimientos registrados"
+          emptyIcon="table"
+          (exportData)="onExportMovements($event)"
+        >
+          <!-- Filtros de movimientos en el header de la tabla -->
+          <ng-container table-filters>
+            <select
+              class="filter-select"
+              [ngModel]="facade.movementFilters().type"
+              (ngModelChange)="facade.applyMovementFilter({ type: $event })"
+            >
+              @for (opt of movementTypeOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
               }
-            </tbody>
-          </table>
-        }
+            </select>
+
+            <input
+              type="date"
+              class="filter-date"
+              [ngModel]="facade.movementFilters().dateFrom"
+              (ngModelChange)="facade.applyMovementFilter({ dateFrom: $event })"
+              placeholder="Desde"
+            />
+
+            <input
+              type="date"
+              class="filter-date"
+              [ngModel]="facade.movementFilters().dateTo"
+              (ngModelChange)="facade.applyMovementFilter({ dateTo: $event })"
+              placeholder="Hasta"
+            />
+
+            @if (
+              facade.movementFilters().type ||
+              facade.movementFilters().dateFrom ||
+              facade.movementFilters().dateTo
+            ) {
+              <button class="btn-clear-filters" (click)="facade.clearMovementFilters()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round">
+                  <path d="M18 6 6 18M6 6l12 12"/>
+                </svg>
+                Limpiar
+              </button>
+            }
+          </ng-container>
+        </app-table>
+
       </div>
     </mat-tab>
 
-    <!-- TAB: Ganado -->
+    <!-- ── TAB: Ganado ───────────────────────────────────────────────────── -->
     <mat-tab [label]="'Ganado (' + facade.cattle().length + ')'">
       <div class="tab-content">
 
-        @if (facade.cattleLoading()) {
-          <app-loader [overlay]="false" type="spinner" />
-        } @else if (facade.cattle().length === 0) {
-          <app-empty-state title="Sin ganado asignado" [compact]="true" />
-        } @else {
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Tipo</th><th>Animal/Lote</th><th>Cantidad</th>
-                <th class="text-right">Valor Compra</th>
-                <th class="text-right">Valor Actual</th>
-                <th class="text-right">Ganancia Peso</th>
-                <th class="text-center">Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (c of facade.cattle(); track c.id) {
-                <tr>
-                  <td>{{ c.ownershipType }}</td>
-                  <td>{{ c.animal ?? c.lot ?? '—' }}</td>
-                  <td>{{ c.quantity }}</td>
-                  <td class="text-right">
-                    <app-amount-display
-                      [amount]="facade.parseDecimal(c.purchaseValue)"
-                      type="neutral" size="sm" />
-                  </td>
-                  <td class="text-right">
-                    <app-amount-display
-                      [amount]="facade.parseDecimal(c.currentValue)"
-                      type="neutral" size="sm" />
-                  </td>
-                  <td class="text-right"
-                    [class.text-success]="facade.parseDecimal(c.weightGain) > 0">
-                    {{ c.weightGain ? facade.parseDecimal(c.weightGain).toFixed(1) + ' kg' : '—' }}
-                  </td>
-                  <td class="text-center">
-                    <app-badge
-                      [color]="c.status === 'active' ? 'success' : c.status === 'sold' ? 'info' : 'secondary'"
-                      size="sm">
-                      {{ c.status }}
-                    </app-badge>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        }
+        <app-table
+          [columns]="cattleColumns"
+          [data]="facade.cattle()"
+          [loading]="facade.cattleLoading()"
+          [config]="{
+            searchable: true,
+            searchPlaceholder: 'Buscar animal o lote...',
+            paginated: true,
+            pageSize: 10,
+            pageSizeOptions: [10, 25],
+            striped: true,
+            hover: true,
+            exportable: true,
+            exportFormats: ['excel', 'pdf'],
+            exportFileName: 'ganado-inversion',
+            showFirstLastPage: false,
+            showResultCount: true
+          }"
+          emptyMessage="Sin ganado asignado a esta inversión"
+          emptyIcon="table"
+          (exportData)="onExportCattle($event)"
+        />
+
       </div>
     </mat-tab>
 

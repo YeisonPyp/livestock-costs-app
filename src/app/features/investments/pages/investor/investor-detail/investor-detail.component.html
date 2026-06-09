@@ -1,5 +1,9 @@
 <!-- investor-detail.component.html -->
 
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE HEADER                                                              -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+
 <app-page-header [title]="facade.detail()?.fullName ?? 'Cargando...'">
   <ng-container breadcrumb>
     <a routerLink="/investments/investors" class="bc-link">Inversionistas</a>
@@ -8,34 +12,36 @@
   </ng-container>
 
   <ng-container actions>
-    @if (facade.detail()) {
-      @if (!facade.detail()!.hasActiveContract) {
+    @if (facade.detail(); as investor) {
+      @if (!investor.hasActiveContract) {
         <button class="btn btn-warning btn-sm" (click)="openCreateContractDialog()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
-            <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
           </svg>
           Crear Contrato
         </button>
       }
       <button class="btn btn-outline btn-sm"
-        (click)="facade.goToContracts(facade.detail()!.id)">
-        Ver Contratos ({{ facade.detail()!.totalContracts }})
+        (click)="facade.goToContracts(investor.id)">
+        Ver Contratos ({{ investor.totalContracts }})
       </button>
       <button class="btn btn-outline btn-sm"
-        (click)="facade.goToEdit(facade.detail()!.id)">
+        (click)="facade.goToEdit(investor.id)">
         Editar
       </button>
     }
   </ng-container>
 </app-page-header>
 
-<!-- Loading -->
+<!-- ── Loading ─────────────────────────────────────────────────────────────── -->
 @if (facade.detailLoading()) {
   <app-loader [overlay]="false" type="spinner" />
 }
 
+<!-- ── Contenido ───────────────────────────────────────────────────────────── -->
 @if (facade.detail(); as investor) {
 
   <!-- Profile card -->
@@ -45,8 +51,8 @@
       <span class="profile-code">{{ investor.documentNumber }}</span>
       <h2 class="profile-name">{{ investor.fullName }}</h2>
       <div class="profile-meta">
-        @if (investor.email)  { <span>✉ {{ investor.email }}</span>  }
-        @if (investor.phone)  { <span>📞 {{ investor.phone }}</span>  }
+        @if (investor.email) { <span>✉ {{ investor.email }}</span> }
+        @if (investor.phone) { <span>📞 {{ investor.phone }}</span> }
         <span>Vinculado: {{ investor.joinedDate }}</span>
       </div>
     </div>
@@ -70,7 +76,8 @@
     <app-kpi-card
       label="Capital Actual"
       [value]="formatCurrency(facade.summary()?.investments?.totalCapital ?? 0)"
-      color="blue">
+      color="blue"
+    >
       <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="12" y1="1" x2="12" y2="23"/>
         <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
@@ -79,7 +86,8 @@
     <app-kpi-card
       label="Ganancia Total"
       [value]="formatCurrency(facade.summary()?.investments?.totalProfits ?? 0)"
-      color="green">
+      color="green"
+    >
       <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
         <polyline points="16 7 22 7 22 13"/>
@@ -89,7 +97,8 @@
       label="Cabezas de Ganado"
       [value]="(facade.summary()?.cattle?.totalHeads ?? 0).toString()"
       color="yellow"
-      [decimals]="0">
+      [decimals]="0"
+    >
       <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10"/>
       </svg>
@@ -98,7 +107,8 @@
       label="Decisiones Pendientes"
       [value]="(facade.summary()?.pendingDecisions ?? 0).toString()"
       color="red"
-      [decimals]="0">
+      [decimals]="0"
+    >
       <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10"/>
         <line x1="12" y1="8" x2="12" y2="12"/>
@@ -107,11 +117,13 @@
     </app-kpi-card>
   </div>
 
-  <!-- Tabs -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- TABS                                                                   -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
   <div class="tabs-container">
     <mat-tab-group animationDuration="200ms">
 
-      <!-- Resumen -->
+      <!-- ── TAB: Resumen ──────────────────────────────────────────────────── -->
       <mat-tab label="Resumen">
         <div class="tab-content">
           <div class="summary-grid">
@@ -122,25 +134,25 @@
                 <span class="lbl">Aportes Totales</span>
                 <app-amount-display
                   [amount]="parseDecimal(facade.summary()?.investments?.totalContributions ?? 0)"
-                  type="income" size="sm" />
+                  type="income" size="sm"/>
               </div>
               <div class="info-row">
                 <span class="lbl">Retiros Totales</span>
                 <app-amount-display
                   [amount]="parseDecimal(facade.summary()?.investments?.totalWithdrawals ?? 0)"
-                  type="expense" size="sm" />
+                  type="expense" size="sm"/>
               </div>
               <div class="info-row">
                 <span class="lbl">Ganancias</span>
                 <app-amount-display
                   [amount]="parseDecimal(facade.summary()?.investments?.totalProfits ?? 0)"
-                  type="income" size="sm" />
+                  type="income" size="sm"/>
               </div>
               <div class="info-row">
                 <span class="lbl">Capital Actual</span>
                 <app-amount-display
                   [amount]="parseDecimal(facade.summary()?.investments?.totalCapital ?? 0)"
-                  type="neutral" size="md" />
+                  type="neutral" size="md"/>
               </div>
             </div>
 
@@ -158,7 +170,7 @@
                 <span class="lbl">Valor estimado</span>
                 <app-amount-display
                   [amount]="parseDecimal(facade.summary()?.cattle?.totalValue ?? 0)"
-                  type="neutral" size="sm" />
+                  type="neutral" size="sm"/>
               </div>
             </div>
 
@@ -170,7 +182,9 @@
               </div>
               <div class="info-row">
                 <span class="lbl">Decisiones pendientes</span>
-                <span class="val warn">{{ facade.summary()?.pendingDecisions ?? 0 }}</span>
+                <span class="val" [class.val--warn]="(facade.summary()?.pendingDecisions ?? 0) > 0">
+                  {{ facade.summary()?.pendingDecisions ?? 0 }}
+                </span>
               </div>
             </div>
 
@@ -178,131 +192,130 @@
         </div>
       </mat-tab>
 
-      <!-- Inversiones -->
+      <!-- ── TAB: Inversiones ──────────────────────────────────────────────── -->
       <mat-tab [label]="'Inversiones (' + facade.detailInvestments().length + ')'">
         <div class="tab-content">
-          @if (facade.detailInvestments().length === 0) {
-            <app-empty-state title="Sin inversiones" [compact]="true" />
-          } @else {
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Inicio</th><th>Capital Inicial</th><th>Capital Actual</th>
-                  <th>Ganancias</th><th>ROI</th><th>Estado</th><th></th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (inv of facade.detailInvestments(); track inv.id) {
-                  <tr>
-                    <td>{{ inv.startDate }}</td>
-                    <td>
-                      <app-amount-display
-                        [amount]="parseDecimal(inv.initialCapital)"
-                        type="neutral" size="sm" />
-                    </td>
-                    <td>
-                      <app-amount-display
-                        [amount]="parseDecimal(inv.currentCapital)"
-                        type="neutral" size="sm" />
-                    </td>
-                    <td>
-                      <app-amount-display
-                        [amount]="parseDecimal(inv.totalProfits)"
-                        [type]="parseDecimal(inv.totalProfits) >= 0 ? 'income' : 'expense'"
-                        size="sm" />
-                    </td>
-                    <td
-                      [class.positive]="parseDecimal(inv.roi) > 0"
-                      [class.negative]="parseDecimal(inv.roi) < 0">
-                      {{ parseDecimal(inv.roi).toFixed(1) }}%
-                    </td>
-                    <td>
-                      <app-badge [color]="inv.status === 'active' ? 'success' : 'secondary'">
-                        {{ inv.status }}
-                      </app-badge>
-                    </td>
-                    <td>
-                      <a [routerLink]="['/investments/investments', inv.id]" class="btn-link">
-                        Ver →
-                      </a>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          }
+
+          <app-table
+            [columns]="investmentColumns"
+            [data]="facade.detailInvestments()"
+            [hasActions]="true"
+            [actionsTemplate]="investmentActions"
+            [config]="{
+              searchable: false,
+              paginated: true,
+              pageSize: 10,
+              pageSizeOptions: [10, 25],
+              striped: true,
+              hover: true,
+              exportable: true,
+              exportFormats: ['excel', 'pdf'],
+              exportFileName: 'inversiones-inversionista',
+              showFirstLastPage: false,
+              showResultCount: true
+            }"
+            emptyMessage="Sin inversiones registradas"
+            emptyIcon="table"
+            (rowClick)="onInvestmentRowClick($event)"
+            (exportData)="onExportInvestments($event)"
+          />
+
         </div>
       </mat-tab>
 
-      <!-- Ganado -->
+      <!-- ── TAB: Ganado ───────────────────────────────────────────────────── -->
       <mat-tab [label]="'Ganado (' + facade.detailCattle().length + ')'">
         <div class="tab-content">
-          @if (facade.detailCattle().length === 0) {
-            <app-empty-state
-              title="Sin ganado asignado"
-              [compact]="true" />
-          } @else {
 
-            <app-table
-              [columns]="cattleColumns"
-              [data]="facade.detailCattle()"
-              [config]="tableConfig"
-              [hasActions]="false">
-            </app-table>
-          }
+          <app-table
+            [columns]="cattleColumns"
+            [data]="facade.detailCattle()"
+            [config]="{
+              searchable: true,
+              searchPlaceholder: 'Buscar animal o lote...',
+              paginated: true,
+              pageSize: 10,
+              pageSizeOptions: [10, 25],
+              striped: true,
+              hover: false,
+              exportable: true,
+              exportFormats: ['excel', 'pdf'],
+              exportFileName: 'ganado-inversionista',
+              showFirstLastPage: false,
+              showResultCount: true
+            }"
+            emptyMessage="Sin ganado asignado a este inversionista"
+            emptyIcon="table"
+            (exportData)="onExportCattle($event)"
+          />
+
         </div>
       </mat-tab>
 
-      <!-- Decisiones -->
+      <!-- ── TAB: Decisiones ───────────────────────────────────────────────── -->
       <mat-tab [label]="'Decisiones (' + facade.detailDecisions().length + ')'">
         <div class="tab-content">
-          @if (facade.detailDecisions().length === 0) {
-            <app-empty-state
-              title="Sin decisiones pendientes"
-              message="No hay ventas pendientes de decisión."
-              [compact]="true" />
-          } @else {
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Venta</th><th>Monto</th><th>Ganancia</th>
-                  <th>Decisión</th><th>Límite</th><th></th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (d of facade.detailDecisions(); track d.id) {
-                  <tr>
-                    <td>{{ d.id }}</td>
-                    <td>
-                      <app-amount-display
-                        [amount]="parseDecimal(d.investorAmount)"
-                        type="income" size="sm" />
-                    </td>
-                    <td>
-                      <app-amount-display
-                        [amount]="parseDecimal(d.profitLoss)"
-                        [type]="parseDecimal(d.profitLoss) >= 0 ? 'income' : 'expense'"
-                        size="sm" />
-                    </td>
-                    <td>
-                      <app-badge [color]="facade.decisionBadgeColor(d.decisionType)">
-                        {{ d.decisionTypeDisplay }}
-                      </app-badge>
-                    </td>
-                    <td>{{ d.decisionDeadline ?? '—' }}</td>
-                    <td>
-                      <a [routerLink]="['/investments/decisions', d.id]" class="btn-link">
-                        Decidir →
-                      </a>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          }
+
+          <app-table
+            [columns]="decisionColumns"
+            [data]="facade.detailDecisions()"
+            [hasActions]="true"
+            [actionsTemplate]="decisionActions"
+            [config]="{
+              searchable: false,
+              paginated: true,
+              pageSize: 10,
+              striped: true,
+              hover: true,
+              exportable: true,
+              exportFormats: ['excel'],
+              exportFileName: 'decisiones-inversionista',
+              showFirstLastPage: false,
+              showResultCount: true
+            }"
+            emptyMessage="Sin decisiones pendientes"
+            emptyIcon="filter"
+            (rowClick)="onDecisionRowClick($event)"
+            (exportData)="onExportDecisions($event)"
+          />
+
         </div>
       </mat-tab>
 
     </mat-tab-group>
   </div>
 }
+
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+<!-- ACTION TEMPLATES                                                         -->
+<!-- ══════════════════════════════════════════════════════════════════════════ -->
+
+<!-- Acciones por fila: Inversiones -->
+<ng-template #investmentActions let-row>
+  <a
+    [routerLink]="['/investments/investments', row.id]"
+    class="btn-row-action"
+    title="Ver inversión"
+  >
+    Ver
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12h14M12 5l7 7-7 7"/>
+    </svg>
+  </a>
+</ng-template>
+
+<!-- Acciones por fila: Decisiones -->
+<ng-template #decisionActions let-row>
+  <a
+    [routerLink]="['/investments/decisions', row.id]"
+    class="btn-row-action btn-row-action--warning"
+    title="Ir a decisión"
+  >
+    Decidir
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12h14M12 5l7 7-7 7"/>
+    </svg>
+  </a>
+</ng-template>
