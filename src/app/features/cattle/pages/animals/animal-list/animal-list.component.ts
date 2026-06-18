@@ -4,7 +4,6 @@ import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject, takeUntil } from 'rxjs';
 
 import { CattleService } from '../../../services/cattle.service';
@@ -15,28 +14,32 @@ import {
   ANIMAL_STATUS_COLORS,
   ANIMAL_CATEGORY_LABELS,
   SEX_LABELS,
+  AnimalDetail,
 } from '../../../models/cattle.model';
 
 import { TableComponent } from '../../../../../shared/components/data-display/table/table.component';
 import { TableColumn, PaginationParams, ExportEvent } from '../../../../../shared/components/data-display/table/table.types';
 import { PageHeaderComponent } from '../../../../../shared/components/navigation/page-header/page-header.component';
 import { KpiCardComponent } from '../../../../../shared/components/data-display/kpi-card/kpi-card.component';
-import { DropdownMenuComponent } from '../../../../../shared/components/data-display/dropdown-menu/dropdown-menu.component';
 import { BadgeColor } from '../../../../../shared/components/ui/badge/badge.component';
 import { AnimalBulkImportComponent } from '../animal-bulk-import/animal-bulk-import.component';
 import { WeightBulkImportComponent } from '../../weights/weight-bulk-import/weight-bulk-import.component';
+import { AnimalEditComponent } from '../animal-edit/animal-edit.component';
+import { ConfirmDialogComponent } from '../../../../../shared/components/feedback/confirm-dialog/confirm-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-animal-list',
   standalone: true,
   imports: [
     CommonModule,
+    AnimalEditComponent,
     RouterLink,
     FormsModule,
     TableComponent,
     PageHeaderComponent,
     KpiCardComponent,
-    DropdownMenuComponent,
     AnimalBulkImportComponent,
     WeightBulkImportComponent,
   ],
@@ -45,9 +48,10 @@ import { WeightBulkImportComponent } from '../../weights/weight-bulk-import/weig
 })
 export class AnimalListComponent implements OnInit, OnDestroy {
   private svc    = inject(CattleService);
-  private snack  = inject(MatSnackBar);
+  private notify = inject(NotificationService);
   private router = inject(Router);
   private destroy$ = new Subject<void>();
+  private dialog = inject(MatDialog);
 
   // ══════════════════════════════════════════════════════════════════════════
   // STATE
@@ -273,9 +277,7 @@ export class AnimalListComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.loading.set(false);
-          this.snack.open('Error al cargar animales', 'Cerrar', {
-            duration: 3500,
-          });
+          this.notify.error('Error al cargar animales');
         },
       });
   }
@@ -333,11 +335,8 @@ export class AnimalListComponent implements OnInit, OnDestroy {
     // o generar localmente con una librería como xlsx / pdfmake
     console.log('Export requested:', event.format, event);
 
-    this.snack.open(
-      `Descargando ${event.format.toUpperCase()}...`,
-      'Cerrar',
-      { duration: 3000 }
-    );
+    this.notify.info(`Descargando ${event.format.toUpperCase()}...`);
+
 
     // TODO: implementar exportación real
     // if (event.format === 'excel') {
@@ -391,4 +390,51 @@ export class AnimalListComponent implements OnInit, OnDestroy {
           maximumFractionDigits: 1,
         })} kg`;
   }
+
+  // ── Estado del modal de edición ─────────────────────────────────────────
+  editingAnimalId = signal<string | null>(null);
+
+  openEditModal(animalId: string): void {
+    this.editingAnimalId.set(animalId);
+  }
+
+  onEditSaved(): void {
+    this.editingAnimalId.set(null);
+    this.load();
+  }
+
+  onEditClosed(): void {
+    this.editingAnimalId.set(null);
+  }
+
+  private deleteAnimal(id: string): void {
+    this.svc.deleteAnimal(id).subscribe({
+      next: () => {
+        this.notify.success('Registro eliminado');
+        this.load();
+      },
+      error: (err) => {
+        console.error('Error eliminando costo', err);
+        this.notify.error(err?.error?.message || 'Error al eliminar el costo');
+      },
+    });
+  }
+
+  confirmDelete(animal: AnimalDetail): void {
+      this.dialog
+        .open(ConfirmDialogComponent, {
+          data: {
+            title: 'Eliminar Animal',
+            message: `¿Deseas eliminar el registro "${animal.tag_number}"? Esta acción no se puede deshacer.`,
+            confirmText: 'Eliminar',
+            type: 'danger',
+          },
+        })
+        .afterClosed()
+        .subscribe((ok) => {
+          if (ok) this.deleteAnimal(animal.id);
+        });
+    }
+
+
 }

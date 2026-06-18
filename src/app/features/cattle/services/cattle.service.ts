@@ -12,7 +12,7 @@ import {
   Movement,
   InventoryReport, WeightGainReport, LotsSummaryReport,
   BulkImportResult, BulkWeightResult,
-  WeightHistoryItem,
+  WeightHistoryItem, EditAnimalPayload
 } from '../models/cattle.model';
 
 @Injectable({ providedIn: 'root' })
@@ -28,7 +28,6 @@ export class CattleService {
     return this.api.post(`${this.base}/breeds/`, payload);
   }
 
-  
   // ── Animals list ────────────────────────────────────────────────────────────
   getAnimals(filters: AnimalFilters = {}): Observable<ApiResponse<AnimalListItem[]>> {
     return this.api.get(`${this.base}/animals/`, filters);
@@ -37,6 +36,11 @@ export class CattleService {
   // ── Animal detail ───────────────────────────────────────────────────────────
   getAnimal(id: string): Observable<ApiResponse<AnimalDetail>> {
     return this.api.get(`${this.base}/animals/${id}/`);
+  }
+
+  // ── Update animal ───────────────────────────────────────────────────────────
+  updateAnimal(id: string, payload: Partial<EditAnimalPayload>): Observable<ApiResponse<AnimalDetail>> {
+    return this.api.put(`${this.base}/animals/${id}/`, payload);
   }
 
   // ── Delete animal ───────────────────────────────────────────────────────────
@@ -148,9 +152,9 @@ export class CattleService {
   // bulkChangeLot(animalIds: string[], lotId: string): Observable<ApiResponse<{ changed_count: number }>> {
   //   return this.api.post(`${this.base}/animals/bulk-change-lot/`, { animal_ids: animalIds, lot_id: lotId });
   // }
-  updateAnimal(id: string, payload: Partial<AnimalDetail>): Observable<ApiResponse<AnimalDetail>> {
-    return this.api.put(`${this.base}/animals/${id}/`, payload);
-  }
+  // updateAnimal(id: string, payload: Partial<AnimalDetail>): Observable<ApiResponse<AnimalDetail>> {
+  //   return this.api.put(`${this.base}/animals/${id}/`, payload);
+  // }
 
   // // ── Weight records ────────────────────────────────────────────────────────
   // getWeightRecords(filters: WeightFilters = {}): Observable<ApiResponse<WeightRecord[]>> {

@@ -728,3 +728,49 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+// ── Row action buttons ────────────────────────────────────────────────────────
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid $border-color;
+  border-radius: $border-radius;
+  background: $white;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: $slate-500;
+  text-decoration: none;
+  padding: 0;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: $slate-50;
+    transform: translateY(-1px);
+  }
+
+  &--view:hover {
+    border-color: $primary;
+    color: $primary;
+    background: $primary-muted;
+  }
+
+  &--edit:hover {
+    border-color: #f59e0b;
+    color: #f59e0b;
+    background: #fffbeb;
+  }
+
+  &--delete:hover {
+    border-color: $danger;
+    color: $danger;
+    background: $danger-muted;
+  }
+}

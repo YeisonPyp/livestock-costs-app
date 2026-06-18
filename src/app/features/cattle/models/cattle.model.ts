@@ -83,6 +83,27 @@ export interface AnimalListItem {
   last_weight_date: string | null;
 }
 
+export interface LastWeightRecord {
+  id: string;
+  weight: string;
+  price_per_kg: string | null;
+  record_date: string;
+  estimated_value: string;
+}
+
+export interface EditableFields {
+  tag_number: boolean;
+  purchase_price: boolean;
+  entry_weight: boolean;
+  entry_date: boolean;
+  birth_date: boolean;
+  weight: boolean;
+  price_per_kg: boolean;
+  weight_record_date: boolean;
+  weight_record_count: number;
+  restriction_reason: string | null;
+}
+
 export interface AnimalDetail {
   id: string;
   tag_number: string;
@@ -127,6 +148,20 @@ export interface AnimalDetail {
   value_appreciation: string;
   created_at: string;
   updated_at: string;
+  latest_weight_record?: LastWeightRecord | null;
+  editable_fields: EditableFields;
+}
+
+export interface EditAnimalPayload {
+  tag_number?: string;
+  purchase_price?: string;
+  entry_weight?: string;
+  entry_date?: string;
+  birth_date?: string;
+  weight?: string;
+  price_per_kg?: string;
+  weight_record_date?: string;
+  restriction_reason?: string | null;
 }
 
 export interface AnimalSummary {

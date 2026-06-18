@@ -44,3 +44,23 @@ body {
 .mat-mdc-card {
   @apply border border-gray-200 shadow-sm rounded-xl; // Usas Tailwind para darle estilo a la tarjeta de Material
 }
+
+// styles.scss (global)
+
+// ── Forzar dialogs de confirmación por encima de modales custom ─────────────
+.cdk-overlay-container:has(.confirm-dialog-on-top) {
+  z-index: 10000 !important;
+}
+
+.confirm-dialog-backdrop-on-top {
+  z-index: 10000 !important;
+}
+
+.confirm-dialog-on-top {
+  z-index: 10001 !important;
+}
+
+// Alternativa más compatible (si :has no funciona)
+.cdk-overlay-container {
+  z-index: 10000;
+}
