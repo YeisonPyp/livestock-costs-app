@@ -6,5 +6,8 @@
   class="main-content"
   [class]="sidebarService.mainContentClass()"
 >
-  <router-outlet></router-outlet>
+  <!-- ✅ Contenedor interno que da el espaciado -->
+  <div class="content-wrapper">
+    <router-outlet></router-outlet>
+  </div>
 </main>
