@@ -31,6 +31,11 @@ export interface Color {
 export type LotStatus = 'active' | 'closed';
 export type LotType   = 'fattening' | 'breeding' | 'dairy' | 'calf' | 'replacement';
 
+export interface Owner {
+  id: string;
+  name: string
+}
+
 export interface Lot {
   id: string;
   code: string;
@@ -511,6 +516,7 @@ export interface AnimalFilters {
   category?: AnimalCategory;
   breed?: string;
   lot?: string;
+  owner?: string;
   farm?: string;
   ordering?: string;
 }

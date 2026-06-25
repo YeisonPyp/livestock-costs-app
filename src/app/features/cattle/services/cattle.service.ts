@@ -12,7 +12,8 @@ import {
   Movement,
   InventoryReport, WeightGainReport, LotsSummaryReport,
   BulkImportResult, BulkWeightResult,
-  WeightHistoryItem, EditAnimalPayload
+  WeightHistoryItem, EditAnimalPayload,
+  Owner
 } from '../models/cattle.model';
 
 @Injectable({ providedIn: 'root' })
@@ -46,6 +47,10 @@ export class CattleService {
   // ── Delete animal ───────────────────────────────────────────────────────────
   deleteAnimal(id: string): Observable<ApiResponse<{ message: string }>> {
     return this.api.delete(`${this.base}/animals/${id}/`);
+  }
+
+  getOwners(): Observable<ApiResponse<Owner[]>> {
+    return this.api.get(`${this.base}/animals/owners/`);
   }
 
   // ── Animal summary ──────────────────────────────────────────────────────────

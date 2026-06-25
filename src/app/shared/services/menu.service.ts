@@ -79,6 +79,12 @@ export class MenuService {
       color: 'teal',
       path: '/investments/sales',
     },
+    {
+      label: 'Usuarios',
+      icon: 'users',
+      color: 'slate',
+      path: '/users/user',
+    },
   ]);
 
   // ── API Pública (solo lectura) ─────────────────────────────────────

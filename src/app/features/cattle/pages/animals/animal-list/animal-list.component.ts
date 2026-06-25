@@ -59,7 +59,7 @@ export class AnimalListComponent implements OnInit, OnDestroy {
 
   animals    = signal<AnimalListItem[]>([]);
   breeds     = signal<any[]>([]);
-  lots       = signal<any[]>([]);
+  owners       = signal<any[]>([]);
   pagination = signal<any>(null);
   loading    = signal(true);
 
@@ -74,7 +74,7 @@ export class AnimalListComponent implements OnInit, OnDestroy {
   statusFilter = 'active';
   sexFilter: '' | 'M' | 'F' = '';
   breedFilter  = '';
-  lotFilter    = '';
+  ownerFilter    = '';
 
   // Estos se actualizan desde app-table via paginationParamsChange
   private currentPage = 1;
@@ -216,7 +216,7 @@ export class AnimalListComponent implements OnInit, OnDestroy {
     return !!(
       this.sexFilter ||
       this.breedFilter ||
-      this.lotFilter ||
+      this.ownerFilter ||
       this.statusFilter !== 'active'
     );
   }
@@ -233,9 +233,9 @@ export class AnimalListComponent implements OnInit, OnDestroy {
       .subscribe({ next: (r) => r.success && this.breeds.set(r.data) });
 
     this.svc
-      .getLots()
+      .getOwners()
       .pipe(takeUntil(this.destroy$))
-      .subscribe({ next: (r) => r.success && this.lots.set(r.data) });
+      .subscribe({ next: (r) => r.success && this.owners.set(r.data) });
 
     this.load();
   }
@@ -262,7 +262,7 @@ export class AnimalListComponent implements OnInit, OnDestroy {
     if (this.sexFilter) filters.gender = this.sexFilter;
     if (this.statusFilter) filters.status = this.statusFilter as any;
     if (this.breedFilter) filters.breed = this.breedFilter;
-    if (this.lotFilter) filters.lot = this.lotFilter;
+    if (this.ownerFilter) filters.owner = this.ownerFilter;
 
     this.svc
       .getAnimals(filters)
@@ -322,7 +322,7 @@ export class AnimalListComponent implements OnInit, OnDestroy {
     this.statusFilter = 'active';
     this.sexFilter = '';
     this.breedFilter = '';
-    this.lotFilter = '';
+    this.ownerFilter = '';
     this.onFilter();
   }
 

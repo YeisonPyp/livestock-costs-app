@@ -74,7 +74,7 @@
   <!-- KPIs -->
   <div class="kpi-grid">
     <app-kpi-card
-      label="Capital Actual"
+      label="Capital por Invertir"
       [value]="formatCurrency(facade.summary()?.investments?.totalCapital ?? 0)"
       color="blue"
     >
@@ -149,7 +149,7 @@
                   type="income" size="sm"/>
               </div>
               <div class="info-row">
-                <span class="lbl">Capital Actual</span>
+                <span class="lbl">Capital por Invertir</span>
                 <app-amount-display
                   [amount]="parseDecimal(facade.summary()?.investments?.totalCapital ?? 0)"
                   type="neutral" size="md"/>

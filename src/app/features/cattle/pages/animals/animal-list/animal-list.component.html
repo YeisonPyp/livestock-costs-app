@@ -127,11 +127,11 @@
 
     <select
       class="filter-select"
-      [(ngModel)]="lotFilter"
+      [(ngModel)]="ownerFilter"
       (ngModelChange)="onFilter()"
     >
-      <option value="">Todos los lotes</option>
-      @for (l of lots(); track l.id) {
+      <option value="">Todos los propietarios</option>
+      @for (l of owners(); track l.id) {
         <option [value]="l.id">{{ l.name }}</option>
       }
     </select>

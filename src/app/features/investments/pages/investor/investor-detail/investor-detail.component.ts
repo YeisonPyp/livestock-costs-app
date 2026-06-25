@@ -77,7 +77,7 @@ export class InvestorDetailComponent implements OnInit, OnDestroy {
     },
     {
       key: 'currentCapital',
-      label: 'Capital Actual',
+      label: 'Capital por Invertir',
       align: 'right',
       width: '150px',
       type: 'currency',

@@ -66,7 +66,7 @@
   <!-- KPIs -->
   <section class="kpi-section">
     <div class="kpi-grid">
-      <app-kpi-card label="Capital Actual"
+      <app-kpi-card label="Capital por Invertir"
         [value]="facade.formatCurrency(investment.currentCapital)" color="blue">
         <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="1" x2="12" y2="23"/>
@@ -195,7 +195,7 @@
                 </dd>
               </div>
               <div class="detail-row highlight">
-                <dt>Capital Actual</dt>
+                <dt>Capital por Invertir</dt>
                 <dd><app-amount-display [amount]="facade.parseDecimal(investment.currentCapital)" type="neutral" size="md"/></dd>
               </div>
             </dl>
