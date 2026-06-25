@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { trigger, state, style, transition, animate } from '@angular/animations';
@@ -20,6 +20,15 @@ import { MenuService, MenuItem } from '../../../services/menu.service';
       state('expanded', style({ transform: 'rotate(180deg)' })),
       transition('collapsed <=> expanded', animate('300ms ease-in-out')),
     ]),
+    trigger('slideIn', [
+      transition(':enter', [
+        style({ transform: 'translateX(-100%)' }),
+        animate('300ms ease-in-out', style({ transform: 'translateX(0)' })),
+      ]),
+      transition(':leave', [
+        animate('300ms ease-in-out', style({ transform: 'translateX(-100%)' })),
+      ]),
+    ]),
   ],
   templateUrl: './sidebar-menu.component.html',
   styleUrl: './sidebar-menu.component.scss',
@@ -30,9 +39,42 @@ export class SidebarMenuComponent implements OnInit {
   menuItems = signal<MenuItem[]>([]);
   expandedItems = signal<Set<string>>(new Set());
   isCollapsed = signal(false);
+  isMobile = signal(false);
+  isMobileSidebarOpen = signal(false);
 
   ngOnInit(): void {
     this.menuItems.set(this.menuSvc.getMenuItems());
+    this.checkViewport();
+  }
+
+  // ✅ Detectar cambios de viewport
+  @HostListener('window:resize', ['$event'])
+  onWindowResize(event: Event): void {
+    this.checkViewport();
+  }
+
+  // ✅ Cerrar sidebar al hacer click fuera en mobile
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (this.isMobile()) {
+      const target = event.target as HTMLElement;
+      const sidebar = document.querySelector('.sidebar');
+      const toggleBtn = document.querySelector('.collapse-btn');
+
+      if (sidebar && !sidebar.contains(target) && !toggleBtn?.contains(target)) {
+        this.isMobileSidebarOpen.set(false);
+      }
+    }
+  }
+
+  private checkViewport(): void {
+    const isMobileView = window.innerWidth < 768; // Breakpoint de 768px
+    this.isMobile.set(isMobileView);
+
+    // Cerrar sidebar cuando cambia a desktop
+    if (!isMobileView && this.isMobileSidebarOpen()) {
+      this.isMobileSidebarOpen.set(false);
+    }
   }
 
   toggleSubmenu(label: string, event: Event): void {
@@ -51,7 +93,19 @@ export class SidebarMenuComponent implements OnInit {
   }
 
   toggleSidebar(): void {
-    this.isCollapsed.set(!this.isCollapsed());
+    if (this.isMobile()) {
+      // En mobile, mostrar/ocultar el sidebar
+      this.isMobileSidebarOpen.set(!this.isMobileSidebarOpen());
+    } else {
+      // En desktop, contraer/expandir
+      this.isCollapsed.set(!this.isCollapsed());
+    }
+  }
+
+  closeMobileSidebar(): void {
+    if (this.isMobile()) {
+      this.isMobileSidebarOpen.set(false);
+    }
   }
 
   getIconSvg(icon?: string): string {

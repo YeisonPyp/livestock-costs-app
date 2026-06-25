@@ -1,7 +1,22 @@
-<div class="sidebar" [class.collapsed]="isCollapsed()">
+<!-- ✅ Overlay para mobile -->
+@if (isMobile() && isMobileSidebarOpen()) {
+  <div class="sidebar-overlay" (click)="closeMobileSidebar()"></div>
+}
+
+<div 
+  class="sidebar" 
+  [class.collapsed]="isCollapsed()"
+  [class.mobile-open]="isMobileSidebarOpen()"
+  [class.mobile]="isMobile()"
+  [@slideIn]="isMobile() && isMobileSidebarOpen() ? 'in' : 'out'">
+  
   <!-- Sidebar Header -->
   <div class="sidebar-header">
-    <button class="collapse-btn" (click)="toggleSidebar()" type="button" title="Toggle sidebar">
+    <button 
+      class="collapse-btn" 
+      (click)="toggleSidebar()" 
+      type="button" 
+      [title]="isMobile() ? 'Cerrar menú' : 'Contraer menú'">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <line x1="3" y1="6" x2="21" y2="6"/>
         <line x1="3" y1="12" x2="21" y2="12"/>
@@ -20,6 +35,7 @@
           [routerLink]="item.path"
           routerLinkActive="active"
           class="menu-item"
+          (click)="closeMobileSidebar()"
           [ngClass]="'color-' + (item.color || 'slate')">
           @if (item.icon) {
             <span class="menu-icon" [innerHTML]="getIconSvg(item.icon)" aria-hidden="true"></span>
@@ -56,7 +72,8 @@
               <a
                 [routerLink]="child.path"
                 routerLinkActive="active"
-                class="submenu-item">
+                class="submenu-item"
+                (click)="closeMobileSidebar()">
                 @if (child.icon) {
                   <span class="submenu-icon" [innerHTML]="getIconSvg(child.icon)" aria-hidden="true"></span>
                 }
