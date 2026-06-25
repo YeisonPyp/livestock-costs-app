@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { signal } from '@angular/core';
+// src/app/services/menu.service.ts
+import { Injectable, computed, signal } from '@angular/core';
 
 export interface MenuItem {
   label: string;
@@ -7,14 +7,30 @@ export interface MenuItem {
   path?: string;
   children?: MenuItem[];
   badge?: string | number;
-  color?: string;
+  color?: MenuColor;
+  roles?: string[]; // Control de acceso por rol
+  disabled?: boolean;
 }
+
+// ✅ Tipo estricto para colores - evita errores de typo
+export type MenuColor =
+  | 'blue'
+  | 'green'
+  | 'red'
+  | 'purple'
+  | 'orange'
+  | 'yellow'
+  | 'pink'
+  | 'indigo'
+  | 'teal'
+  | 'slate';
 
 @Injectable({
   providedIn: 'root',
 })
 export class MenuService {
-  menuItems = signal<MenuItem[]>([
+  // ── Estado privado ────────────────────────────────────────────────
+  private readonly _menuItems = signal<MenuItem[]>([
     {
       label: 'Dashboard',
       icon: 'bar-chart-2',
@@ -54,25 +70,82 @@ export class MenuService {
     {
       label: 'Inversiones',
       icon: 'trending-up',
-      color: 'purple',
+      color: 'indigo',
       path: '/investments/investments',
     },
     {
       label: 'Ventas',
       icon: 'shopping-cart',
-      color: 'green',
+      color: 'teal',
       path: '/investments/sales',
     },
-    // {
-    //   label: 'Reportes',
-    //   icon: 'shopping-cart',
-    //   color: 'black',
-    //   path: '/investments/reports',
-    // }
-
   ]);
 
-  getMenuItems() {
-    return this.menuItems();
+  // ── API Pública (solo lectura) ─────────────────────────────────────
+  readonly menuItems = this._menuItems.asReadonly();
+
+  // ── Computed: items habilitados solamente ──────────────────────────
+  readonly activeMenuItems = computed(() =>
+    this._menuItems().filter((item) => !item.disabled)
+  );
+
+  // ── Computed: total de badges ──────────────────────────────────────
+  readonly totalBadgeCount = computed(() =>
+    this._menuItems().reduce((acc, item) => {
+      const badge = Number(item.badge) || 0;
+      const childBadges =
+        item.children?.reduce(
+          (childAcc, child) => childAcc + (Number(child.badge) || 0),
+          0
+        ) || 0;
+      return acc + badge + childBadges;
+    }, 0)
+  );
+
+  // ── Métodos públicos ───────────────────────────────────────────────
+
+  /**
+   * Obtiene los items del menú (compatible con el código existente)
+   */
+  getMenuItems(): MenuItem[] {
+    return this._menuItems();
+  }
+
+  /**
+   * Actualiza el badge de un ítem específico
+   */
+  updateBadge(label: string, badge: string | number | undefined): void {
+    this._menuItems.update((items) =>
+      items.map((item) => (item.label === label ? { ...item, badge } : item))
+    );
+  }
+
+  /**
+   * Filtra el menú según los roles del usuario
+   */
+  getItemsByRole(userRoles: string[]): MenuItem[] {
+    return this._menuItems().filter((item) => {
+      // Si el item no tiene restricción de roles, es visible para todos
+      if (!item.roles || item.roles.length === 0) return true;
+      // Si tiene roles, verificar que el usuario tenga al menos uno
+      return item.roles.some((role) => userRoles.includes(role));
+    });
+  }
+
+  /**
+   * Busca un ítem por su path (útil para breadcrumbs)
+   */
+  findItemByPath(path: string): MenuItem | undefined {
+    const searchInItems = (items: MenuItem[]): MenuItem | undefined => {
+      for (const item of items) {
+        if (item.path === path) return item;
+        if (item.children) {
+          const found = searchInItems(item.children);
+          if (found) return found;
+        }
+      }
+      return undefined;
+    };
+    return searchInItems(this._menuItems());
   }
 }

@@ -1,15 +1,10 @@
-<div class="app-layout">
-  <!-- Navbar -->
-  <app-navbar></app-navbar>
+<!-- layout.component.html -->
+<app-navbar></app-navbar>
+<app-sidebar-menu></app-sidebar-menu>
 
-  <!-- Main Content -->
-  <div class="layout-container">
-    <!-- Sidebar Navigation -->
-    <app-sidebar-menu></app-sidebar-menu>
-
-    <!-- Page Content -->
-    <main class="main-content">
-      <router-outlet></router-outlet>
-    </main>
-  </div>
-</div>
+<main
+  class="main-content"
+  [class]="sidebarService.mainContentClass()"
+>
+  <router-outlet></router-outlet>
+</main>

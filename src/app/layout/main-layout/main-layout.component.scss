@@ -1,70 +1,27 @@
-@use '../../styles/variables' as *;
+// layout.component.scss
+$navbar-height: 64px;
+$sidebar-width: 280px;
+$sidebar-collapsed-width: 80px;
+$transition: 0.3s ease-in-out;
 
-.app-layout {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
-  background: $slate-50;
-}
-
-// ── Layout Container (Navbar + Sidebar + Content) ──────────────────────
-.layout-container {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-// ── Main Content Area ────────────────────────────────────────────────────
 .main-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  margin-left: 280px;
-  transition: margin-left 0.3s ease;
-  background: $slate-50;
-  padding: $space-4;
+  min-height: 100vh;
+  padding-top: $navbar-height;
+  transition: margin-left $transition;
+  background: #f8fafc;
 
-  // Adjust margin when sidebar is collapsed
-  :host-context(.sidebar.collapsed) & {
-    margin-left: 80px;
-  }
-}
-
-// ── Responsive ────────────────────────────────────────────────────────────
-@media (max-width: $bp-md) {
-  .main-content {
-    margin-left: 70px;
-  }
-}
-
-@media (max-width: $bp-sm) {
-  .layout-container {
-    flex-direction: column;
+  // ── Desktop: sidebar expandido (default) ────────────────────
+  &.content-expanded {
+    margin-left: $sidebar-width;
   }
 
-  .main-content {
+  // ── Desktop: sidebar colapsado ───────────────────────────────
+  &.content-collapsed {
+    margin-left: $sidebar-collapsed-width;
+  }
+
+  // ── Mobile: sin margen (sidebar es un drawer) ────────────────
+  &.content-mobile {
     margin-left: 0;
-    margin-top: 0;
-    flex: 1;
-    padding: $space-3;
-  }
-}
-
-// ── Scrollbar customization ───────────────────────────────────────────
-.main-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.main-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.main-content::-webkit-scrollbar-thumb {
-  background: $slate-300;
-  border-radius: 4px;
-
-  &:hover {
-    background: $slate-400;
   }
 }

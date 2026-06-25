@@ -1,102 +1,171 @@
-<!-- ✅ Overlay para mobile -->
-@if (isMobile() && isMobileSidebarOpen()) {
-  <div class="sidebar-overlay" (click)="closeMobileSidebar()"></div>
+<!-- sidebar-menu.component.html -->
+
+<!-- ✅ Overlay: solo visible en mobile cuando el sidebar está abierto -->
+@if (sidebarService.showOverlay()) {
+  <div
+    class="sidebar-overlay"
+    (click)="onOverlayClick()"
+    role="presentation"
+    aria-hidden="true"
+  ></div>
 }
 
-<div 
-  class="sidebar" 
-  [class.collapsed]="isCollapsed()"
-  [class.mobile-open]="isMobileSidebarOpen()"
-  [class.mobile]="isMobile()"
-  [@slideIn]="isMobile() && isMobileSidebarOpen() ? 'in' : 'out'">
-  
-  <!-- Sidebar Header -->
+<!-- ✅ Sidebar principal -->
+<aside
+  class="sidebar"
+  [class.collapsed]="sidebarService.isCollapsed() && !sidebarService.isMobile()"
+  [class.mobile]="sidebarService.isMobile()"
+  [class.mobile-open]="sidebarService.isMobileSidebarOpen()"
+  role="navigation"
+  aria-label="Menú de navegación"
+>
+
+  <!-- Header del Sidebar -->
   <div class="sidebar-header">
-    <button 
-      class="collapse-btn" 
-      (click)="toggleSidebar()" 
-      type="button" 
-      [title]="isMobile() ? 'Cerrar menú' : 'Contraer menú'">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <line x1="3" y1="6" x2="21" y2="6"/>
-        <line x1="3" y1="12" x2="21" y2="12"/>
-        <line x1="3" y1="18" x2="21" y2="18"/>
-      </svg>
+    <button
+      class="collapse-btn"
+      (click)="toggleSidebar()"
+      type="button"
+      [attr.aria-label]="
+        sidebarService.isMobile()
+          ? 'Cerrar menú'
+          : sidebarService.isCollapsed()
+            ? 'Expandir menú'
+            : 'Contraer menú'
+      "
+    >
+      <!-- Ícono X cuando está abierto en mobile -->
+      @if (sidebarService.isMobile() && sidebarService.isMobileSidebarOpen()) {
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      } @else {
+        <!-- Ícono hamburguesa -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      }
     </button>
-    <span class="sidebar-title">Menu</span>
+
+    <!-- Título solo visible cuando NO está colapsado -->
+    @if (!sidebarService.isCollapsed() || sidebarService.isMobile()) {
+      <span class="sidebar-title">Menú</span>
+    }
   </div>
 
-  <!-- Navigation -->
+  <!-- Navegación -->
   <nav class="sidebar-nav">
     @for (item of menuItems(); track item.label) {
+
+      <!-- Item sin hijos -->
       @if (!item.children || item.children.length === 0) {
-        <!-- Simple menu item (no children) -->
         <a
           [routerLink]="item.path"
           routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.path === '/dashboard' }"
           class="menu-item"
-          (click)="closeMobileSidebar()"
-          [ngClass]="'color-' + (item.color || 'slate')">
+          [class]="'menu-item color-' + (item.color || 'slate')"
+          (click)="onMenuItemClick()"
+          [attr.title]="sidebarService.isCollapsed() && !sidebarService.isMobile()
+            ? item.label
+            : null"
+        >
           @if (item.icon) {
-            <span class="menu-icon" [innerHTML]="getIconSvg(item.icon)" aria-hidden="true"></span>
+            <span
+              class="menu-icon"
+              [innerHTML]="getIconSvg(item.icon)"
+              aria-hidden="true"
+            ></span>
           }
-          <span class="menu-label">{{ item.label }}</span>
-          @if (item.badge) {
-            <span class="menu-badge">{{ item.badge }}</span>
+
+          @if (!sidebarService.isCollapsed() || sidebarService.isMobile()) {
+            <span class="menu-label">{{ item.label }}</span>
+
+            @if (item.badge) {
+              <span class="menu-badge">{{ item.badge }}</span>
+            }
           }
         </a>
+
+      <!-- Item con submenú -->
       } @else {
-        <!-- Menu item with children (expandable) -->
         <div class="menu-group">
           <button
             type="button"
-            class="menu-item menu-toggle"
+            [class]="'menu-item menu-toggle color-' + (item.color || 'slate')"
             (click)="toggleSubmenu(item.label, $event)"
-            [ngClass]="'color-' + (item.color || 'slate')">
+            [attr.aria-expanded]="isSubMenuExpanded(item.label)"
+            [attr.title]="sidebarService.isCollapsed() && !sidebarService.isMobile()
+              ? item.label
+              : null"
+          >
             @if (item.icon) {
-              <span class="menu-icon" [innerHTML]="getIconSvg(item.icon)" aria-hidden="true"></span>
+              <span
+                class="menu-icon"
+                [innerHTML]="getIconSvg(item.icon)"
+                aria-hidden="true"
+              ></span>
             }
-            <span class="menu-label">{{ item.label }}</span>
-            <span 
-              class="menu-chevron" 
-              [innerHTML]="getIconSvg('chevron-down')"
-              [@rotate]="isSubMenuExpanded(item.label) ? 'expanded' : 'collapsed'"
-              aria-hidden="true"></span>
+
+            @if (!sidebarService.isCollapsed() || sidebarService.isMobile()) {
+              <span class="menu-label">{{ item.label }}</span>
+              <span
+                class="menu-chevron"
+                [innerHTML]="getIconSvg('chevron-down')"
+                [@rotateChevron]="isSubMenuExpanded(item.label) ? 'expanded' : 'collapsed'"
+                aria-hidden="true"
+              ></span>
+            }
           </button>
 
-          <!-- Submenu -->
-          <div
-            class="submenu"
-            [@expandCollapse]="isSubMenuExpanded(item.label) ? 'expanded' : 'collapsed'">
-            @for (child of item.children; track child.label) {
-              <a
-                [routerLink]="child.path"
-                routerLinkActive="active"
-                class="submenu-item"
-                (click)="closeMobileSidebar()">
-                @if (child.icon) {
-                  <span class="submenu-icon" [innerHTML]="getIconSvg(child.icon)" aria-hidden="true"></span>
-                }
-                <span class="submenu-label">{{ child.label }}</span>
-                @if (child.badge) {
-                  <span class="submenu-badge">{{ child.badge }}</span>
-                }
-              </a>
-            }
-          </div>
+          <!-- Submenú expandible -->
+          @if (!sidebarService.isCollapsed() || sidebarService.isMobile()) {
+            <div
+              class="submenu"
+              [@expandCollapse]="isSubMenuExpanded(item.label) ? 'expanded' : 'collapsed'"
+            >
+              @for (child of item.children; track child.label) {
+                <a
+                  [routerLink]="child.path"
+                  routerLinkActive="active"
+                  class="submenu-item"
+                  (click)="onMenuItemClick()"
+                >
+                  @if (child.icon) {
+                    <span
+                      class="submenu-icon"
+                      [innerHTML]="getIconSvg(child.icon)"
+                      aria-hidden="true"
+                    ></span>
+                  }
+                  <span class="submenu-label">{{ child.label }}</span>
+                  @if (child.badge) {
+                    <span class="submenu-badge">{{ child.badge }}</span>
+                  }
+                </a>
+              }
+            </div>
+          }
         </div>
       }
     }
   </nav>
 
-  <!-- Sidebar Footer -->
-  <div class="sidebar-footer">
-    <div class="user-info">
-      <div class="user-avatar">👤</div>
-      <div class="user-details">
-        <p class="user-name">Usuario</p>
-        <p class="user-role">Admin</p>
+  <!-- Footer -->
+  @if (!sidebarService.isCollapsed() || sidebarService.isMobile()) {
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">👤</div>
+        <div class="user-details">
+          <p class="user-name">Usuario</p>
+          <p class="user-role">Administrador</p>
+        </div>
       </div>
     </div>
-  </div>
-</div>
+  }
+</aside>

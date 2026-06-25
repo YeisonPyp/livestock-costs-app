@@ -1,46 +1,42 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+// navbar.component.ts
+import {
+  Component,
+  HostListener,
+  OnInit,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../../features/auth/services/auth.service';
+import { SidebarService } from '../../../services/sidebar.service';
 import { filter } from 'rxjs/operators';
-
-interface NavItem {
-  label: string;
-  route: string;
-  icon: string;
-  badge?: number;
-}
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './navbar.component.html',
-  styleUrls: ['./navbar.component.scss']
+  styleUrls: ['./navbar.component.scss'],
 })
 export class NavbarComponent implements OnInit {
-  mobileMenuOpen = false;
+  // ✅ Inyección con inject() - estilo Angular 19
+  readonly sidebarService = inject(SidebarService);
+  readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
   userMenuOpen = false;
   scrolled = false;
-  currentRoute = '';
-
-  constructor(
-    public authService: AuthService,
-    private router: Router
-  ) {}
 
   ngOnInit(): void {
-    // Track current route
+    // Cerrar menús al navegar
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe((event: any) => {
-        this.currentRoute = event.url;
-        this.mobileMenuOpen = false;
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe(() => {
         this.userMenuOpen = false;
       });
   }
 
-  @HostListener('window:scroll', [])
+  @HostListener('window:scroll')
   onWindowScroll(): void {
     this.scrolled = window.scrollY > 20;
   }
@@ -48,23 +44,19 @@ export class NavbarComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
+    // Cerrar dropdown de usuario si se hace click afuera
     if (!target.closest('.user-menu-container')) {
       this.userMenuOpen = false;
     }
   }
 
-  toggleMobileMenu(): void {
-    this.mobileMenuOpen = !this.mobileMenuOpen;
-    if (this.mobileMenuOpen) {
-      this.userMenuOpen = false;
-    }
+  // ✅ Delega al SidebarService
+  toggleSidebar(): void {
+    this.sidebarService.toggleSidebar();
   }
 
   toggleUserMenu(): void {
     this.userMenuOpen = !this.userMenuOpen;
-    if (this.userMenuOpen) {
-      this.mobileMenuOpen = false;
-    }
   }
 
   logout(): void {
@@ -83,20 +75,20 @@ export class NavbarComponent implements OnInit {
   }
 
   getRoleLabel(role: string): string {
-    switch (role) {
-      case 'admin': return 'Administrador';
-      case 'investor': return 'Inversionista';
-      case 'super_admin': return 'Super Admin';
-      case 'user': return 'Usuario';
-      default: return role;
-    }
+    const roles: Record<string, string> = {
+      admin: 'Administrador',
+      investor: 'Inversionista',
+      super_admin: 'Super Admin',
+      user: 'Usuario',
+    };
+    return roles[role] ?? role;
   }
 
   getInitials(fullName: string): string {
     if (!fullName) return 'U';
-    const names = fullName.split(' ');
+    const names = fullName.trim().split(' ');
     if (names.length >= 2) {
-      return (names[0][0] + names[1][0]).toUpperCase();
+      return `${names[0][0]}${names[1][0]}`.toUpperCase();
     }
     return fullName.substring(0, 2).toUpperCase();
   }
