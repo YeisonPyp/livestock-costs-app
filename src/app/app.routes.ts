@@ -55,7 +55,11 @@ export const routes: Routes = [
       {
         path: 'cattle',
         loadChildren: () => import('./features/cattle/cattle.routes').then(m => m.CATTLE_ROUTES)
-      }
+      },
+      {
+        path: 'users',
+        loadChildren: () => import('./features/users/users.routes').then(m => m.USERS_ROUTES)
+      },
     ]
   },
   {

@@ -1,0 +1,493 @@
+// user-detail.component.scss
+$primary: #3b6bde;
+$danger:  #ef4444;
+$warning: #f59e0b;
+$success: #22c55e;
+$border:  #e2e8f0;
+$text:    #1a1f2e;
+$muted:   #64748b;
+$surface: #f8fafc;
+$radius:  12px;
+$t:       0.15s ease;
+
+// ── Page ──────────────────────────────────────────────────────────
+.ud-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1000px;
+}
+
+// ── Loading / Error ───────────────────────────────────────────────
+.ud-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 4rem;
+  color: $muted;
+  font-size: 0.9rem;
+}
+
+.ud-error-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 4rem;
+  color: $muted;
+  text-align: center;
+
+  svg { opacity: 0.4; }
+  p   { margin: 0; }
+}
+
+// ── Topbar ────────────────────────────────────────────────────────
+.ud-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ud-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1.5px solid $border;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: $muted;
+  cursor: pointer;
+  transition: all $t;
+  font-family: inherit;
+
+  &:hover { border-color: $primary; color: $primary; }
+}
+
+.ud-topbar__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ud-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1.5px solid $border;
+  background: white;
+  color: $muted;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all $t;
+  white-space: nowrap;
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  &:hover:not(:disabled) {
+    border-color: $primary;
+    color: $primary;
+    background: rgba($primary, 0.04);
+  }
+
+  &--primary {
+    background: $primary;
+    border-color: $primary;
+    color: white;
+    &:hover:not(:disabled) { background: darken($primary, 8%); color: white; }
+  }
+
+  &--success {
+    border-color: $success;
+    color: $success;
+    &:hover:not(:disabled) { background: rgba($success, 0.08); }
+  }
+
+  &--warning {
+    border-color: $warning;
+    color: $warning;
+    &:hover:not(:disabled) { background: rgba($warning, 0.08); }
+  }
+
+  &--danger {
+    border-color: $danger;
+    color: $danger;
+    &:hover:not(:disabled) { background: rgba($danger, 0.08); }
+  }
+}
+
+// ── Profile Header ────────────────────────────────────────────────
+.ud-profile-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  background: white;
+  border: 1px solid $border;
+  border-radius: $radius;
+  padding: 1.5rem;
+}
+
+.ud-profile-avatar {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, $primary, #6366f1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: visible;
+
+  span {
+    color: white;
+    font-size: 1.75rem;
+    font-weight: 700;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+}
+
+.ud-status-dot {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2.5px solid white;
+
+  &--active   { background: $success; }
+  &--inactive { background: #94a3b8; }
+}
+
+.ud-profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ud-profile-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0;
+}
+
+.ud-profile-username,
+.ud-profile-email {
+  font-size: 0.875rem;
+  color: $muted;
+  margin: 4px 0 0;
+}
+
+.ud-profile-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+// ── Grid ──────────────────────────────────────────────────────────
+.ud-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Card ──────────────────────────────────────────────────────────
+.ud-card {
+  background: white;
+  border: 1px solid $border;
+  border-radius: $radius;
+  overflow: hidden;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid $border;
+    background: $surface;
+    color: $muted;
+  }
+
+  &__title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $text;
+    margin: 0;
+  }
+
+  &__body {
+    padding: 1.25rem;
+  }
+}
+
+// ── Definition list ───────────────────────────────────────────────
+.ud-dl {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  &__row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 1rem;
+    padding: 0.625rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    align-items: start;
+
+    &:last-child { border-bottom: none; }
+
+    dt {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: $muted;
+      padding-top: 2px;
+    }
+
+    dd {
+      font-size: 0.875rem;
+      color: $text;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+  }
+}
+
+.ud-code {
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-family: 'Courier New', monospace;
+  color: $text;
+}
+
+.ud-link {
+  color: $primary;
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
+}
+
+.ud-sub {
+  font-size: 0.75rem;
+  color: $muted;
+}
+
+.ud-super-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.ud-empty-text {
+  font-size: 0.875rem;
+  color: $muted;
+  text-align: center;
+  padding: 1rem 0;
+}
+
+// ── Modal styles ──────────────────────────────────────────────────
+.ud-pwd-modal,
+.ud-delete-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ud-delete-modal {
+  align-items: center;
+  text-align: center;
+}
+
+.ud-delete-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #fef2f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $danger;
+}
+
+.ud-delete-msg {
+  font-size: 0.9rem;
+  color: $muted;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 280px;
+  strong { color: $text; }
+}
+
+.ud-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ud-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: $muted;
+}
+
+.ud-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ud-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 40px 0 12px;
+  border: 1.5px solid $border;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: $text;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color $t, box-shadow $t;
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+
+  &::placeholder { color: #94a3b8; }
+}
+
+.ud-eye-btn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: $muted;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color $t;
+  &:hover { color: $text; }
+}
+
+.ud-error-msg {
+  font-size: 0.8rem;
+  color: $danger;
+  font-weight: 500;
+  margin: 0;
+}
+
+.ud-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+// ── Buttons ───────────────────────────────────────────────────────
+.ud-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: all $t;
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  &--primary {
+    background: $primary;
+    color: white;
+    &:hover:not(:disabled) { background: darken($primary, 8%); }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: $muted;
+    border: 1.5px solid $border;
+    &:hover:not(:disabled) { background: $surface; color: $text; }
+  }
+
+  &--danger {
+    background: $danger;
+    color: white;
+    &:hover:not(:disabled) { background: darken($danger, 8%); }
+  }
+}
+
+// ── Spinner ───────────────────────────────────────────────────────
+.ud-spinner {
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgba($primary, 0.15);
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: udSpin 0.7s linear infinite;
+
+  &--sm {
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
+    border-color: rgba(255,255,255,0.3);
+    border-top-color: white;
+  }
+}
+
+@keyframes udSpin { to { transform: rotate(360deg); } }
+
+// ── Responsive ────────────────────────────────────────────────────
+@media (max-width: 640px) {
+  .ud-profile-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .ud-profile-badges { justify-content: center; }
+
+  .ud-topbar { flex-direction: column; }
+  .ud-topbar__actions { flex-wrap: wrap; }
+
+  .ud-dl__row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}

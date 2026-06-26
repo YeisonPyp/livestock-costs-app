@@ -46,3 +46,72 @@
 
 .bc-link { color: $primary; text-decoration: none; font-size: $font-sm; }
 .bc-sep  { margin: 0 $space-2; color: $slate-400; font-size: $font-sm; }
+
+// investor-form.component.scss (agregar)
+
+.investor-check {
+  margin-top: 12px;
+
+  &__loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    animation: icFadeIn 0.2s ease;
+  }
+
+  &__spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(37, 99, 235, 0.2);
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: icSpin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  &__warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    font-size: 0.8125rem;
+    animation: icFadeIn 0.2s ease;
+
+    svg {
+      flex-shrink: 0;
+      margin-top: 1px;
+      color: #d97706;
+    }
+
+    strong {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    p {
+      margin: 0;
+      line-height: 1.5;
+      color: #a16207;
+    }
+  }
+}
+
+@keyframes icFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes icSpin {
+  to { transform: rotate(360deg); }
+}

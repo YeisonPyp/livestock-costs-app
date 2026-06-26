@@ -1,0 +1,506 @@
+<!-- user-detail.component.html -->
+<div class="ud-page">
+  <!-- ══════════ LOADING ══════════ -->
+  @if (loading()) {
+    <div class="ud-loading">
+      <div class="ud-spinner"></div>
+      <span>Cargando usuario...</span>
+    </div>
+  }
+
+  <!-- ══════════ ERROR ══════════ -->
+  @if (error() && !loading()) {
+    <div class="ud-error-page">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        width="48"
+        height="48"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      <p>{{ error() }}</p>
+      <button class="ud-btn ud-btn--ghost" (click)="goBack()">Volver</button>
+    </div>
+  }
+
+  <!-- ══════════ CONTENT ══════════ -->
+  @if (user() && !loading()) {
+    <!-- Back + Actions -->
+    <div class="ud-topbar">
+      <button class="ud-back-btn" (click)="goBack()">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          width="16"
+          height="16"
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        Usuarios
+      </button>
+
+      <div class="ud-topbar__actions">
+        <!-- Activar / Desactivar -->
+        <button
+          class="ud-action-btn"
+          [class.ud-action-btn--success]="!user()!.is_active"
+          [class.ud-action-btn--warning]="user()!.is_active"
+          [disabled]="actionLoading() !== null"
+          (click)="toggleActive()"
+        >
+          @if (isActionLoading("active")) {
+            <span class="ud-spinner ud-spinner--sm"></span>
+          }
+          {{ user()!.is_active ? "Desactivar" : "Activar" }}
+        </button>
+
+        <!-- Verificar -->
+        <button
+          class="ud-action-btn"
+          [class.ud-action-btn--primary]="!user()!.is_verified"
+          [disabled]="actionLoading() !== null"
+          (click)="toggleVerify()"
+        >
+          @if (isActionLoading("verify")) {
+            <span class="ud-spinner ud-spinner--sm"></span>
+          }
+          {{ user()!.is_verified ? "Desverificar" : "Verificar" }}
+        </button>
+
+        <!-- Desbloquear (solo si está bloqueado) -->
+        @if (user()!.is_locked) {
+          <button
+            class="ud-action-btn ud-action-btn--warning"
+            [disabled]="actionLoading() !== null"
+            (click)="unlock()"
+          >
+            @if (isActionLoading("unlock")) {
+              <span class="ud-spinner ud-spinner--sm"></span>
+            }
+            Desbloquear
+          </button>
+        }
+
+        <!-- Contraseña -->
+        <button class="ud-action-btn" (click)="openPasswordModal()">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="14"
+            height="14"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          Contraseña
+        </button>
+
+        <!-- Eliminar -->
+        <button
+          class="ud-action-btn ud-action-btn--danger"
+          (click)="openDeleteModal()"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="14"
+            height="14"
+          >
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+          </svg>
+          Eliminar
+        </button>
+      </div>
+    </div>
+
+    <!-- ══════════ PROFILE HEADER ══════════ -->
+    <div class="ud-profile-header">
+      <div class="ud-profile-avatar">
+        @if (user()!.avatar) {
+          <img [src]="user()!.avatar" [alt]="user()!.full_name" />
+        } @else {
+          <span>{{ initials() }}</span>
+        }
+        <!-- Status dot -->
+        <div
+          class="ud-status-dot"
+          [class.ud-status-dot--active]="user()!.is_active"
+          [class.ud-status-dot--inactive]="!user()!.is_active"
+        ></div>
+      </div>
+
+      <div class="ud-profile-info">
+        <h1 class="ud-profile-name">
+          {{ user()!.full_name ?? user()!.username }}
+        </h1>
+        <p class="ud-profile-username">&#64;{{ user()!.username }}</p>
+        <p class="ud-profile-email">{{ user()!.email }}</p>
+        <div class="ud-profile-badges">
+          <app-user-status-badge
+            [type]="user()!.is_active ? 'active' : 'inactive'"
+          />
+          <app-user-status-badge
+            [type]="user()!.is_verified ? 'verified' : 'unverified'"
+          />
+          @if (user()!.is_staff) {
+            <app-user-status-badge type="staff" />
+          }
+          @if (user()!.is_locked) {
+            <app-user-status-badge type="locked" />
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ GRID DE SECCIONES ══════════ -->
+    <div class="ud-grid">
+      <!-- Información personal -->
+      <div class="ud-card">
+        <div class="ud-card__header">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="18"
+            height="18"
+          >
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <h2 class="ud-card__title">Información personal</h2>
+        </div>
+        <div class="ud-card__body">
+          @if (user()!.person) {
+            <dl class="ud-dl">
+              <div class="ud-dl__row">
+                <dt>Nombre completo</dt>
+                <dd>{{ user()!.person!.full_name ?? "—" }}</dd>
+              </div>
+              <div class="ud-dl__row">
+                <dt>Tipo de documento</dt>
+                <dd>
+                  {{
+                    user()!.person!.document_type_name ??
+                      user()!.person!.document_type
+                  }}
+                </dd>
+              </div>
+              <div class="ud-dl__row">
+                <dt>Número de documento</dt>
+                <dd>
+                  <code class="ud-code">{{
+                    user()!.person!.document_number
+                  }}</code>
+                </dd>
+              </div>
+              <div class="ud-dl__row">
+                <dt>Tipo de persona</dt>
+                <dd>
+                  {{
+                    user()!.person!.person_type === "N" ? "Natural" : "Jurídica"
+                  }}
+                </dd>
+              </div>
+              <div class="ud-dl__row">
+                <dt>Email</dt>
+                <dd>
+                  <a class="ud-link" [href]="'mailto:' + user()!.person!.email">
+                    {{ user()!.person!.email }}
+                  </a>
+                </dd>
+              </div>
+              @if (user()!.person!.phone_number) {
+                <div class="ud-dl__row">
+                  <dt>Teléfono</dt>
+                  <dd>{{ user()!.person!.phone_number }}</dd>
+                </div>
+              }
+              @if (user()!.person!.country || user()!.person!.city) {
+                <div class="ud-dl__row">
+                  <dt>Ubicación</dt>
+                  <dd>
+                    {{
+                      formatLocation(
+                        user()!.person!.city,
+                        user()!.person!.country
+                      )
+                    }}
+                  </dd>
+                </div>
+              }
+            </dl>
+          } @else {
+            <p class="ud-empty-text">No hay información personal disponible.</p>
+          }
+        </div>
+      </div>
+
+      <!-- Información de cuenta -->
+      <div class="ud-card">
+        <div class="ud-card__header">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="18"
+            height="18"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <h2 class="ud-card__title">Información de cuenta</h2>
+        </div>
+        <div class="ud-card__body">
+          <dl class="ud-dl">
+            <div class="ud-dl__row">
+              <dt>Username</dt>
+              <dd>
+                <code class="ud-code">{{ user()!.username }}</code>
+              </dd>
+            </div>
+            <div class="ud-dl__row">
+              <dt>Email de acceso</dt>
+              <dd>{{ user()!.email }}</dd>
+            </div>
+            <div class="ud-dl__row">
+              <dt>Estado</dt>
+              <dd>
+                <app-user-status-badge
+                  [type]="user()!.is_active ? 'active' : 'inactive'"
+                />
+              </dd>
+            </div>
+            <div class="ud-dl__row">
+              <dt>Verificación</dt>
+              <dd>
+                <app-user-status-badge
+                  [type]="user()!.is_verified ? 'verified' : 'unverified'"
+                />
+                @if (user()!.verified_at) {
+                  <span class="ud-sub">{{
+                    formatDateShort(user()!.verified_at)
+                  }}</span>
+                }
+              </dd>
+            </div>
+            @if (user()!.is_locked) {
+              <div class="ud-dl__row">
+                <dt>Bloqueado hasta</dt>
+                <dd>
+                  <app-user-status-badge type="locked" />
+                  <span class="ud-sub">{{
+                    formatDate(user()!.locked_until)
+                  }}</span>
+                </dd>
+              </div>
+            }
+            <div class="ud-dl__row">
+              <dt>Intentos fallidos</dt>
+              <dd>{{ user()!.failed_login_attempts ?? 0 }}</dd>
+            </div>
+            <div class="ud-dl__row">
+              <dt>Último acceso</dt>
+              <dd>{{ formatDate(user()!.last_login) }}</dd>
+            </div>
+            <div class="ud-dl__row">
+              <dt>IP último acceso</dt>
+              <dd>{{ user()!.last_login_ip ?? "—" }}</dd>
+            </div>
+            <div class="ud-dl__row">
+              <dt>Último cambio de contraseña</dt>
+              <dd>{{ formatDateShort(user()!.last_password_change) }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Auditoría -->
+      <div class="ud-card">
+        <div class="ud-card__header">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="18"
+            height="18"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <h2 class="ud-card__title">Auditoría</h2>
+        </div>
+        <div class="ud-card__body">
+          <dl class="ud-dl">
+            <div class="ud-dl__row">
+              <dt>Creado el</dt>
+              <dd>{{ formatDate(user()!.created_at) }}</dd>
+            </div>
+            <div class="ud-dl__row">
+              <dt>Última actualización</dt>
+              <dd>{{ formatDate(user()!.updated_at) }}</dd>
+            </div>
+            @if (user()!.is_staff) {
+              <div class="ud-dl__row">
+                <dt>Privilegios</dt>
+                <dd>
+                  <app-user-status-badge type="staff" />
+                  @if (user()!.is_superuser) {
+                    <span class="ud-super-badge">Super Admin</span>
+                  }
+                </dd>
+              </div>
+            }
+          </dl>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- ══════════ MODAL CONTRASEÑA ══════════ -->
+<app-modal
+  [isOpen]="showPasswordModal()"
+  title="Establecer contraseña"
+  size="sm"
+  [showFooter]="false"
+  (close)="closePasswordModal()"
+>
+  <div class="ud-pwd-modal">
+    <div class="ud-field">
+      <label class="ud-label">Nueva contraseña</label>
+      <div class="ud-input-wrap">
+        <input
+          class="ud-input"
+          [type]="showPwd() ? 'text' : 'password'"
+          placeholder="Mínimo 8 caracteres"
+          [ngModel]="newPassword()"
+          (ngModelChange)="newPassword.set($event)"
+        />
+        <button
+          type="button"
+          class="ud-eye-btn"
+          (click)="toggleShowPwd()"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="15"
+            height="15"
+          >
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="ud-field">
+      <label class="ud-label">Confirmar contraseña</label>
+      <div class="ud-input-wrap">
+        <input
+          class="ud-input"
+          [type]="showPwdConfirm() ? 'text' : 'password'"
+          placeholder="Repite la contraseña"
+          [ngModel]="newPasswordConfirm()"
+          (ngModelChange)="newPasswordConfirm.set($event)"
+        />
+        <button
+          type="button"
+          class="ud-eye-btn"
+          (click)="toggleShowPwdConfirm()"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            width="15"
+            height="15"
+          >
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </button>
+      </div>
+    </div>
+    @if (passwordError()) {
+      <p class="ud-error-msg">{{ passwordError() }}</p>
+    }
+    <div class="ud-modal-actions">
+      <button class="ud-btn ud-btn--ghost" (click)="closePasswordModal()">
+        Cancelar
+      </button>
+      <button
+        class="ud-btn ud-btn--primary"
+        [disabled]="submitting()"
+        (click)="confirmSetPassword()"
+      >
+        @if (submitting()) {
+          <span class="ud-spinner ud-spinner--sm"></span>
+        }
+        Guardar
+      </button>
+    </div>
+  </div>
+</app-modal>
+
+<!-- ══════════ MODAL ELIMINAR ══════════ -->
+<app-modal
+  [isOpen]="showDeleteModal()"
+  title="Eliminar usuario"
+  size="sm"
+  [showFooter]="false"
+  (close)="closeDeleteModal()"
+>
+  <div class="ud-delete-modal">
+    <div class="ud-delete-icon">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        width="30"
+        height="30"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+    </div>
+    <p class="ud-delete-msg">
+      ¿Eliminar al usuario <strong>{{ user()?.username }}</strong
+      >? Esta acción es irreversible.
+    </p>
+    <div class="ud-modal-actions">
+      <button class="ud-btn ud-btn--ghost" (click)="closeDeleteModal()">
+        Cancelar
+      </button>
+      <button
+        class="ud-btn ud-btn--danger"
+        [disabled]="submitting()"
+        (click)="confirmDelete()"
+      >
+        @if (submitting()) {
+          <span class="ud-spinner ud-spinner--sm"></span>
+        }
+        Eliminar
+      </button>
+    </div>
+  </div>
+</app-modal>

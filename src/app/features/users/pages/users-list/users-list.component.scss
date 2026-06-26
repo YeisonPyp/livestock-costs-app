@@ -1,0 +1,623 @@
+// user-list.component.scss
+$primary: #3b6bde;
+$danger: #ef4444;
+$border: #e2e8f0;
+$radius: 10px;
+$text: #1a1f2e;
+$text-muted: #64748b;
+$surface: #f8fafc;
+$transition: 0.15s ease;
+
+// ── Page ──────────────────────────────────────────────────────────
+.ul-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+// ── Header ────────────────────────────────────────────────────────
+.ul-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ul-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $text;
+  margin: 0;
+}
+
+.ul-subtitle {
+  font-size: 0.875rem;
+  color: $text-muted;
+  margin: 4px 0 0;
+}
+
+// ── Stats ─────────────────────────────────────────────────────────
+.ul-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 1rem;
+}
+
+.ul-stat-card {
+  background: white;
+  border: 1px solid $border;
+  border-radius: $radius;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-left: 4px solid $primary;
+  transition: box-shadow $transition;
+
+  &:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+  &__value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: $text;
+    line-height: 1;
+  }
+
+  &__label {
+    font-size: 0.75rem;
+    color: $text-muted;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &--green  { border-left-color: #22c55e; }
+  &--gray   { border-left-color: #94a3b8; }
+  &--blue   { border-left-color: #3b82f6; }
+  &--amber  { border-left-color: #f59e0b; }
+}
+
+// ── Toolbar ───────────────────────────────────────────────────────
+.ul-toolbar {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  background: white;
+  border: 1px solid $border;
+  border-radius: $radius;
+  padding: 0.875rem 1rem;
+}
+
+.ul-search {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+
+  &__icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: $text-muted;
+    pointer-events: none;
+  }
+
+  &__input {
+    width: 100%;
+    height: 38px;
+    padding: 0 34px 0 36px;
+    border: 1.5px solid $border;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-family: inherit;
+    color: $text;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color $transition, box-shadow $transition;
+
+    &:focus {
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.1);
+    }
+
+    &::placeholder { color: #94a3b8; }
+  }
+
+  &__clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $text-muted;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+
+    &:hover { color: $danger; }
+  }
+}
+
+.ul-filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ul-select {
+  height: 38px;
+  padding: 0 28px 0 10px;
+  border: 1.5px solid $border;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-family: inherit;
+  color: $text;
+  background: white;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  cursor: pointer;
+  transition: border-color $transition;
+
+  &:focus { border-color: $primary; }
+}
+
+// ── Bulk bar ──────────────────────────────────────────────────────
+.ul-bulk-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba($primary, 0.06);
+  border: 1.5px solid rgba($primary, 0.25);
+  border-radius: $radius;
+  animation: slideDown 0.18s ease;
+
+  &__count {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $primary;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Table ─────────────────────────────────────────────────────────
+.ul-table-wrap {
+  background: white;
+  border: 1px solid $border;
+  border-radius: $radius;
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.ul-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.ul-th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: $surface;
+  border-bottom: 1px solid $border;
+  white-space: nowrap;
+
+  &--check  { width: 48px; }
+  &--actions { width: 100px; text-align: center; }
+  &--date   { width: 120px; }
+
+  &--sortable {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    &:hover { color: $text; }
+  }
+}
+
+.ul-sort-icon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  opacity: 0.4;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5'%3E%3Cpath d='M12 5v14M5 12l7-7 7 7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+
+  &--asc  { opacity: 1; }
+  &--desc {
+    opacity: 1;
+    transform: rotate(180deg);
+  }
+  &--none { opacity: 0.35; }
+}
+
+.ul-row {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background $transition;
+
+  &:hover       { background: $surface; }
+  &:last-child  { border-bottom: none; }
+  &--selected   { background: rgba($primary, 0.04); }
+}
+
+.ul-td {
+  padding: 0.875rem 1rem;
+  font-size: 0.875rem;
+  color: $text;
+  vertical-align: middle;
+
+  &--check   { width: 48px; }
+  &--date    { color: $text-muted; font-size: 0.8rem; white-space: nowrap; }
+  &--actions { text-align: center; }
+}
+
+// ── Cells ─────────────────────────────────────────────────────────
+.ul-person-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ul-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e0e7ff;
+  color: $primary;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &--juridical {
+    background: #fef3c7;
+    color: #b45309;
+  }
+}
+
+.ul-person-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ul-person-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.ul-person-email {
+  font-size: 0.75rem;
+  color: $text-muted;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.ul-doc-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ul-doc-type {
+  font-size: 0.7rem;
+  color: $text-muted;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.ul-doc-number {
+  font-weight: 500;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+}
+
+.ul-contact-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ul-contact-phone,
+.ul-contact-location {
+  font-size: 0.8rem;
+  color: $text-muted;
+}
+
+// ── Actions ───────────────────────────────────────────────────────
+.ul-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.ul-action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background $transition, color $transition;
+
+  &--edit {
+    background: rgba($primary, 0.08);
+    color: $primary;
+    &:hover { background: rgba($primary, 0.16); }
+  }
+
+  &--delete {
+    background: rgba($danger, 0.08);
+    color: $danger;
+    &:hover { background: rgba($danger, 0.16); }
+  }
+}
+
+// ── Empty / Error / Loading ───────────────────────────────────────
+.ul-empty {
+  padding: 3rem 1rem;
+  text-align: center;
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    color: $text-muted;
+
+    p { margin: 0; font-size: 0.9rem; }
+    svg { opacity: 0.4; }
+  }
+}
+
+.ul-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem;
+  color: $text-muted;
+  font-size: 0.875rem;
+}
+
+.ul-error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  color: $danger;
+  background: #fef2f2;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  margin: 1rem;
+}
+
+// ── Pagination ────────────────────────────────────────────────────
+.ul-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  &__info {
+    font-size: 0.8rem;
+    color: $text-muted;
+  }
+
+  &__controls {
+    display: flex;
+    gap: 4px;
+  }
+}
+
+.ul-page-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1.5px solid $border;
+  border-radius: 7px;
+  background: white;
+  color: $text-muted;
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition;
+
+  &:hover:not(:disabled) {
+    border-color: $primary;
+    color: $primary;
+  }
+
+  &--active {
+    background: $primary;
+    border-color: $primary;
+    color: white;
+    font-weight: 700;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+// ── Delete modal ──────────────────────────────────────────────────
+.ul-delete-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem;
+  text-align: center;
+
+  &__icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #fef2f2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $danger;
+  }
+
+  &__message {
+    font-size: 0.9rem;
+    color: $text-muted;
+    line-height: 1.6;
+    margin: 0;
+    max-width: 320px;
+
+    strong { color: $text; }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+// ── Checkbox ──────────────────────────────────────────────────────
+.ul-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: $primary;
+  cursor: pointer;
+}
+
+// ── Spinner ───────────────────────────────────────────────────────
+.ul-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba($primary, 0.15);
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: plSpin 0.7s linear infinite;
+
+  &--sm {
+    width: 14px;
+    height: 14px;
+    border-width: 2px;
+    border-top-color: white;
+    border-color: rgba(255,255,255,0.3);
+    border-top-color: white;
+  }
+}
+
+@keyframes plSpin { to { transform: rotate(360deg); } }
+
+// ── Buttons ───────────────────────────────────────────────────────
+.ul-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: all $transition;
+  white-space: nowrap;
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:active:not(:disabled) { transform: scale(0.98); }
+
+  &--primary {
+    background: $primary;
+    color: white;
+    box-shadow: 0 1px 4px rgba($primary, 0.3);
+    &:hover:not(:disabled) { background: darken($primary, 8%); }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: $text-muted;
+    border: 1.5px solid $border;
+    &:hover:not(:disabled) { background: $surface; color: $text; }
+  }
+
+  &--danger {
+    background: $danger;
+    color: white;
+    &:hover:not(:disabled) { background: darken($danger, 8%); }
+  }
+
+  &--sm {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 0.8125rem;
+  }
+}
+
+// ── Responsive ────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .ul-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ul-filters {
+    flex-wrap: wrap;
+  }
+
+  .ul-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ul-pagination {
+    flex-direction: column;
+    align-items: center;
+  }
+}

@@ -1,102 +1,338 @@
-// ─── Host ────────────────────────────────────────────────────────────────────
-:host {
+// person-form.component.scss
+$primary:  #3b6bde;
+$danger:   #ef4444;
+$success:  #22c55e;
+$border:   #e2e8f0;
+$text:     #1a1f2e;
+$muted:    #64748b;
+$surface:  #f8fafc;
+$white:    #ffffff;
+$radius:   10px;
+$t:        0.16s ease;
+
+// ── Host ──────────────────────────────────────────────────────────
+.pf-host {
   display: block;
   font-family: inherit;
+
+  &--compact {
+    .pf-form { gap: 14px; }
+  }
 }
 
-// ─── Form layout ─────────────────────────────────────────────────────────────
-form {
+// ── Form layout ───────────────────────────────────────────────────
+.pf-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-// ─── Person type switch ───────────────────────────────────────────────────────
+// ── Barra de progreso ─────────────────────────────────────────────
+.pf-progress-bar {
+  position: relative;
+  height: 6px;
+  background: $border;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+
+  &__fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, $primary, #6366f1);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  &__label {
+    position: absolute;
+    right: 0;
+    top: -18px;
+    font-size: 0.7rem;
+    color: $muted;
+    font-weight: 500;
+  }
+}
+
+// ── Section title (modo compact) ──────────────────────────────────
+.pf-section-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: $text;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: 4px;
+  border-bottom: 2px solid $border;
+  margin-top: 8px;
+
+  &:first-child { margin-top: 0; }
+}
+
+.pf-optional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: $muted;
+  font-size: 0.75rem;
+}
+
+// ── Type switch ───────────────────────────────────────────────────
 .pf-type-switch {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .pf-type-btn {
   flex: 1;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 11px 16px;
+  gap: 12px;
+  padding: 14px 16px;
   border-radius: 10px;
-  border: 1.5px solid var(--border-color, #e2e6ed);
-  background: transparent;
-  color: var(--text-muted, #6b7385);
-  font-size: 0.875rem;
-  font-weight: 500;
-  font-family: inherit;
+  border: 1.5px solid $border;
+  background: $white;
   cursor: pointer;
-  transition: border-color 0.16s, background 0.16s, color 0.16s, box-shadow 0.16s;
+  transition: all $t;
+  font-family: inherit;
+  text-align: left;
+  position: relative;
 
-  svg { flex-shrink: 0; }
+  &__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: $surface;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: $muted;
+    transition: background $t, color $t;
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $text;
+    line-height: 1.2;
+  }
+
+  &__desc {
+    font-size: 0.75rem;
+    color: $muted;
+    line-height: 1.2;
+  }
+
+  &__check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: $primary;
+    color: $white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    animation: pfPop 0.2s ease;
+  }
 
   &:hover:not(.pf-type-btn--active) {
-    border-color: var(--primary, #3b6bde);
-    color: var(--primary, #3b6bde);
-    background: rgba(59, 107, 222, 0.04);
+    border-color: rgba($primary, 0.4);
+    background: rgba($primary, 0.02);
+
+    .pf-type-btn__icon {
+      background: rgba($primary, 0.08);
+      color: $primary;
+    }
   }
 
   &--active {
-    border-color: var(--primary, #3b6bde);
-    background: rgba(59, 107, 222, 0.08);
-    color: var(--primary, #3b6bde);
-    font-weight: 600;
-    box-shadow: 0 0 0 3px rgba(59, 107, 222, 0.12);
+    border-color: $primary;
+    background: rgba($primary, 0.04);
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+
+    .pf-type-btn__icon {
+      background: rgba($primary, 0.12);
+      color: $primary;
+    }
+
+    .pf-type-btn__label { color: $primary; }
   }
 }
 
-// ─── Grid helpers ─────────────────────────────────────────────────────────────
+@keyframes pfPop {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+// ── Grids ─────────────────────────────────────────────────────────
 .pf-grid {
   display: grid;
   gap: 16px;
 
-  & + & { margin-top: 16px; }
+  & + & { margin-top: 14px; }
 
   &--1 { grid-template-columns: 1fr; }
   &--2 { grid-template-columns: 1fr 1fr; }
   &--3 { grid-template-columns: 1fr 1fr 1fr; }
 }
 
-// ─── Field wrapper (for adding async error below a component) ─────────────────
-.pf-field-wrap {
+// ── Field stack (input + msg async) ──────────────────────────────
+.pf-field-stack {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-// ─── Async error message (below input-field, outside the component) ───────────
-.pf-async-error {
+// ── Select skeleton ───────────────────────────────────────────────
+.pf-select-wrap { display: flex; flex-direction: column; }
+
+.pf-select-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pf-skeleton-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: $muted;
+}
+
+// ── Async messages ────────────────────────────────────────────────
+.pf-async-error,
+.pf-async-ok {
   display: flex;
   align-items: center;
   gap: 5px;
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 500;
-  color: #ef4444;
+  font-weight: 600;
 
   svg { flex-shrink: 0; }
 }
 
-// ─── Actions bar ─────────────────────────────────────────────────────────────
-.pf-actions {
+.pf-async-error { color: $danger; }
+.pf-async-ok    { color: $success; }
+
+// ── Block reason ──────────────────────────────────────────────────
+.pf-block-reason {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding-top: 4px;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #fff8f0;
+  border: 1px solid #fed7aa;
+  color: #ea580c;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  animation: pfFade 0.2s ease;
 }
 
-// ─── Buttons ─────────────────────────────────────────────────────────────────
+// ── Create user toggle ────────────────────────────────────────────
+.pf-create-user-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  background: rgba($primary, 0.03);
+  border: 1.5px solid rgba($primary, 0.15);
+  border-radius: $radius;
+
+  &__info {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+    color: $primary;
+  }
+
+  &__label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $text;
+    margin: 0;
+  }
+
+  &__desc {
+    font-size: 0.78rem;
+    color: $muted;
+    margin: 2px 0 0;
+  }
+}
+
+// Toggle switch
+.pf-toggle {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: $border;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s;
+
+  &__thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: $white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease;
+  }
+
+  &--on {
+    background: $primary;
+
+    .pf-toggle__thumb {
+      transform: translateX(20px);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
+}
+
+// ── Actions ───────────────────────────────────────────────────────
+.pf-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid $border;
+
+  &--compact {
+    border-top: none;
+    padding-top: 4px;
+  }
+}
+
+// ── Buttons ───────────────────────────────────────────────────────
 .pf-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 7px;
   height: 40px;
   padding: 0 22px;
   border-radius: 8px;
@@ -105,71 +341,123 @@ form {
   font-family: inherit;
   cursor: pointer;
   border: none;
-  transition: background 0.16s, box-shadow 0.16s, transform 0.1s, opacity 0.16s;
+  transition: all $t;
+  white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+  }
 
   &:active:not(:disabled) { transform: scale(0.98); }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
 
   &--primary {
-    background: var(--primary, #3b6bde);
-    color: #fff;
-    box-shadow: 0 1px 4px rgba(59,107,222,0.3);
+    background: $primary;
+    color: $white;
+    box-shadow: 0 1px 4px rgba($primary, 0.3);
 
     &:hover:not(:disabled) {
-      background: #2a54c7;
-      box-shadow: 0 3px 10px rgba(59,107,222,0.35);
+      background: darken($primary, 8%);
+      box-shadow: 0 3px 10px rgba($primary, 0.35);
     }
   }
 
   &--ghost {
     background: transparent;
-    color: var(--text-muted, #6b7385);
-    border: 1.5px solid var(--border-color, #e2e6ed);
+    color: $muted;
+    border: 1.5px solid $border;
 
     &:hover:not(:disabled) {
-      background: var(--surface, #f8f9fb);
-      color: var(--text, #1a1f2e);
+      background: $surface;
+      color: $text;
     }
   }
 }
 
-// ─── Spinner ─────────────────────────────────────────────────────────────────
+// ── Spinner ───────────────────────────────────────────────────────
 .pf-spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255,255,255,0.35);
-  border-top-color: #fff;
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba($white, 0.35);
+  border-top-color: $white;
   border-radius: 50%;
   animation: pfSpin 0.7s linear infinite;
 }
 
-@keyframes pfSpin { to { transform: rotate(360deg); } }
-
-// ─── Spinner SVG suffix icon animation ───────────────────────────────────────
-// (used in the inline SVG injected via suffixIcon)
-:host ::ng-deep [style*="animation:spin"] {
+.pf-icon-spin {
   animation: pfSpin 0.7s linear infinite;
 }
 
-// ─── Slide-in for conditional cards ──────────────────────────────────────────
+// ── Skeletons ─────────────────────────────────────────────────────
+.pf-skeleton-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pf-skeleton-card {
+  background: $white;
+  border: 1px solid $border;
+  border-radius: $radius;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pf-skeleton-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.pf-skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: psShimmer 1.4s ease infinite;
+  border-radius: 6px;
+
+  &--title  { height: 20px; width: 50%; }
+  &--field  { height: 40px; }
+  &--select { height: 38px; }
+}
+
+// ── form-card animation ───────────────────────────────────────────
 app-form-card {
   animation: pfFade 0.2s ease;
+  display: block;
 }
 
-@keyframes pfFade {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+// ── Keyframes ─────────────────────────────────────────────────────
+@keyframes pfSpin    { to { transform: rotate(360deg); } }
+@keyframes pfFade    { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes psShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+// ── Responsive ────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .pf-grid--3 { grid-template-columns: 1fr 1fr; }
 }
 
-// ─── Responsive ──────────────────────────────────────────────────────────────
 @media (max-width: 640px) {
+  .pf-type-switch   { flex-direction: column; }
+
+  .pf-type-btn {
+    &__desc { display: none; }
+  }
+
   .pf-grid--2,
   .pf-grid--3 { grid-template-columns: 1fr; }
 
-  .pf-type-switch { flex-direction: column; }
-
   .pf-actions {
     flex-direction: column-reverse;
+
     .pf-btn { width: 100%; }
+  }
+
+  .pf-create-user-toggle {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
 }

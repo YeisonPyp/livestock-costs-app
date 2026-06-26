@@ -1,0 +1,390 @@
+<!-- users-list.component.html -->
+<div class="ul-page">
+
+  <!-- HEADER -->
+  <div class="ul-header">
+    <div class="ul-header__info">
+      <h1 class="ul-title">Usuarios</h1>
+      <p class="ul-subtitle">Gestión de accesos y cuentas del sistema</p>
+    </div>
+    <button class="ul-btn ul-btn--primary" (click)="openCreateModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nuevo usuario
+    </button>
+  </div>
+
+  <!-- STATS -->
+  @if (stats()) {
+    <div class="ul-stats">
+      <div class="ul-stat-card">
+        <span class="ul-stat-card__value">{{ stats()!.total }}</span>
+        <span class="ul-stat-card__label">Total</span>
+      </div>
+      <div class="ul-stat-card ul-stat-card--green">
+        <span class="ul-stat-card__value">{{ stats()!.active }}</span>
+        <span class="ul-stat-card__label">Activos</span>
+      </div>
+      <div class="ul-stat-card ul-stat-card--blue">
+        <span class="ul-stat-card__value">{{ stats()!.verified }}</span>
+        <span class="ul-stat-card__label">Verificados</span>
+      </div>
+      <div class="ul-stat-card ul-stat-card--purple">
+        <span class="ul-stat-card__value">{{ stats()!.staff }}</span>
+        <span class="ul-stat-card__label">Staff</span>
+      </div>
+      <div class="ul-stat-card ul-stat-card--red">
+        <span class="ul-stat-card__value">{{ stats()!.locked ?? 0 }}</span>
+        <span class="ul-stat-card__label">Bloqueados</span>
+      </div>
+    </div>
+  }
+
+  <!-- TOOLBAR -->
+  <div class="ul-toolbar">
+    <div class="ul-search">
+      <svg class="ul-search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        class="ul-search__input"
+        type="text"
+        placeholder="Buscar por nombre, usuario, email..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchChange($event)"
+      />
+      @if (searchQuery()) {
+        <button class="ul-search__clear" (click)="onSearchChange('')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      }
+    </div>
+
+    <div class="ul-filters">
+      <select class="ul-select"
+        [ngModel]="filterActive()"
+        (ngModelChange)="filterActive.set($event); onFilterChange()">
+        <option value="">Todos los estados</option>
+        <option value="true">Activos</option>
+        <option value="false">Inactivos</option>
+      </select>
+
+      <select class="ul-select"
+        [ngModel]="filterVerified()"
+        (ngModelChange)="filterVerified.set($event); onFilterChange()">
+        <option value="">Verificación</option>
+        <option value="true">Verificados</option>
+        <option value="false">Sin verificar</option>
+      </select>
+
+      <select class="ul-select"
+        [ngModel]="filterStaff()"
+        (ngModelChange)="filterStaff.set($event); onFilterChange()">
+        <option value="">Todos los roles</option>
+        <option value="true">Solo staff</option>
+        <option value="false">No staff</option>
+      </select>
+
+      <button class="ul-btn ul-btn--ghost ul-btn--sm" (click)="clearFilters()">
+        Limpiar
+      </button>
+    </div>
+  </div>
+
+  <!-- Bulk bar -->
+  @if (hasSelection()) {
+    <div class="ul-bulk-bar">
+      <span class="ul-bulk-bar__count">
+        {{ selectionCount() }} seleccionado{{ selectionCount() !== 1 ? 's' : '' }}
+      </span>
+      <div class="ul-bulk-bar__actions">
+        <button class="ul-btn ul-btn--ghost ul-btn--sm" (click)="bulkVerify()">Verificar</button>
+        <button class="ul-btn ul-btn--ghost ul-btn--sm" (click)="bulkAction('activate')">Activar</button>
+        <button class="ul-btn ul-btn--ghost ul-btn--sm" (click)="bulkAction('deactivate')">Desactivar</button>
+        <button class="ul-btn ul-btn--danger ul-btn--sm" (click)="bulkAction('delete')">Eliminar</button>
+        <button class="ul-btn ul-btn--ghost ul-btn--sm" (click)="clearSelection()">Cancelar</button>
+      </div>
+    </div>
+  }
+
+  <!-- TABLE -->
+  <div class="ul-table-wrap">
+    @if (loading()) {
+      <div class="ul-loading">
+        <div class="ul-spinner"></div>
+        <span>Cargando usuarios...</span>
+      </div>
+    }
+    @if (error()) {
+      <div class="ul-error">
+        {{ error() }}
+        <button class="ul-btn ul-btn--ghost ul-btn--sm" (click)="loadUsers()">Reintentar</button>
+      </div>
+    }
+
+    @if (!loading() && !error()) {
+      <table class="ul-table">
+        <thead>
+          <tr>
+            <th class="ul-th ul-th--check">
+              <input type="checkbox" class="ul-checkbox" [checked]="allSelected()" (change)="toggleAll()"/>
+            </th>
+            <th class="ul-th">Usuario</th>
+            <th class="ul-th ul-th--sortable" (click)="onSortChange('username')">
+              Username
+              <span class="ul-sort-icon" [class]="'ul-sort-icon--' + getSortIcon('username')"></span>
+            </th>
+            <th class="ul-th">Estado</th>
+            <th class="ul-th">Verificación</th>
+            <th class="ul-th">Rol</th>
+            <th class="ul-th ul-th--sortable" (click)="onSortChange('last_login')">
+              Último acceso
+              <span class="ul-sort-icon" [class]="'ul-sort-icon--' + getSortIcon('last_login')"></span>
+            </th>
+            <th class="ul-th ul-th--sortable" (click)="onSortChange('created_at')">
+              Creado
+              <span class="ul-sort-icon" [class]="'ul-sort-icon--' + getSortIcon('created_at')"></span>
+            </th>
+            <th class="ul-th ul-th--actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (users().length === 0) {
+            <tr>
+              <td colspan="9" class="ul-empty">
+                <div class="ul-empty__content">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  <p>No se encontraron usuarios</p>
+                  <button class="ul-btn ul-btn--primary ul-btn--sm" (click)="openCreateModal()">
+                    Crear primer usuario
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+
+          @for (user of users(); track user.id) {
+            <tr class="ul-row" [class.ul-row--selected]="isSelected(user.id)">
+              <td class="ul-td ul-td--check">
+                <input type="checkbox" class="ul-checkbox"
+                  [checked]="isSelected(user.id)"
+                  (change)="toggleUser(user.id)"/>
+              </td>
+
+              <!-- Usuario -->
+              <td class="ul-td">
+                <div class="ul-user-cell">
+                  <div class="ul-avatar">{{ getInitials(user) }}</div>
+                  <div class="ul-user-info">
+                    <span class="ul-user-name">{{ user.full_name }}</span>
+                    <span class="ul-user-email">{{ user.email }}</span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Username -->
+              <td class="ul-td">
+                <code class="ul-username">{{ user.username }}</code>
+              </td>
+
+              <!-- Estado activo -->
+              <td class="ul-td">
+                <button
+                  class="ul-toggle-btn"
+                  [class.ul-toggle-btn--active]="user.is_active"
+                  [class.ul-toggle-btn--inactive]="!user.is_active"
+                  (click)="toggleActive(user)"
+                  [title]="user.is_active ? 'Desactivar' : 'Activar'"
+                >
+                  <span class="ul-toggle-dot"></span>
+                  {{ user.is_active ? 'Activo' : 'Inactivo' }}
+                </button>
+              </td>
+
+              <!-- Verificación -->
+              <td class="ul-td">
+                <app-user-status-badge [type]="user.is_verified ? 'verified' : 'unverified'"/>
+              </td>
+
+              <!-- Rol -->
+              <td class="ul-td">
+                @if (user.is_staff) {
+                  <app-user-status-badge type="staff"/>
+                } @else {
+                  <span class="ul-role-text">Usuario</span>
+                }
+              </td>
+
+              <!-- Último acceso -->
+              <td class="ul-td ul-td--muted">
+                {{ formatLastLogin(user.created_at) }}
+              </td>
+
+              <!-- Creado -->
+              <td class="ul-td ul-td--muted">
+                {{ formatDate(user.created_at) }}
+              </td>
+
+              <!-- Acciones -->
+              <td class="ul-td ul-td--actions">
+                <div class="ul-actions">
+                  <button
+                    class="ul-action-btn"
+                    title="Verificar / Desverificar"
+                    (click)="toggleVerify(user)"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </button>
+                  <button
+                    class="ul-action-btn"
+                    title="Cambiar contraseña"
+                    (click)="openPasswordModal(user)"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                      <rect x="3" y="11" width="18" height="11" rx="2"/>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                  </button>
+                  <button
+                    class="ul-action-btn ul-action-btn--danger"
+                    title="Eliminar"
+                    (click)="openDeleteModal(user)"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  <!-- PAGINATION -->
+  @if (totalPages() > 1) {
+    <div class="ul-pagination">
+      <span class="ul-pagination__info">
+        Página {{ currentPage() }} de {{ totalPages() }} · {{ totalCount() }} registros
+      </span>
+      <div class="ul-pagination__controls">
+        <button class="ul-page-btn" [disabled]="!hasPrev()" (click)="goToPage(currentPage() - 1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        @for (page of pageRange(); track page) {
+          <button class="ul-page-btn" [class.ul-page-btn--active]="page === currentPage()" (click)="goToPage(page)">
+            {{ page }}
+          </button>
+        }
+        <button class="ul-page-btn" [disabled]="!hasNext()" (click)="goToPage(currentPage() + 1)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- MODAL CREAR USUARIO -->
+<app-modal [isOpen]="showCreateModal()" title="Nuevo usuario" size="xl"
+  [showFooter]="false" (close)="closeCreateModal()">
+  <app-user-form
+    [loading]="submitting()"
+    (formSubmit)="onCreateUser($event)"
+    (formCancel)="closeCreateModal()"
+  />
+</app-modal>
+
+<!-- MODAL CAMBIAR CONTRASEÑA -->
+<app-modal [isOpen]="showPasswordModal()" title="Cambiar contraseña" size="sm"
+  [showFooter]="false" (close)="closePasswordModal()">
+  @if (selectedUser()) {
+    <div class="ul-password-modal">
+      <p class="ul-password-modal__user">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        {{ selectedUser()!.full_name }}
+      </p>
+
+      <div class="ul-password-modal__fields">
+        <div class="ul-field">
+          <label class="ul-label">Nueva contraseña</label>
+          <input
+            class="ul-input"
+            type="password"
+            placeholder="Mínimo 8 caracteres"
+            [ngModel]="newPassword()"
+            (ngModelChange)="newPassword.set($event)"
+          />
+        </div>
+        <div class="ul-field">
+          <label class="ul-label">Confirmar contraseña</label>
+          <input
+            class="ul-input"
+            type="password"
+            placeholder="Repite la contraseña"
+            [ngModel]="newPasswordConfirm()"
+            (ngModelChange)="newPasswordConfirm.set($event)"
+          />
+        </div>
+      </div>
+
+      @if (passwordError()) {
+        <div class="ul-password-error">{{ passwordError() }}</div>
+      }
+
+      <div class="ul-password-modal__actions">
+        <button class="ul-btn ul-btn--ghost" (click)="closePasswordModal()">Cancelar</button>
+        <button class="ul-btn ul-btn--primary" [disabled]="submitting()" (click)="confirmSetPassword()">
+          @if (submitting()) { <span class="ul-spinner ul-spinner--sm"></span> }
+          Cambiar contraseña
+        </button>
+      </div>
+    </div>
+  }
+</app-modal>
+
+<!-- MODAL ELIMINAR -->
+<app-modal [isOpen]="showDeleteModal()" title="Eliminar usuario" size="sm"
+  [showFooter]="false" (close)="closeDeleteModal()">
+  @if (selectedUser()) {
+    <div class="ul-delete-modal">
+      <div class="ul-delete-modal__icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <p class="ul-delete-modal__message">
+        ¿Eliminar al usuario <strong>{{ selectedUser()!.username }}</strong>?
+        Esta acción no se puede deshacer.
+      </p>
+      <div class="ul-delete-modal__actions">
+        <button class="ul-btn ul-btn--ghost" (click)="closeDeleteModal()">Cancelar</button>
+        <button class="ul-btn ul-btn--danger" [disabled]="submitting()" (click)="confirmDelete()">
+          @if (submitting()) { <span class="ul-spinner ul-spinner--sm"></span> }
+          Eliminar
+        </button>
+      </div>
+    </div>
+  }
+</app-modal>

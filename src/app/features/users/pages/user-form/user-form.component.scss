@@ -1,0 +1,421 @@
+// user-form.component.scss
+$primary: #3b6bde;
+$danger:  #ef4444;
+$border:  #e2e8f0;
+$text:    #1a1f2e;
+$muted:   #64748b;
+$surface: #f8fafc;
+$radius:  10px;
+$t: 0.15s ease;
+
+:host { display: block; }
+
+.uf-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+// ── Stepper ────────────────────────────────────────────────────────
+.uf-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 1rem 1.25rem;
+  background: white;
+  border: 1px solid $border;
+  border-radius: $radius;
+}
+
+.uf-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  transition: background $t;
+  font-family: inherit;
+
+  &:hover:not(:disabled) { background: $surface; }
+  &:disabled { cursor: not-allowed; opacity: 0.5; }
+
+  &__number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid $border;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: $muted;
+    flex-shrink: 0;
+    transition: all $t;
+  }
+
+  &__label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $muted;
+    white-space: nowrap;
+  }
+
+  &--active {
+    .uf-step__number {
+      background: $primary;
+      border-color: $primary;
+      color: white;
+    }
+    .uf-step__label { color: $text; font-weight: 600; }
+  }
+
+  &--done {
+    .uf-step__number {
+      background: #22c55e;
+      border-color: #22c55e;
+      color: white;
+    }
+  }
+}
+
+.uf-step-divider {
+  flex: 1;
+  height: 2px;
+  background: $border;
+  margin: 0 0.5rem;
+  border-radius: 2px;
+  transition: background 0.3s;
+
+  &--done { background: #22c55e; }
+}
+
+// ── Step content ──────────────────────────────────────────────────
+.uf-step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: ufFadeIn 0.2s ease;
+}
+
+@keyframes ufFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Summary card ──────────────────────────────────────────────────
+.uf-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1rem 1.25rem;
+  background: rgba($primary, 0.04);
+  border: 1.5px solid rgba($primary, 0.2);
+  border-radius: $radius;
+}
+
+.uf-summary-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: $primary;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.uf-summary-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.uf-summary-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: $text;
+  margin: 0;
+}
+
+.uf-summary-email {
+  font-size: 0.8rem;
+  color: $muted;
+  margin: 2px 0 0;
+}
+
+.uf-summary-edit {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: white;
+  border: 1.5px solid $border;
+  border-radius: 7px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: $muted;
+  cursor: pointer;
+  transition: all $t;
+  font-family: inherit;
+
+  &:hover { border-color: $primary; color: $primary; }
+}
+
+// ── Type switch ───────────────────────────────────────────────────
+.uf-type-switch {
+  display: flex;
+  gap: 10px;
+}
+
+.uf-type-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border-radius: 10px;
+  border: 1.5px solid $border;
+  background: transparent;
+  color: $muted;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all $t;
+
+  &:hover:not(.uf-type-btn--active) {
+    border-color: $primary;
+    color: $primary;
+    background: rgba($primary, 0.04);
+  }
+
+  &--active {
+    border-color: $primary;
+    background: rgba($primary, 0.08);
+    color: $primary;
+    font-weight: 600;
+    box-shadow: 0 0 0 3px rgba($primary, 0.12);
+  }
+}
+
+// ── Grid ──────────────────────────────────────────────────────────
+.uf-grid {
+  display: grid;
+  gap: 16px;
+
+  & + & { margin-top: 16px; }
+
+  &--1 { grid-template-columns: 1fr; }
+  &--2 { grid-template-columns: 1fr 1fr; }
+  &--3 { grid-template-columns: 1fr 1fr 1fr; }
+}
+
+// ── Field wrap ────────────────────────────────────────────────────
+.uf-field-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.uf-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: $muted;
+}
+
+.uf-required { color: $danger; margin-left: 2px; }
+
+// ── Manual input (for password) ───────────────────────────────────
+.uf-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.uf-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 40px 0 12px;
+  border: 1.5px solid $border;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: $text;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color $t, box-shadow $t;
+  background: white;
+
+  &:focus {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.1);
+  }
+
+  &--error {
+    border-color: $danger;
+    &:focus { box-shadow: 0 0 0 3px rgba($danger, 0.1); }
+  }
+
+  &::placeholder { color: #94a3b8; }
+}
+
+.uf-input-suffix {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: $muted;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color $t;
+
+  &:hover { color: $text; }
+
+  ::ng-deep svg { width: 16px; height: 16px; display: block; }
+}
+
+// ── Password strength ─────────────────────────────────────────────
+.uf-strength {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.uf-strength-bar {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.uf-strength-segment {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  transition: background 0.3s;
+}
+
+.uf-strength-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 70px;
+  text-align: right;
+}
+
+// ── Requirements ──────────────────────────────────────────────────
+.uf-requirements {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.8rem;
+    color: $muted;
+    transition: color $t;
+
+    svg { opacity: 0.3; transition: opacity $t; }
+
+    &.uf-req--ok {
+      color: #16a34a;
+      svg { opacity: 1; stroke: #16a34a; }
+    }
+  }
+}
+
+// ── Async error ───────────────────────────────────────────────────
+.uf-async-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: $danger;
+
+  svg { flex-shrink: 0; }
+}
+
+// ── Actions ───────────────────────────────────────────────────────
+.uf-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+// ── Buttons ───────────────────────────────────────────────────────
+.uf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: all $t;
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:active:not(:disabled) { transform: scale(0.98); }
+
+  &--primary {
+    background: $primary;
+    color: white;
+    box-shadow: 0 1px 4px rgba($primary, 0.3);
+    &:hover:not(:disabled) { background: darken($primary, 8%); }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: $muted;
+    border: 1.5px solid $border;
+    &:hover:not(:disabled) { background: $surface; color: $text; }
+  }
+}
+
+// ── Spinner ───────────────────────────────────────────────────────
+.uf-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: ufSpin 0.7s linear infinite;
+}
+
+.uf-spin { animation: ufSpin 0.7s linear infinite; }
+
+@keyframes ufSpin { to { transform: rotate(360deg); } }
+
+// ── Responsive ────────────────────────────────────────────────────
+@media (max-width: 640px) {
+  .uf-grid--2,
+  .uf-grid--3  { grid-template-columns: 1fr; }
+  .uf-type-switch { flex-direction: column; }
+  .uf-stepper { padding: 0.75rem; }
+  .uf-step__label { display: none; }
+  .uf-actions {
+    flex-direction: column-reverse;
+    .uf-btn { width: 100%; justify-content: center; }
+  }
+}

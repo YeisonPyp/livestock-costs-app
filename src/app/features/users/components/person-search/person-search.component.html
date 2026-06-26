@@ -1,21 +1,60 @@
-<div class="ps-wrapper">
+<!-- person-search.component.html -->
+<div class="ps-host" [class.ps-host--disabled]="disabled()">
 
-  <!-- ══════════════════════════════════════════════════════
-       ESTADO: persona ya seleccionada
-  ══════════════════════════════════════════════════════ -->
+  <!-- Label opcional -->
+  @if (label()) {
+    <label class="ps-label">{{ label() }}</label>
+  }
+
+  <!-- ══════════════════════════════════════════════
+       PERSONA SELECCIONADA
+  ══════════════════════════════════════════════ -->
   @if (selectedPerson()) {
-    <div class="ps-selected">
+    <div class="ps-selected" role="status" aria-live="polite">
+
+      <!-- Avatar + info -->
       <div class="ps-selected__badge">
-        <div class="ps-selected__avatar">
+        <div
+          class="ps-selected__avatar"
+          [class.ps-selected__avatar--juridical]="selectedPerson()!.person_type === 'J'"
+          aria-hidden="true"
+        >
           {{ getInitial(selectedPerson()!) }}
         </div>
+
         <div class="ps-selected__info">
           <span class="ps-selected__name">{{ displayName() }}</span>
-          <span class="ps-selected__doc">{{ selectedPerson()!.document_number }}</span>
+          <span class="ps-selected__meta">
+            <span class="ps-selected__doc">{{ selectedPerson()!.document_number }}</span>
+            @if (selectedPerson()!.email) {
+              <span class="ps-selected__sep" aria-hidden="true">·</span>
+              <span class="ps-selected__email">{{ selectedPerson()!.email }}</span>
+            }
+          </span>
         </div>
       </div>
-      <button class="ps-selected__clear" (click)="clearSelection()" aria-label="Limpiar selección">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+
+      <!-- Badge tipo -->
+      @if (selectedPerson()!.person_type) {
+        <span
+          class="ps-type-badge"
+          [class.ps-type-badge--natural]="selectedPerson()!.person_type === 'N'"
+          [class.ps-type-badge--juridical]="selectedPerson()!.person_type === 'J'"
+        >
+          {{ selectedPerson()!.person_type === 'N' ? 'Natural' : 'Jurídica' }}
+        </span>
+      }
+
+      <!-- Limpiar -->
+      <button
+        type="button"
+        class="ps-selected__clear"
+        (click)="clearSelection()"
+        [disabled]="disabled()"
+        aria-label="Quitar persona seleccionada"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" aria-hidden="true">
           <line x1="18" y1="6" x2="6" y2="18"/>
           <line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
@@ -23,143 +62,281 @@
     </div>
   }
 
-  <!-- ══════════════════════════════════════════════════════
+  <!-- ══════════════════════════════════════════════
        PANEL DE BÚSQUEDA
-  ══════════════════════════════════════════════════════ -->
+  ══════════════════════════════════════════════ -->
   @if (!selectedPerson()) {
-    <div class="ps-panel">
+    <div class="ps-search-wrap" role="combobox" [attr.aria-expanded]="showDropdown()" aria-haspopup="listbox">
 
-      <!-- Input de búsqueda -->
-      <div class="ps-input-wrap" [class.is-loading]="loading()">
-        <svg class="ps-icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <!-- Input principal -->
+      <div class="ps-input-row" [class.ps-input-row--active]="showDropdown()">
+
+        <!-- Ícono búsqueda -->
+        <svg class="ps-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" aria-hidden="true">
           <circle cx="11" cy="11" r="8"/>
           <line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
+
         <input
+          #searchInput
           class="ps-input"
           type="text"
-          placeholder="Nombre, apellido, documento o correo…"
+          role="searchbox"
           autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          [placeholder]="placeholder()"
+          [disabled]="disabled()"
+          [attr.aria-label]="label() || 'Buscar persona'"
+          [attr.aria-autocomplete]="'list'"
+          [attr.aria-controls]="showDropdown() ? 'ps-results-list' : null"
           [ngModel]="query()"
           (ngModelChange)="onQueryChange($event)"
+          (focus)="onInputFocus()"
         />
+
+        <!-- Spinner de carga -->
         @if (loading()) {
-          <span class="ps-spinner"></span>
+          <span class="ps-spinner" aria-hidden="true"></span>
+        }
+
+        <!-- Botón limpiar query -->
+        @if (query() && !loading()) {
+          <button
+            type="button"
+            class="ps-clear-query"
+            (click)="clearQuery()"
+            tabindex="-1"
+            aria-label="Limpiar búsqueda"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" width="13" height="13" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
         }
       </div>
 
-      <!-- Filtros -->
-      <div class="ps-filters">
+      <!-- Filtros inline -->
+      @if (showFilters()) {
+        <div class="ps-filters" [class.ps-filters--visible]="isDropdownOpen() || query()">
 
-        <div class="ps-filter-group">
-          <label class="ps-filter-label">Tipo de documento</label>
-          @if (loadingCatalog()) {
-            <div class="ps-select-skeleton"></div>
-          } @else {
-            <select class="ps-select" [(ngModel)]="selectedDocType">
-              <option value="">Todos los tipos</option>
-              @for (dt of documentTypes(); track dt.code) {
-                <option [value]="dt.code">{{ dt.code }} – {{ dt.name }}</option>
+          <div class="ps-filter-item">
+            @if (loadingCatalog()) {
+              <div class="ps-skeleton"></div>
+            } @else {
+              <select
+                class="ps-select"
+                [disabled]="disabled()"
+                [ngModel]="filterDocType()"
+                (ngModelChange)="filterDocType.set($event); onFilterChange()"
+                aria-label="Filtrar por tipo de documento"
+              >
+                <option value="">Tipo de doc.</option>
+                @for (dt of documentTypes(); track dt.code) {
+                  <option [value]="dt.code">{{ dt.code }} · {{ dt.name }}</option>
+                }
+              </select>
+            }
+          </div>
+
+          <div class="ps-filter-item">
+            <select
+              class="ps-select"
+              [disabled]="disabled()"
+              [ngModel]="filterPersonType()"
+              (ngModelChange)="filterPersonType.set($event); onFilterChange()"
+              aria-label="Filtrar por tipo de persona"
+            >
+              @for (pt of personTypes; track pt.value) {
+                <option [value]="pt.value">{{ pt.label }}</option>
               }
             </select>
+          </div>
+
+        </div>
+      }
+
+      <!-- ══════════ DROPDOWN ══════════ -->
+      @if (showDropdown()) {
+        <div class="ps-dropdown" role="presentation">
+
+          <!-- Cargando -->
+          @if (loading()) {
+            <div class="ps-dropdown__loading" aria-live="polite" aria-label="Buscando...">
+              <div class="ps-skeleton ps-skeleton--row"></div>
+              <div class="ps-skeleton ps-skeleton--row ps-skeleton--short"></div>
+              <div class="ps-skeleton ps-skeleton--row"></div>
+            </div>
           }
-        </div>
 
-        <div class="ps-filter-group">
-          <label class="ps-filter-label">Tipo de persona</label>
-          <select class="ps-select" [(ngModel)]="selectedPersonType">
-            @for (pt of personTypes; track pt.value) {
-              <option [value]="pt.value">{{ pt.label }}</option>
-            }
-          </select>
-        </div>
-
-      </div>
-
-      <!-- Error -->
-      @if (error()) {
-        <div class="ps-error">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="12"/>
-            <line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          {{ error() }}
-        </div>
-      }
-
-      <!-- Sin resultados -->
-      @if (isEmpty()) {
-        <div class="ps-empty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <line x1="23" y1="11" x2="17" y2="11"/>
-          </svg>
-          <p>Sin resultados para <strong>"{{ query() }}"</strong></p>
-          <p class="ps-empty__hint">¿No existe aún? Puedes crearla ahora.</p>
-          <button type="button" class="ps-create-btn" (click)="openCreateModal()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Crear nueva persona
-          </button>
-        </div>
-      }
-
-      <!-- Resultados -->
-      @if (results().length) {
-        <ul class="ps-results" role="listbox">
-          @for (person of results(); track person.id; let i = $index) {
-            <li
-              class="ps-result-item"
-              role="option"
-              tabindex="0"
-              [style.animation-delay.ms]="i * 28"
-              (click)="selectPerson(person)"
-              (keydown.enter)="selectPerson(person)"
-              (keydown.space)="onSpaceKey($event, person)"
-            >
-              <div class="ps-result-avatar" [class.juridica]="person.person_type === 'J'">
-                {{ getInitial(person) }}
-              </div>
-              <div class="ps-result-info">
-                <span class="ps-result-name">{{ person.full_name }}</span>
-                <span class="ps-result-meta">{{ person.document_number }}</span>
-                <span class="ps-result-meta">{{ person.email }}</span>
-              </div>
-              <svg class="ps-result-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9 18 15 12 9 6"/>
+          <!-- Query muy corta -->
+          @if (!loading() && isBelowMinLength()) {
+            <div class="ps-dropdown__hint">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                width="22" height="22" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
-            </li>
+              <p>Escribe al menos <strong>{{ 2 - query().trim().length }} carácter{{ 2 - query().trim().length !== 1 ? 'es' : '' }}</strong> más para buscar</p>
+            </div>
           }
-        </ul>
 
-        <!-- Contador + botón crear al pie de resultados -->
-        <div class="ps-footer">
-          <span class="ps-counter">
-            {{ getResultCount() }}
-            @if (isAtLimit()) { <span class="ps-counter__limit">· primeros 50</span> }
-          </span>
-          <button type="button" class="ps-create-btn ps-create-btn--sm" (click)="openCreateModal()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Nueva persona
-          </button>
+          <!-- Error -->
+          @if (!loading() && error()) {
+            <div class="ps-dropdown__error" role="alert">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                width="16" height="16" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              {{ error() }}
+            </div>
+          }
+
+          <!-- Sin resultados -->
+          @if (!loading() && isEmpty()) {
+            <div class="ps-dropdown__empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                width="32" height="32" aria-hidden="true">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <line x1="23" y1="11" x2="17" y2="11"/>
+              </svg>
+              <p>Sin resultados para <strong>"{{ query() }}"</strong></p>
+              <p class="ps-dropdown__empty-hint">¿No existe? Créala ahora mismo.</p>
+              <button type="button" class="ps-create-btn" (click)="openCreateModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2.5" width="14" height="14" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Crear nueva persona
+              </button>
+            </div>
+          }
+
+          <!-- Lista de resultados -->
+          @if (!loading() && hasResults()) {
+            <ul
+              id="ps-results-list"
+              class="ps-results"
+              role="listbox"
+              [attr.aria-label]="getResultCount()"
+            >
+              @for (person of results(); track person.id; let i = $index) {
+                <li
+                  class="ps-result"
+                  role="option"
+                  tabindex="-1"
+                  [class.ps-result--focused]="isFocused(i)"
+                  [attr.aria-selected]="isFocused(i)"
+                  [style.animation-delay.ms]="i * 25"
+                  (click)="selectPerson(person)"
+                  (mouseenter)="focusedIndex.set(i)"
+                  (keydown.enter)="selectPerson(person)"
+                  (keydown.space)="onSpaceKey($event, person)"
+                >
+                  <!-- Avatar -->
+                  <div
+                    class="ps-result__avatar"
+                    [class.ps-result__avatar--natural]="person.person_type !== 'J'"
+                    [class.ps-result__avatar--juridical]="person.person_type === 'J'"
+                    aria-hidden="true"
+                  >
+                    {{ getInitial(person) }}
+                  </div>
+
+                  <!-- Info -->
+                  <div class="ps-result__info">
+                    <!-- Nombre con highlight -->
+                    <span class="ps-result__name" [attr.aria-label]="person.full_name">
+                      @for (part of highlightMatch(person.full_name); track $index) {
+                        @if (part.highlight) {
+                          <mark class="ps-highlight">{{ part.text }}</mark>
+                        } @else {
+                          {{ part.text }}
+                        }
+                      }
+                    </span>
+
+                    <!-- Meta: documento + email -->
+                    <span class="ps-result__meta">
+                      <span class="ps-result__doc">
+                        @for (part of highlightMatch(person.document_number); track $index) {
+                          @if (part.highlight) {
+                            <mark class="ps-highlight">{{ part.text }}</mark>
+                          } @else {
+                            {{ part.text }}
+                          }
+                        }
+                      </span>
+                      @if (person.email) {
+                        <span class="ps-result__sep" aria-hidden="true">·</span>
+                        <span class="ps-result__email">{{ person.email }}</span>
+                      }
+                      @if (person.phone_number) {
+                        <span class="ps-result__sep" aria-hidden="true">·</span>
+                        <span class="ps-result__phone">{{ person.phone_number }}</span>
+                      }
+                    </span>
+                  </div>
+
+                  <!-- Tipo badge -->
+                  @if (person.person_type) {
+                    <span
+                      class="ps-result__type"
+                      [class.ps-result__type--natural]="person.person_type === 'N'"
+                      [class.ps-result__type--juridical]="person.person_type === 'J'"
+                      aria-hidden="true"
+                    >
+                      {{ person.person_type === 'N' ? 'N' : 'J' }}
+                    </span>
+                  }
+
+                  <!-- Flecha -->
+                  <svg class="ps-result__arrow" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </li>
+              }
+            </ul>
+
+            <!-- Footer de resultados -->
+            <div class="ps-dropdown__footer">
+              <span class="ps-counter">
+                {{ getResultCount() }}
+                @if (isAtLimit()) {
+                  <span class="ps-counter__limit">&nbsp;· mostrando primeros 50</span>
+                }
+              </span>
+              <button type="button" class="ps-create-btn ps-create-btn--sm" (click)="openCreateModal()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2.5" width="12" height="12" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Nueva persona
+              </button>
+            </div>
+          }
+
         </div>
       }
-
     </div>
-  }
 
+    <!-- Hint externo -->
+    @if (hint() && !showDropdown()) {
+      <p class="ps-hint">{{ hint() }}</p>
+    }
+  }
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     MODAL — Crear persona
-══════════════════════════════════════════════════════ -->
+<!-- ══════════ MODAL CREAR PERSONA ══════════ -->
 <app-modal
   [isOpen]="isCreateModalOpen()"
   title="Nueva persona"

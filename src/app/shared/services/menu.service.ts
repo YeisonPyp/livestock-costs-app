@@ -83,7 +83,7 @@ export class MenuService {
       label: 'Usuarios',
       icon: 'users',
       color: 'slate',
-      path: '/users/user',
+      path: '/users/users',
     },
   ]);
 

@@ -1,3 +1,4 @@
+// form-card.component.scss
 @use '../../../../styles/variables' as *;
 
 .form-card {
@@ -5,7 +6,8 @@
   border: 1px solid $border-color;
   border-radius: $border-radius-md;
   box-shadow: $shadow-sm;
-  overflow: hidden;
+  // ✅ CAMBIO: quitar overflow: hidden para permitir dropdowns
+  // overflow: hidden;  ← ELIMINADO
 }
 
 .form-card-header {
@@ -16,6 +18,8 @@
   padding: $space-5 $space-6;
   border-bottom: 1px solid $border-color;
   background: $slate-50;
+  // ✅ Redondear solo las esquinas superiores (reemplaza overflow:hidden)
+  border-radius: $border-radius-md $border-radius-md 0 0;
 }
 
 .form-card-title {
@@ -37,6 +41,10 @@
   display: flex;
   flex-direction: column;
   gap: $space-5;
+  // ✅ Permitir que el contenido (dropdowns) se desborde visualmente
+  overflow: visible;
+  // ✅ Posición relativa para que los z-index de los hijos funcionen
+  position: relative;
 }
 
 .form-card-footer {
@@ -47,6 +55,8 @@
   justify-content: flex-end;
   gap: $space-3;
   background: $slate-50;
+  // ✅ Redondear solo las esquinas inferiores
+  border-radius: 0 0 $border-radius-md $border-radius-md;
 
   &:empty { display: none; }
 }

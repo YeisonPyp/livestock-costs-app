@@ -17,7 +17,7 @@ import { CheckboxToggleComponent } from '../../../../../shared/components/forms/
 import { PersonSearchComponent }   from '../../../../users/components/person-search/person-search.component';
 import type { PersonSimple }       from '../../../../users/models/user.model';
 import { SaleDecisionType }        from '../../../models/enums';
-import { AlertComponent } from "../../../../../shared/components/feedback/alert/alert.component";
+import { AlertComponent } from '../../../../../shared/components/feedback/alert/alert.component';
 
 @Component({
   selector: 'app-investor-form',
@@ -29,8 +29,8 @@ import { AlertComponent } from "../../../../../shared/components/feedback/alert/
     PageHeaderComponent, LoaderComponent, FormCardComponent,
     InputFieldComponent, SelectFieldComponent, CheckboxToggleComponent,
     PersonSearchComponent,
-    AlertComponent
-],
+    AlertComponent,
+  ],
   templateUrl: './investor-form.component.html',
   styleUrl:    './investor-form.component.scss',
 })
@@ -42,6 +42,9 @@ export class InvestorFormComponent implements OnInit {
   readonly investorId = signal<string | null>(null);
   readonly isEdit     = computed(() => !!this.investorId());
   readonly today      = new Date().toLocaleDateString('en-CA');
+
+  // ✅ Persona seleccionada (para el input initialPerson del search)
+  readonly selectedPerson = signal<PersonSimple | null>(null);
 
   readonly defaultDecisionOptions: SelectOption[] = Object.values(SaleDecisionType).map(v => ({
     value: v,
@@ -68,13 +71,22 @@ export class InvestorFormComponent implements OnInit {
           notes:                data.notes,
           investorPercentage:   data.currentInvestorPercentage ?? 60,
         });
+
+        // ✅ Si viene con persona, precargarla en el search
+        // if (data.person) {
+        //   this.selectedPerson.set(data.person);
+        //   this.form.get('personId')?.setValue(data.person.id);
+        // }
       });
     }
   }
 
+  // ── PersonSearch handlers ─────────────────────────────────────
+
   onPersonSelected(person: PersonSimple): void {
     const personId = person.id;
 
+    this.selectedPerson.set(person);
     this.form.get('personId')?.setValue(personId);
     this.form.get('personId')?.markAsTouched();
 
@@ -85,9 +97,21 @@ export class InvestorFormComponent implements OnInit {
     }
   }
 
+  // ✅ NUEVO: handler cuando el usuario limpia la selección
+  onPersonCleared(): void {
+    this.selectedPerson.set(null);
+    this.form.get('personId')?.setValue('');
+    this.form.get('personId')?.markAsTouched();
+    this.facade.hasInvestorExistence.set(false);
+  }
 
   onSubmit(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+
+    // ✅ Bloquear si ya existe como inversionista
+    if (this.facade.hasInvestorExistence()) {
+      return;
+    }
 
     const raw = this.form.getRawValue();
     const id  = this.investorId();
