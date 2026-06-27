@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
 
 import { CattleService } from '../../../services/cattle.service';
 import {
@@ -17,6 +18,10 @@ import {
   AnimalDetail,
 } from '../../../models/cattle.model';
 
+// ✅ Importar ExportService
+import { ExportService, ExportConfig } from '../../../../../core/services/export.service';
+import { NotificationService } from '../../../../../core/services/notification.service';
+
 import { TableComponent } from '../../../../../shared/components/data-display/table/table.component';
 import { TableColumn, PaginationParams, ExportEvent } from '../../../../../shared/components/data-display/table/table.types';
 import { PageHeaderComponent } from '../../../../../shared/components/navigation/page-header/page-header.component';
@@ -26,8 +31,6 @@ import { AnimalBulkImportComponent } from '../animal-bulk-import/animal-bulk-imp
 import { WeightBulkImportComponent } from '../../weights/weight-bulk-import/weight-bulk-import.component';
 import { AnimalEditComponent } from '../animal-edit/animal-edit.component';
 import { ConfirmDialogComponent } from '../../../../../shared/components/feedback/confirm-dialog/confirm-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
-import { NotificationService } from '../../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-animal-list',
@@ -50,49 +53,50 @@ export class AnimalListComponent implements OnInit, OnDestroy {
   private svc    = inject(CattleService);
   private notify = inject(NotificationService);
   private router = inject(Router);
-  private destroy$ = new Subject<void>();
   private dialog = inject(MatDialog);
+  private destroy$ = new Subject<void>();
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ✅ Inyectar ExportService
+  private exportService = inject(ExportService);
+
+  // ══════════════════════════════════════════════════════════════════
   // STATE
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
 
   animals    = signal<AnimalListItem[]>([]);
   breeds     = signal<any[]>([]);
-  owners       = signal<any[]>([]);
+  owners     = signal<any[]>([]);
   pagination = signal<any>(null);
   loading    = signal(true);
 
-  // Modales
   showBulkImport   = signal(false);
   showWeightImport = signal(false);
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // FILTERS (server-side)
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
+  // FILTERS
+  // ══════════════════════════════════════════════════════════════════
 
   statusFilter = 'active';
   sexFilter: '' | 'M' | 'F' = '';
   breedFilter  = '';
-  ownerFilter    = '';
+  ownerFilter  = '';
 
-  // Estos se actualizan desde app-table via paginationParamsChange
   private currentPage = 1;
   private pageSize    = 15;
   private searchTerm  = '';
   private ordering    = '-entry_date';
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // LABELS / MAPS
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
+  // LABELS
+  // ══════════════════════════════════════════════════════════════════
 
   private statusLabels   = ANIMAL_STATUS_LABELS;
   private statusColors   = ANIMAL_STATUS_COLORS as Record<string, BadgeColor>;
   private categoryLabels = ANIMAL_CATEGORY_LABELS;
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
   // TABLE COLUMNS
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
 
   columns: TableColumn[] = [
     {
@@ -181,9 +185,9 @@ export class AnimalListComponent implements OnInit, OnDestroy {
     },
   ];
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
   // KPIs
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
 
   kpis = computed(() => {
     const list  = this.animals();
@@ -200,9 +204,9 @@ export class AnimalListComponent implements OnInit, OnDestroy {
     return { total, male, female, avgWeight };
   });
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
   // COMPUTED
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
 
   get totalPages(): number {
     return this.pagination()?.total_pages ?? 1;
@@ -221,12 +225,11 @@ export class AnimalListComponent implements OnInit, OnDestroy {
     );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
   // LIFECYCLE
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
 
   ngOnInit(): void {
-    // Cargar catálogos
     this.svc
       .getBreeds()
       .pipe(takeUntil(this.destroy$))
@@ -245,9 +248,9 @@ export class AnimalListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
   // DATA LOADING
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
 
   load(): void {
     this.loading.set(true);
@@ -259,10 +262,10 @@ export class AnimalListComponent implements OnInit, OnDestroy {
     };
 
     if (this.searchTerm) filters.search = this.searchTerm;
-    if (this.sexFilter) filters.gender = this.sexFilter;
+    if (this.sexFilter)  filters.gender = this.sexFilter;
     if (this.statusFilter) filters.status = this.statusFilter as any;
-    if (this.breedFilter) filters.breed = this.breedFilter;
-    if (this.ownerFilter) filters.owner = this.ownerFilter;
+    if (this.breedFilter)  filters.breed  = this.breedFilter;
+    if (this.ownerFilter)  filters.owner  = this.ownerFilter;
 
     this.svc
       .getAnimals(filters)
@@ -282,18 +285,14 @@ export class AnimalListComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
   // TABLE EVENTS
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
 
-  /**
-   * Recibe todos los cambios de paginación/búsqueda/sort desde app-table.
-   * Es el único punto de conexión tabla → backend.
-   */
   onParamsChange(params: PaginationParams): void {
     this.currentPage = params.page ?? 1;
-    this.pageSize = params.page_size ?? 15;
-    this.searchTerm = params.search ?? '';
+    this.pageSize    = params.page_size ?? 15;
+    this.searchTerm  = params.search ?? '';
 
     if (params.sort_by && params.sort_direction) {
       this.ordering =
@@ -309,9 +308,9 @@ export class AnimalListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/cattle/animals', animal.id]);
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // FILTER EVENTS (selects fuera de la tabla)
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
+  // FILTERS
+  // ══════════════════════════════════════════════════════════════════
 
   onFilter(): void {
     this.currentPage = 1;
@@ -320,35 +319,72 @@ export class AnimalListComponent implements OnInit, OnDestroy {
 
   clearFilters(): void {
     this.statusFilter = 'active';
-    this.sexFilter = '';
-    this.breedFilter = '';
-    this.ownerFilter = '';
+    this.sexFilter    = '';
+    this.breedFilter  = '';
+    this.ownerFilter  = '';
     this.onFilter();
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
   // EXPORT
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
 
   onExport(event: ExportEvent): void {
-    // Aquí puedes llamar al backend para generar el archivo
-    // o generar localmente con una librería como xlsx / pdfmake
-    console.log('Export requested:', event.format, event);
+    // ✅ Construir filtros activos para el reporte
+    const activeFilters: Record<string, string> = {};
 
-    this.notify.info(`Descargando ${event.format.toUpperCase()}...`);
+    if (this.statusFilter && this.statusFilter !== 'active') {
+      activeFilters['Estado'] = this.getStatusLabel(this.statusFilter);
+    }
+    if (this.statusFilter === 'active') {
+      activeFilters['Estado'] = 'Activos';
+    }
+    if (this.sexFilter) {
+      activeFilters['Sexo'] = this.sexFilter === 'M' ? 'Machos' : 'Hembras';
+    }
+    if (this.breedFilter) {
+      const breed = this.breeds().find((b) => b.id === this.breedFilter);
+      activeFilters['Raza'] = breed?.name ?? this.breedFilter;
+    }
+    if (this.ownerFilter) {
+      const owner = this.owners().find((o) => o.id === this.ownerFilter);
+      activeFilters['Propietario'] = owner?.name ?? this.ownerFilter;
+    }
+    if (event.filters?.search) {
+      activeFilters['Búsqueda'] = event.filters.search;
+    }
+    if (event.filters?.sort) {
+      activeFilters['Ordenado por'] =
+        `${event.filters.sort.column} (${event.filters.sort.direction})`;
+    }
 
+    // ✅ Configuración del reporte
+    const config: Partial<ExportConfig> = {
+      fileName:    event.fileName ?? 'inventario-ganado',
+      title:       'Inventario de Ganado',
+      subtitle:    'Módulo de Ganado — Control de animales y pesajes',
+      companyName: 'Ganadería Veracruz Y.P',
+      generatedBy: 'Admin', // TODO: obtener del AuthService
+      filters:     activeFilters,
+      orientation: 'landscape', // Porque son muchas columnas
+    };
 
-    // TODO: implementar exportación real
-    // if (event.format === 'excel') {
-    //   this.exportService.toExcel(event.data, event.columns, event.fileName);
-    // } else {
-    //   this.exportService.toPdf(event.data, event.columns, event.fileName);
-    // }
+    // ✅ Exportar
+    this.exportService.export(
+      event.format,
+      event.columns,
+      event.data,
+      config
+    );
+
+    this.notify.success(
+      `${event.format === 'excel' ? 'Excel' : 'PDF'} descargado correctamente`
+    );
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
   // MODALS
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
 
   onImportSuccess(_count: number): void {
     this.load();
@@ -358,9 +394,52 @@ export class AnimalListComponent implements OnInit, OnDestroy {
     this.load();
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // HELPERS / FORMATTERS
-  // ══════════════════════════════════════════════════════════════════════════
+  editingAnimalId = signal<string | null>(null);
+
+  openEditModal(animalId: string): void {
+    this.editingAnimalId.set(animalId);
+  }
+
+  onEditSaved(): void {
+    this.editingAnimalId.set(null);
+    this.load();
+  }
+
+  onEditClosed(): void {
+    this.editingAnimalId.set(null);
+  }
+
+  confirmDelete(animal: AnimalDetail): void {
+    this.dialog
+      .open(ConfirmDialogComponent, {
+        data: {
+          title: 'Eliminar Animal',
+          message: `¿Deseas eliminar el registro "${animal.tag_number}"? Esta acción no se puede deshacer.`,
+          confirmText: 'Eliminar',
+          type: 'danger',
+        },
+      })
+      .afterClosed()
+      .subscribe((ok) => {
+        if (ok) this.deleteAnimal(animal.id);
+      });
+  }
+
+  private deleteAnimal(id: string): void {
+    this.svc.deleteAnimal(id).subscribe({
+      next: () => {
+        this.notify.success('Registro eliminado');
+        this.load();
+      },
+      error: (err) => {
+        this.notify.error(err?.error?.message || 'Error al eliminar');
+      },
+    });
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // HELPERS
+  // ══════════════════════════════════════════════════════════════════
 
   getCategoryLabel(category?: string | null): string {
     if (!category) return '—';
@@ -390,51 +469,4 @@ export class AnimalListComponent implements OnInit, OnDestroy {
           maximumFractionDigits: 1,
         })} kg`;
   }
-
-  // ── Estado del modal de edición ─────────────────────────────────────────
-  editingAnimalId = signal<string | null>(null);
-
-  openEditModal(animalId: string): void {
-    this.editingAnimalId.set(animalId);
-  }
-
-  onEditSaved(): void {
-    this.editingAnimalId.set(null);
-    this.load();
-  }
-
-  onEditClosed(): void {
-    this.editingAnimalId.set(null);
-  }
-
-  private deleteAnimal(id: string): void {
-    this.svc.deleteAnimal(id).subscribe({
-      next: () => {
-        this.notify.success('Registro eliminado');
-        this.load();
-      },
-      error: (err) => {
-        console.error('Error eliminando costo', err);
-        this.notify.error(err?.error?.message || 'Error al eliminar el costo');
-      },
-    });
-  }
-
-  confirmDelete(animal: AnimalDetail): void {
-      this.dialog
-        .open(ConfirmDialogComponent, {
-          data: {
-            title: 'Eliminar Animal',
-            message: `¿Deseas eliminar el registro "${animal.tag_number}"? Esta acción no se puede deshacer.`,
-            confirmText: 'Eliminar',
-            type: 'danger',
-          },
-        })
-        .afterClosed()
-        .subscribe((ok) => {
-          if (ok) this.deleteAnimal(animal.id);
-        });
-    }
-
-
 }

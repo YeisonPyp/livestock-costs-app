@@ -13,6 +13,9 @@ import {
   CreateContractDialogComponent,
 } from '../../../components/create-contract-dialog/create-contract-dialog.component';
 
+// ✅ Importar ExportService
+import { ExportService, ExportConfig } from '../../../../../core/services/export.service';
+
 import { PageHeaderComponent }    from '../../../../../shared/components/navigation/page-header/page-header.component';
 import { LoaderComponent }        from '../../../../../shared/components/feedback/loader/loader.component';
 import { KpiCardComponent }       from '../../../../../shared/components/data-display/kpi-card/kpi-card.component';
@@ -52,13 +55,13 @@ export class InvestorDetailComponent implements OnInit, OnDestroy {
   private route   = inject(ActivatedRoute);
   private dialog  = inject(MatDialog);
 
+  // ✅ Inyectar el servicio de exportación
+  private exportService = inject(ExportService);
+
   formatCurrency = formatCurrency;
   parseDecimal   = parseDecimal;
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // COLUMNAS: INVERSIONES
-  // ══════════════════════════════════════════════════════════════════════════
-
+  // ── Columnas (sin cambios, las mismas que ya tenías) ──────────
   investmentColumns: TableColumn[] = [
     {
       key: 'startDate',
@@ -118,10 +121,6 @@ export class InvestorDetailComponent implements OnInit, OnDestroy {
       badgeColor: (v) => (v === 'active' ? 'success' : 'default'),
     },
   ];
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // COLUMNAS: GANADO
-  // ══════════════════════════════════════════════════════════════════════════
 
   cattleColumns: TableColumn[] = [
     {
@@ -188,10 +187,6 @@ export class InvestorDetailComponent implements OnInit, OnDestroy {
     },
   ];
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // COLUMNAS: DECISIONES
-  // ══════════════════════════════════════════════════════════════════════════
-
   decisionColumns: TableColumn[] = [
     {
       key: 'id',
@@ -237,9 +232,9 @@ export class InvestorDetailComponent implements OnInit, OnDestroy {
     },
   ];
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
   // LIFECYCLE
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -250,9 +245,9 @@ export class InvestorDetailComponent implements OnInit, OnDestroy {
     this.facade.resetDetail();
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
   // ACTIONS
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
 
   openCreateContractDialog(): void {
     const investor = this.facade.detail();
@@ -269,26 +264,90 @@ export class InvestorDetailComponent implements OnInit, OnDestroy {
       });
   }
 
-  onExportInvestments(event: ExportEvent): void {
-    console.log('Export inversiones:', event.format);
-    // TODO: implementar exportación real
-  }
-
-  onExportCattle(event: ExportEvent): void {
-    console.log('Export ganado:', event.format);
-    // TODO: implementar exportación real
-  }
-
-  onExportDecisions(event: ExportEvent): void {
-    console.log('Export decisiones:', event.format);
-    // TODO: implementar exportación real
-  }
-
   onInvestmentRowClick(inv: any): void {
     this.facade.goToInvestment?.(inv.id);
   }
 
   onDecisionRowClick(decision: any): void {
     this.facade.goToDecision?.(decision.id);
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // EXPORT HANDLERS
+  // ══════════════════════════════════════════════════════════════════
+
+  /**
+   * Helper para construir config base de exportación
+   * con los datos del inversionista actual
+   */
+  private buildExportConfig(
+    title:    string,
+    fileName: string,
+    event:    ExportEvent
+  ): Partial<ExportConfig> {
+    const investor = this.facade.detail();
+
+    return {
+      fileName,
+      title,
+      subtitle: investor
+        ? `Inversionista: ${investor.fullName} (${investor.code})`
+        : undefined,
+      companyName: 'Ganadería Veracruz Y.P',
+      generatedBy: 'Admin', // TODO: obtener del AuthService
+      filters: {
+        ...(event.filters?.search
+          ? { Búsqueda: event.filters.search }
+          : {}),
+        ...(event.filters?.sort
+          ? { 'Ordenado por': `${event.filters.sort.column} (${event.filters.sort.direction})` }
+          : {}),
+      },
+    };
+  }
+
+  onExportInvestments(event: ExportEvent): void {
+    const config = this.buildExportConfig(
+      'Inversiones del Inversionista',
+      event.fileName ?? 'inversiones-inversionista',
+      event
+    );
+
+    this.exportService.export(
+      event.format,
+      event.columns,
+      event.data,
+      config
+    );
+  }
+
+  onExportCattle(event: ExportEvent): void {
+    const config = this.buildExportConfig(
+      'Ganado del Inversionista',
+      event.fileName ?? 'ganado-inversionista',
+      event
+    );
+
+    this.exportService.export(
+      event.format,
+      event.columns,
+      event.data,
+      config
+    );
+  }
+
+  onExportDecisions(event: ExportEvent): void {
+    const config = this.buildExportConfig(
+      'Decisiones de Venta',
+      event.fileName ?? 'decisiones-inversionista',
+      event
+    );
+
+    this.exportService.export(
+      event.format,
+      event.columns,
+      event.data,
+      config
+    );
   }
 }

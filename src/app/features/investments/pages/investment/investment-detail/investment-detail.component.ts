@@ -11,6 +11,9 @@ import { InvestmentFacade } from '../../../facades/investment.facade';
 import { CapitalOperationPanelComponent } from '../../../components/capital-operation-panel/capital-operation-panel.component';
 import { CloseInvestmentDialogComponent } from '../../../components/close-investment-dialog/close-investment-dialog.component';
 
+// ✅ Importar ExportService
+import { ExportService, ExportConfig } from '../../../../../core/services/export.service';
+
 import { PageHeaderComponent }    from '../../../../../shared/components/navigation/page-header/page-header.component';
 import { LoaderComponent }        from '../../../../../shared/components/feedback/loader/loader.component';
 import { EmptyStateComponent }    from '../../../../../shared/components/feedback/empty-state/empty-state.component';
@@ -46,12 +49,12 @@ import { SafeDatePipe } from '../../../../../shared/pipes/safe-date.pipe';
 })
 export class InvestmentDetailComponent implements OnInit, OnDestroy {
   readonly facade = inject(InvestmentFacade);
-  private  route  = inject(ActivatedRoute);
+  private route   = inject(ActivatedRoute);
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // MOVEMENT TYPE OPTIONS
-  // ══════════════════════════════════════════════════════════════════════════
+  // ✅ Inyectar ExportService
+  private exportService = inject(ExportService);
 
+  // ── Movement type options (sin cambios) ───────────────────────────
   readonly movementTypeOptions = [
     { value: '',                                  label: 'Todos los tipos'  },
     { value: InvestmentMovementType.CONTRIBUTION, label: 'Aporte'           },
@@ -62,9 +65,7 @@ export class InvestmentDetailComponent implements OnInit, OnDestroy {
     { value: InvestmentMovementType.ADJUSTMENT,   label: 'Ajuste'           },
   ];
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // COLUMNAS: MOVIMIENTOS
-  // ══════════════════════════════════════════════════════════════════════════
+  // ── Columnas (sin cambios, las mismas) ────────────────────────────
 
   movementColumns: TableColumn[] = [
     {
@@ -102,10 +103,6 @@ export class InvestmentDetailComponent implements OnInit, OnDestroy {
       type: 'currency',
     },
   ];
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // COLUMNAS: GANADO
-  // ══════════════════════════════════════════════════════════════════════════
 
   cattleColumns: TableColumn[] = [
     {
@@ -170,9 +167,9 @@ export class InvestmentDetailComponent implements OnInit, OnDestroy {
     },
   ];
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
   // LIFECYCLE
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -183,9 +180,9 @@ export class InvestmentDetailComponent implements OnInit, OnDestroy {
     this.facade.resetDetail();
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
   // EVENTS
-  // ══════════════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
 
   onContribute(payload: ContributionPayload): void {
     this.facade.submitContribute(payload);
@@ -195,13 +192,66 @@ export class InvestmentDetailComponent implements OnInit, OnDestroy {
     this.facade.submitWithdraw(payload);
   }
 
+  // ══════════════════════════════════════════════════════════════════
+  // EXPORT HANDLERS
+  // ══════════════════════════════════════════════════════════════════
+
+  /**
+   * Construye la config base usando datos del detalle actual
+   */
+  private buildExportConfig(
+    title:    string,
+    fileName: string,
+    event:    ExportEvent
+  ): Partial<ExportConfig> {
+    const detail = this.facade.detail();
+
+    return {
+      fileName,
+      title,
+      subtitle: detail
+        ? `Inversión: ${detail.investorName ?? 'N/A'} — Capital: ${detail.currentCapital ?? 0}`
+        : undefined,
+      companyName: 'Ganadería Veracruz Y.P',
+      generatedBy: 'Admin',
+      filters: {
+        ...(event.filters?.search
+          ? { Búsqueda: event.filters.search }
+          : {}),
+        ...(event.filters?.sort
+          ? { 'Ordenado por': `${event.filters.sort.column} (${event.filters.sort.direction})` }
+          : {}),
+      },
+    };
+  }
+
   onExportMovements(event: ExportEvent): void {
-    console.log('Export movimientos:', event.format);
-    // TODO: implementar exportación real
+    const config = this.buildExportConfig(
+      'Movimientos de Inversión',
+      event.fileName ?? 'movimientos-inversion',
+      event
+    );
+
+    this.exportService.export(
+      event.format,
+      event.columns,
+      event.data,
+      config
+    );
   }
 
   onExportCattle(event: ExportEvent): void {
-    console.log('Export ganado:', event.format);
-    // TODO: implementar exportación real
+    const config = this.buildExportConfig(
+      'Ganado de la Inversión',
+      event.fileName ?? 'ganado-inversion',
+      event
+    );
+
+    this.exportService.export(
+      event.format,
+      event.columns,
+      event.data,
+      config
+    );
   }
 }
