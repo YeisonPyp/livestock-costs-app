@@ -38,7 +38,7 @@ import type {
 import type { CattleOwnership } from '../models/cattle-ownership.model';
 import type { InvestorList } from '../models/investor.model';
 import { ContractStatus, InvestmentStatus } from '../models/enums';
-import { formatCurrency, parseDecimal } from '../../../core/utils/helpers';
+import { formatCurrency, parseDecimal, formatNumber } from '../../../core/utils/helpers';
 import { ContractService } from '../services/contract.service';
 import { consumerPollProducersForChange } from '@angular/core/primitives/signals';
 
@@ -593,6 +593,7 @@ export class InvestmentFacade {
   // ── UI helpers (usados en templates) ─────────────────────────
 
   formatCurrency = formatCurrency;
+  formatNumber = formatNumber;
   parseDecimal = parseDecimal;
 
   formatRoi(roi: number | string): string {

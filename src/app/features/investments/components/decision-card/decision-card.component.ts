@@ -1,14 +1,12 @@
-// components/decision-card/decision-card.component.ts
-//
-// Componente presentacional puro: muestra una decisión pendiente
-// y permite elegir entre las 3 opciones. Solo emite eventos.
-
 import {
-  Component, ChangeDetectionStrategy, input, output, computed
+  Component,
+  ChangeDetectionStrategy,
+  input,
+  output,
 } from '@angular/core';
 
 import { SaleDecisionType } from '../../models/enums';
-import type { SaleDecisionList } from '../../models/sale.model';
+import type { SaleDecisionSummary } from '../../models/sale.model';
 import { formatCurrency, parseDecimal } from '../../../../core/utils/helpers';
 
 @Component({
@@ -19,14 +17,20 @@ import { formatCurrency, parseDecimal } from '../../../../core/utils/helpers';
   styleUrl: './decision-card.component.scss',
 })
 export class DecisionCardComponent {
-  readonly decision = input.required<SaleDecisionList>();
-  readonly decide   = output<{ decision: SaleDecisionList; type: SaleDecisionType }>();
+  readonly decision = input.required<SaleDecisionSummary>();
+  readonly saving   = input<boolean>(false);
+
+  readonly decide = output<{
+    decision: SaleDecisionSummary;
+    type: SaleDecisionType;
+  }>();
 
   readonly SaleDecisionType = SaleDecisionType;
   readonly fmt = (v: string | number) => formatCurrency(parseDecimal(v));
   readonly pd  = parseDecimal;
 
   emit(type: SaleDecisionType): void {
+    if (this.saving()) return;
     this.decide.emit({ decision: this.decision(), type });
   }
 
@@ -47,7 +51,7 @@ export class DecisionCardComponent {
     const dl = this.decision().decisionDeadline;
     if (!dl) return '';
     const days = Math.ceil((new Date(dl).getTime() - Date.now()) / 86_400_000);
-    if (days <= 0)  return 'Vence hoy';
+    if (days <= 0) return 'Vence hoy';
     if (days === 1) return 'Vence mañana';
     return `${days} días restantes`;
   }

@@ -12,6 +12,7 @@ import { CommonModule, CurrencyPipe, DecimalPipe, PercentPipe } from '@angular/c
 export class KpiCardComponent {
   @Input() label = '';
   @Input() value: number | string = 0;
+  @Input() subtitle = ''; 
   @Input() format: 'currency' | 'number' | 'percent' | 'text' = 'number';
   @Input() currency = 'USD';
   @Input() icon?: string;

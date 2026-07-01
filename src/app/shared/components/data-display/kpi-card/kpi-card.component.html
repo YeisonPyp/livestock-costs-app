@@ -73,6 +73,12 @@
     <!-- ── Value ── -->
     <p class="kpi-value">{{ formattedValue }}</p>
 
+     @if (subtitle) {
+      <div class="kpi-card-subtitle">
+        {{ subtitle }}
+      </div>
+    }
+
     <!-- ── Trend (opcional) ── -->
     @if (trend !== undefined) {
       <div class="kpi-trend" [class]="trend >= 0 ? 'trend-up' : 'trend-down'">

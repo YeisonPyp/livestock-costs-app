@@ -1,9 +1,9 @@
 <div class="decision-card" [class.urgent]="isUrgent()">
   <div class="dec-header">
     <div>
-      <div class="dec-title">{{ decision().saleEventId }}</div>
+      <div class="dec-title">{{ decision().id.slice(0, 8).toUpperCase() }}</div>
       <div class="dec-meta">
-        {{ decision().saleDate }}
+        {{ decision().decisionDate }}
         @if (decision().decisionDeadline) {
           · <span [class]="deadlineClass()">{{ deadlineLabel() }}</span>
         }
@@ -18,19 +18,32 @@
     [class.profit]="pd(decision().profitLoss) > 0"
     [class.loss]="pd(decision().profitLoss) < 0"
   >
-    {{ pd(decision().profitLoss) > 0 ? "+" : ""
-    }}{{ fmt(decision().profitLoss) }}
+    {{ pd(decision().profitLoss) > 0 ? "+" : "" }}{{ fmt(decision().profitLoss) }}
     {{ pd(decision().profitLoss) > 0 ? "ganancia" : "pérdida" }}
   </div>
 
   <div class="dec-actions">
-    <button class="btn-primary" (click)="emit(SaleDecisionType.REINVEST)">
+    <button
+      class="btn-primary"
+      [disabled]="saving()"
+      (click)="emit(SaleDecisionType.REINVEST)"
+    >
       Reinvertir todo
     </button>
-    <button class="btn-ghost" (click)="emit(SaleDecisionType.WITHDRAW)">
+
+    <button
+      class="btn-ghost"
+      [disabled]="saving()"
+      (click)="emit(SaleDecisionType.WITHDRAW)"
+    >
       Retirar todo
     </button>
-    <button class="btn-ghost" (click)="emit(SaleDecisionType.PARTIAL)">
+
+    <button
+      class="btn-ghost"
+      [disabled]="saving()"
+      (click)="emit(SaleDecisionType.PARTIAL)"
+    >
       Parcial
     </button>
   </div>

@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './amount-display.component.scss'
 })
 export class AmountDisplayComponent {
-  @Input({ required: true }) amount!: number;
+  @Input({ required: true }) amount!: number | string;
   @Input() type: 'expense' | 'income' | 'neutral' = 'neutral';
   @Input() currency = 'COP';
   @Input() locale = 'es-CO';

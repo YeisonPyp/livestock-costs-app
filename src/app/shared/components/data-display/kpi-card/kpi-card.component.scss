@@ -57,6 +57,13 @@ $kpi-colors: (
   color: $slate-400;
 }
 
+.kpi-card-subtitle {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
 .kpi-icon {
   width: 36px;
   height: 36px;

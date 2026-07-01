@@ -1,90 +1,225 @@
 // decision-card.component.scss
 @use '../../../../styles/variables' as *;
 
+$dec-primary: #185FA5;
+$dec-green:   #1D9E75;
+$dec-amber:   #BA7517;
+$dec-danger:  #ef4444;
+
 .decision-card {
-  background: $white;
-  border: 1px solid $border-color;
-  border-radius: $border-radius-md;
-  padding: $space-5;
-  margin-bottom: $space-4;
-  box-shadow: $shadow-sm;
-  @include transition(box-shadow, border-color);
+  background:    white;
+  border:        1px solid $border-color;
+  border-radius: 12px;
+  padding:       1.25rem;
+  box-shadow:    0 1px 3px rgba(0,0,0,0.06);
+  transition:    all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
 
   &.urgent {
-    border-color: rgba($danger, .4);
-    background: rgba($danger, .02);
-    box-shadow: 0 0 0 3px rgba($danger, .08);
+    border-color: rgba($dec-danger, 0.4);
+    background:   rgba($dec-danger, 0.02);
+    box-shadow:   0 0 0 3px rgba($dec-danger, 0.08);
   }
 }
 
+// ── Header ────────────────────────────────────────────────────────
 .dec-header {
-  display: flex;
+  display:         flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: $space-4;
+  align-items:     flex-start;
+  gap:             0.75rem;
+  margin-bottom:   1rem;
+
+  &__info { flex: 1; min-width: 0; }
 }
 
 .dec-title {
-  font-size: $font-md;
-  font-weight: $weight-semibold;
-  color: $slate-900;
+  display:     flex;
+  align-items: center;
+  gap:         6px;
+  font-size:   0.875rem;
+  font-weight: 600;
+  color:       $slate-800;
+
+  svg { color: $slate-400; flex-shrink: 0; }
 }
 
 .dec-meta {
-  font-size: $font-xs;
-  color: $slate-400;
-  margin-top: $space-1;
+  display:     flex;
+  align-items: center;
+  gap:         8px;
+  font-size:   0.75rem;
+  color:       $slate-400;
+  margin-top:  4px;
+}
+
+.dec-deadline {
+  display:     inline-flex;
+  align-items: center;
+  gap:         3px;
+  font-weight: 600;
+
+  &--urgent  { color: $dec-danger; }
+  &--warning { color: $dec-amber; }
+  &--ok      { color: $dec-green; }
+}
+
+.dec-urgent-badge {
+  padding:       2px 8px;
+  border-radius: 20px;
+  background:    rgba($dec-danger, 0.1);
+  color:         $dec-danger;
+  font-size:     0.65rem;
+  font-weight:   800;
+  letter-spacing: 0.06em;
+  flex-shrink:   0;
+  animation:     urgentPulse 2s infinite;
+}
+
+@keyframes urgentPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
+}
+
+// ── Body ──────────────────────────────────────────────────────────
+.dec-body {
+  margin-bottom: 1rem;
 }
 
 .dec-amount {
-  font-size: $font-2xl;
-  font-weight: $weight-bold;
-  color: $slate-900;
-  margin-bottom: $space-2;
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+  margin-bottom:  8px;
+
+  &__label {
+    font-size:      0.7rem;
+    font-weight:    500;
+    color:          $slate-400;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &__value {
+    font-size:   1.5rem;
+    font-weight: 800;
+    color:       $slate-900;
+    line-height: 1.2;
+  }
 }
 
 .dec-profit {
-  font-size: $font-sm;
-  font-weight: $weight-medium;
-  margin-bottom: $space-4;
-  color: $slate-500;
-  &.profit { color: $success; }
-  &.loss   { color: $danger;  }
+  display:     flex;
+  align-items: center;
+  gap:         5px;
+  font-size:   0.85rem;
+  font-weight: 600;
+  color:       $slate-500;
+
+  &--positive { color: $dec-green; }
+  &--negative { color: $dec-danger; }
+
+  &__icon {
+    display:     flex;
+    align-items: center;
+  }
+
+  &__label {
+    font-size:   0.75rem;
+    font-weight: 400;
+    opacity:     0.8;
+    margin-left: 2px;
+  }
 }
 
+// ── Divider ───────────────────────────────────────────────────────
+.dec-divider {
+  height:       1px;
+  background:   $border-color;
+  margin-bottom: 1rem;
+}
+
+// ── Actions ───────────────────────────────────────────────────────
 .dec-actions {
-  display: flex;
-  gap: $space-2;
+  display:   flex;
+  gap:       8px;
   flex-wrap: wrap;
 }
 
-.btn-primary {
-  padding: $space-2 $space-4;
-  background: $primary;
-  color: $white;
-  border: none;
-  border-radius: $border-radius;
-  font-size: $font-sm;
-  font-weight: $weight-medium;
-  cursor: pointer;
-  @include transition(background-color);
-  &:hover { background: $primary-hover; }
+.dec-btn {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           5px;
+  padding:       8px 14px;
+  border-radius: 8px;
+  border:        1.5px solid transparent;
+  font-size:     0.8rem;
+  font-weight:   600;
+  font-family:   inherit;
+  cursor:        pointer;
+  transition:    all 0.15s;
+  white-space:   nowrap;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor:  not-allowed;
+  }
+
+  &:active:not(:disabled) { transform: scale(0.97); }
+
+  // Reinvertir — botón principal verde
+  &--reinvest {
+    background:   $dec-green;
+    color:        white;
+    border-color: $dec-green;
+
+    &:hover:not(:disabled) {
+      background: darken($dec-green, 8%);
+      box-shadow: 0 2px 8px rgba($dec-green, 0.3);
+    }
+  }
+
+  // Retirar — outline danger
+  &--withdraw {
+    background:   white;
+    color:        $dec-danger;
+    border-color: rgba($dec-danger, 0.4);
+
+    &:hover:not(:disabled) {
+      background:   rgba($dec-danger, 0.06);
+      border-color: $dec-danger;
+    }
+  }
+
+  // Parcial — outline neutral
+  &--partial {
+    background:   white;
+    color:        $slate-600;
+    border-color: $border-color;
+
+    &:hover:not(:disabled) {
+      background:   $slate-50;
+      border-color: $slate-400;
+      color:        $slate-800;
+    }
+  }
 }
 
-.btn-ghost {
-  padding: $space-2 $space-4;
-  background: transparent;
-  color: $slate-600;
-  border: 1px solid $border-color;
-  border-radius: $border-radius;
-  font-size: $font-sm;
-  font-weight: $weight-medium;
-  cursor: pointer;
-  @include transition(background-color, border-color);
-  &:hover { background: $slate-50; border-color: $slate-400; }
-}
+// ── Responsive ────────────────────────────────────────────────────
+@media (max-width: 480px) {
+  .dec-actions {
+    flex-direction: column;
+  }
 
-// Deadline classes
-.urgent  { color: $danger;       font-weight: $weight-medium; }
-.warning { color: $warning-hover; font-weight: $weight-medium; }
-.ok      { color: $success; }
+  .dec-btn {
+    width:           100%;
+    justify-content: center;
+  }
+
+  .dec-amount__value {
+    font-size: 1.25rem;
+  }
+}

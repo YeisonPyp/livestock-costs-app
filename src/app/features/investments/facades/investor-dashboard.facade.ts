@@ -1,25 +1,23 @@
 // facades/investor-dashboard.facade.ts
-//
-// Facade del portal del inversionista. Centraliza:
-// - Carga del resumen (summary endpoint)
-// - KPIs derivados
-// - Decisiones pendientes / historial
-// - Submit de decisiones (simple + parcial)
-// - Datos para gráficos (sin Chart.js — solo data preparada)
-
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { finalize } from 'rxjs';
 
 import { InvestorService }     from '../services/investor.service';
 import { SaleDecisionService } from '../services/sale-decision.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ExportService, ExportConfig } from '../../../core/services/export.service';
 
 import type { InvestorSummary } from '../models/investor.model';
-import type { SaleDecisionList, SaleDecisionSummary, MakeDecisionPayload } from '../models/sale.model';
+import type {
+  SaleDecisionList,
+  SaleDecisionSummary,
+  MakeDecisionPayload,
+} from '../models/sale.model';
 import type { CattleOwnershipSummary } from '../models/cattle-ownership.model';
-import type { InvestmentMovement } from '../models/investment.model';
+import type { InvestmentMovement }     from '../models/investment.model';
 import { SaleDecisionType, InvestmentMovementType } from '../models/enums';
 import { parseDecimal } from '../../../core/utils/helpers';
+import type { ExportEvent } from '../../../shared/components/data-display/table/table.types';
 
 export type DashboardTab = 'resumen' | 'ganado' | 'movimientos' | 'decisiones';
 
@@ -30,9 +28,10 @@ export interface DashboardKpis {
   activeHeads:      number;
   cattleValue:      number;
   pendingDecisions: number;
+  totalContributions: number;
+  totalWithdrawals:   number;
 }
 
-// Para gráficos — solo data, sin Chart.js en el facade
 export interface CapitalChartData {
   labels: string[];
   values: number[];
@@ -46,23 +45,22 @@ export interface PortfolioChartData {
 
 @Injectable()
 export class InvestorDashboardFacade {
-  private readonly investorSvc   = inject(InvestorService);
-  private readonly decisionSvc   = inject(SaleDecisionService);
-  private readonly notify        = inject(NotificationService);
+  private readonly investorSvc  = inject(InvestorService);
+  private readonly decisionSvc  = inject(SaleDecisionService);
+  private readonly notify       = inject(NotificationService);
+  private readonly exportSvc    = inject(ExportService);
 
   // ── Estado ───────────────────────────────────────────────────
-
   readonly loading   = signal(true);
   readonly error     = signal('');
   readonly summary   = signal<InvestorSummary | null>(null);
   readonly activeTab = signal<DashboardTab>('resumen');
 
-  readonly decisionSaving           = signal(false);
-  readonly partialModalOpen         = signal(false);
+  readonly decisionSaving            = signal(false);
+  readonly partialModalOpen          = signal(false);
   readonly pendingDecisionForPartial = signal<SaleDecisionList | null>(null);
 
   // ── Computed — Investor ───────────────────────────────────────
-
   readonly investor = computed(() => this.summary()?.investor ?? null);
 
   readonly initials = computed(() => {
@@ -70,43 +68,36 @@ export class InvestorDashboardFacade {
     return name
       .split(' ')
       .slice(0, 2)
-      .map(n => n[0] ?? '')
+      .map((n) => n[0] ?? '')
       .join('')
       .toUpperCase();
   });
 
   // ── Computed — KPIs ───────────────────────────────────────────
-
   readonly kpis = computed<DashboardKpis | null>(() => {
     const s = this.summary();
     if (!s) return null;
     const capital = parseDecimal(s.investments.totalCapital);
     const profits = parseDecimal(s.investments.totalProfits);
     return {
-      currentCapital:   capital,
-      totalProfits:     profits,
-      roi:              capital > 0 ? (profits / capital) * 100 : 0,
-      activeHeads:      s.cattle.totalHeads,
-      cattleValue:      parseDecimal(s.cattle.totalValue),
-      pendingDecisions: s.pendingDecisions,
+      currentCapital:     capital,
+      totalProfits:       profits,
+      roi:                capital > 0 ? (profits / capital) * 100 : 0,
+      activeHeads:        s.cattle.totalHeads,
+      cattleValue:        parseDecimal(s.cattle.totalValue),
+      pendingDecisions:   s.pendingDecisions,
+      totalContributions: parseDecimal(s.investments.totalContributions),
+      totalWithdrawals:   parseDecimal(s.investments.totalWithdrawals),
     };
   });
 
-  // ── Computed — Listas ya mapeadas por el InvestorSummary mapper ──
-  //    El mapper convierte decisions_list → decisiondList (typo histórico)
-  //    y movements_list → movementsList / cattle_list → cattleList.
-  //    Usamos los campos camelCase del modelo tipado; no hace falta `as any`.
-
+  // ── Computed — Listas ─────────────────────────────────────────
   readonly pendingDecisions = computed<SaleDecisionSummary[]>(() =>
-    (this.summary()?.decisiondList ?? []).filter(
-      d => d.isPending
-    )
+    (this.summary()?.decisiondList ?? []).filter((d) => d.isPending)
   );
 
   readonly processedDecisions = computed<SaleDecisionSummary[]>(() =>
-    (this.summary()?.decisiondList ?? []).filter(
-      d => !d.isPending
-    )
+    (this.summary()?.decisiondList ?? []).filter((d) => !d.isPending)
   );
 
   readonly pendingCount = computed(() => this.pendingDecisions().length);
@@ -115,23 +106,25 @@ export class InvestorDashboardFacade {
     () => this.summary()?.movementsList ?? []
   );
 
+  readonly recentMovements = computed<InvestmentMovement[]>(
+    () => this.movements().slice(0, 5)
+  );
+
   readonly cattleList = computed<CattleOwnershipSummary[]>(
     () => this.summary()?.cattleList ?? []
   );
 
-  // ── Computed — Chart data (pura, sin dependencia de Chart.js) ─
-
+  // ── Computed — Chart data ─────────────────────────────────────
   readonly capitalChartData = computed<CapitalChartData>(() => {
-    // movementsList ya viene mapeado por toInvestmentMovement (camelCase)
     const movements = [...this.movements()].reverse();
     return {
-      labels: movements.map(m =>
+      labels: movements.map((m) =>
         new Date(m.createdAt).toLocaleDateString('es-CO', {
           month: 'short',
           day:   'numeric',
         })
       ),
-      values: movements.map(m => parseDecimal(m.balanceAfter)),
+      values: movements.map((m) => parseDecimal(m.balanceAfter)),
     };
   });
 
@@ -139,8 +132,10 @@ export class InvestorDashboardFacade {
     const s = this.summary();
     if (!s) return { labels: [], values: [], colors: [] };
 
-    const pending = this.pendingDecisions()
-      .reduce((acc, d) => acc + parseDecimal(d.investorAmount), 0);
+    const pending = this.pendingDecisions().reduce(
+      (acc, d) => acc + parseDecimal(d.investorAmount),
+      0
+    );
 
     return {
       labels: ['Ganado activo', 'Capital líquido', 'En decisión'],
@@ -153,8 +148,40 @@ export class InvestorDashboardFacade {
     };
   });
 
-  // ── Carga ─────────────────────────────────────────────────────
+  // ── Computed — Resumen para tarjetas ──────────────────────────
+  readonly investmentSummaryCards = computed(() => {
+    const k = this.kpis();
+    if (!k) return [];
+    return [
+      {
+        label: 'Capital Actual',
+        value: this.formatCOP(k.currentCapital),
+        color: 'blue' as const,
+        icon:  'dollar',
+      },
+      {
+        label: 'Ganancias Totales',
+        value: this.formatCOP(k.totalProfits),
+        color: 'green' as const,
+        icon:  'trending-up',
+        sub:   `ROI: ${k.roi.toFixed(1)}%`,
+      },
+      {
+        label: 'Aportes Totales',
+        value: this.formatCOP(k.totalContributions),
+        color: 'blue' as const,
+        icon:  'plus',
+      },
+      {
+        label: 'Retiros Totales',
+        value: this.formatCOP(k.totalWithdrawals),
+        color: 'red' as const,
+        icon:  'minus',
+      },
+    ];
+  });
 
+  // ── Carga ─────────────────────────────────────────────────────
   load(): void {
     this.loading.set(true);
     this.error.set('');
@@ -167,29 +194,31 @@ export class InvestorDashboardFacade {
       });
   }
 
-  // ── Tabs ──────────────────────────────────────────────────────
+  reload(): void {
+    this.load();
+  }
 
+  // ── Tabs ──────────────────────────────────────────────────────
   setTab(tab: DashboardTab): void {
     this.activeTab.set(tab);
   }
 
   // ── Decisiones ────────────────────────────────────────────────
-
-  /**
-   * Recibe un SaleDecisionSummary del template y lo convierte a
-   * SaleDecisionList mínimo necesario para el flujo de decisión.
-   */
   onDecide(decision: SaleDecisionSummary, type: SaleDecisionType): void {
     if (type === SaleDecisionType.PARTIAL) {
-      // Adaptamos SaleDecisionSummary al shape que espera partialModal
-      this.pendingDecisionForPartial.set(decision as unknown as SaleDecisionList);
+      this.pendingDecisionForPartial.set(
+        decision as unknown as SaleDecisionList
+      );
       this.partialModalOpen.set(true);
       return;
     }
     this.submitDecision(decision.id, { decisionType: type });
   }
 
-  onPartialSubmit(result: { reinvestAmount: number; withdrawAmount: number }): void {
+  onPartialSubmit(result: {
+    reinvestAmount: number;
+    withdrawAmount: number;
+  }): void {
     const d = this.pendingDecisionForPartial();
     if (!d) return;
     this.partialModalOpen.set(false);
@@ -206,27 +235,76 @@ export class InvestorDashboardFacade {
     this.pendingDecisionForPartial.set(null);
   }
 
-  private submitDecision(id: string, payload: MakeDecisionPayload): void {
+  private submitDecision(
+    id: string,
+    payload: MakeDecisionPayload
+  ): void {
     this.decisionSaving.set(true);
     this.decisionSvc
       .makeDecision(id, payload)
       .pipe(finalize(() => this.decisionSaving.set(false)))
       .subscribe({
-        next:  () => {
-          this.notify.success('Decisión registrada');
+        next: () => {
+          this.notify.success('Decisión registrada correctamente');
           this.load();
         },
         error: (err) =>
-          this.notify.error(err?.error?.message || 'Error al registrar la decisión'),
+          this.notify.error(
+            err?.error?.message || 'Error al registrar la decisión'
+          ),
       });
+  }
+
+  // ── Exportación ───────────────────────────────────────────────
+
+  private buildBaseExportConfig(title: string, fileName: string): Partial<ExportConfig> {
+    const inv = this.investor();
+    return {
+      fileName,
+      title,
+      subtitle: inv ? `Inversionista: ${inv.name} (${inv.code})` : undefined,
+      companyName: 'Ganadería Veracruz Y.P',
+    };
+  }
+
+  exportMovements(event: ExportEvent): void {
+    const config = this.buildBaseExportConfig(
+      'Movimientos de Inversión',
+      event.fileName ?? 'movimientos-inversion'
+    );
+
+    if (event.filters?.search) {
+      config.filters = { Búsqueda: event.filters.search };
+    }
+
+    this.exportSvc.export(event.format, event.columns, event.data, config);
+    this.notify.success(`${event.format === 'excel' ? 'Excel' : 'PDF'} descargado`);
+  }
+
+  exportCattle(event: ExportEvent): void {
+    const config = this.buildBaseExportConfig(
+      'Ganado del Inversionista',
+      event.fileName ?? 'ganado-inversionista'
+    );
+    this.exportSvc.export(event.format, event.columns, event.data, config);
+    this.notify.success(`${event.format === 'excel' ? 'Excel' : 'PDF'} descargado`);
+  }
+
+  exportDecisions(event: ExportEvent): void {
+    const config = this.buildBaseExportConfig(
+      'Historial de Decisiones',
+      event.fileName ?? 'decisiones-inversionista'
+    );
+    this.exportSvc.export(event.format, event.columns, event.data, config);
+    this.notify.success(`${event.format === 'excel' ? 'Excel' : 'PDF'} descargado`);
   }
 
   // ── UI helpers ────────────────────────────────────────────────
 
   formatCOP(value: number | string): string {
     return new Intl.NumberFormat('es-CO', {
-      style:                'currency',
-      currency:             'COP',
+      style:                 'currency',
+      currency:              'COP',
       maximumFractionDigits: 0,
     }).format(typeof value === 'string' ? parseFloat(value) : value);
   }
@@ -245,7 +323,9 @@ export class InvestorDashboardFacade {
     return this.movementColor(type) === 'success' ? '+' : '−';
   }
 
-  deadlineClass(deadline: string | null): 'urgent' | 'warning' | 'ok' | '' {
+  deadlineClass(
+    deadline: string | null
+  ): 'urgent' | 'warning' | 'ok' | '' {
     if (!deadline) return '';
     const days = Math.ceil(
       (new Date(deadline).getTime() - Date.now()) / 86_400_000
@@ -258,7 +338,7 @@ export class InvestorDashboardFacade {
     const days = Math.ceil(
       (new Date(deadline).getTime() - Date.now()) / 86_400_000
     );
-    if (days <= 0)  return 'Vence hoy';
+    if (days <= 0) return 'Vence hoy';
     if (days === 1) return 'Vence mañana';
     return `${days} días restantes`;
   }

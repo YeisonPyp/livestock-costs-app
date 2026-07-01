@@ -110,6 +110,7 @@ export class PersonFormComponent implements OnInit, OnDestroy, OnChanges {
   // ── Outputs ───────────────────────────────────────────────────────
   formSubmit = output<Partial<PersonCreatePayload>>();
   formCancel = output<void>();
+  formValid = signal(false);
 
   // ── Services ──────────────────────────────────────────────────────
   private fb             = inject(FormBuilder);
@@ -167,38 +168,39 @@ export class PersonFormComponent implements OnInit, OnDestroy, OnChanges {
   isJuridical = computed(() => this.personTypeValue() === 'J');
 
   /** Porcentaje de completitud del formulario (0-100) */
-  formProgress = computed(() => {
-    if (!this.form) return 0;
-    const required = this.getRequiredFields();
-    const filled   = required.filter((f) => {
-      const val = this.form.get(f)?.value;
-      return val !== null && val !== undefined && val !== '';
-    });
-    return Math.round((filled.length / required.length) * 100);
+formProgress = computed(() => {
+  // Depende de formValid para re-evaluarse
+  const _ = this.formValid();
+  if (!this.form) return 0;
+  const required = this.getRequiredFields();
+  const filled = required.filter((f) => {
+    const val = this.form.get(f)?.value;
+    return val !== null && val !== undefined && val !== '';
   });
+  return Math.round((filled.length / required.length) * 100);
+});
 
   /** Puede enviar si el form es válido y no hay errores async pendientes */
   canSubmit = computed(() => {
-    if (!this.form) return false;
-    if (this.form.invalid)               return false;
+    // ✅ Ahora depende de formValid() que SÍ es reactivo
+    if (!this.formValid())                   return false;
     if (this.submitting() || this.loading()) return false;
-    if (this.emailAvailable() === false)    return false;
-    if (this.documentAvailable() === false) return false;
-    if (this.checkingEmail())               return false;
-    if (this.checkingDocument())            return false;
+    if (this.emailAvailable() === false)     return false;
+    if (this.documentAvailable() === false)  return false;
+    if (this.checkingEmail())                return false;
+    if (this.checkingDocument())             return false;
     return true;
   });
 
   /** Mensaje explicando por qué no se puede enviar */
-  submitBlockReason = computed(() => {
-    if (!this.form) return '';
-    if (this.emailAvailable() === false)    return 'El correo ya está registrado';
-    if (this.documentAvailable() === false) return 'El documento ya está registrado';
-    if (this.checkingEmail())               return 'Verificando correo...';
-    if (this.checkingDocument())            return 'Verificando documento...';
-    if (this.form.invalid)                  return 'Completa los campos requeridos';
-    return '';
-  });
+submitBlockReason = computed(() => {
+  if (this.emailAvailable() === false)    return 'El correo ya está registrado';
+  if (this.documentAvailable() === false) return 'El documento ya está registrado';
+  if (this.checkingEmail())               return 'Verificando correo...';
+  if (this.checkingDocument())            return 'Verificando documento...';
+  if (!this.formValid())                  return 'Completa los campos requeridos';
+  return '';
+});
 
   // ── Suffix icons ──────────────────────────────────────────────────
   private readonly checkSvg   = `<svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`;
@@ -254,6 +256,7 @@ export class PersonFormComponent implements OnInit, OnDestroy, OnChanges {
     this.setupAsyncValidations();
     this.setupCascadeSelects();
     this.listenPersonType();
+    this.trackFormValidity(); // ← AGREGAR
   }
 
   /**
@@ -309,6 +312,18 @@ export class PersonFormComponent implements OnInit, OnDestroy, OnChanges {
     // Si person fue pasado antes del OnInit (poco común pero posible)
     const p = this.person();
     if (p) this.patchForm(p);
+  }
+
+  private trackFormValidity(): void {
+  // Actualizar la señal cada vez que el form cambie
+    this.form.statusChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.formValid.set(this.form.valid);
+      });
+
+    // Estado inicial
+    this.formValid.set(this.form.valid);
   }
 
   private listenPersonType(): void {
