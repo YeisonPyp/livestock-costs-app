@@ -65,7 +65,7 @@ export class NavbarComponent implements OnInit {
   }
 
   navigateToProfile(): void {
-    this.router.navigate(['/profile']);
+    this.router.navigate(['users/profile']);
     this.userMenuOpen = false;
   }
 

@@ -1,0 +1,254 @@
+<!-- my-profile.component.html -->
+<div class="mp-page">
+
+  <!-- HEADER -->
+  <div class="mp-header">
+    <h1 class="mp-title">Mi Perfil</h1>
+    <p class="mp-subtitle">Gestiona tu información personal y de cuenta</p>
+  </div>
+
+  @if (loading()) {
+    <div class="mp-loading">
+      <div class="mp-spinner"></div>
+      <span>Cargando tu perfil...</span>
+    </div>
+  }
+
+  @if (user() && !loading()) {
+
+    <!-- PROFILE CARD -->
+    <div class="mp-profile-card">
+      <div class="mp-avatar-wrap">
+        @if (user()!.avatar) {
+          <img [src]="user()!.avatar" [alt]="user()!.full_name" class="mp-avatar-img"/>
+        } @else {
+          <div class="mp-avatar-initials">{{ initials() }}</div>
+        }
+
+        @if (uploadingAvatar()) {
+          <div class="mp-avatar-overlay">
+            <div class="mp-spinner mp-spinner--sm"></div>
+          </div>
+        }
+
+        <label class="mp-avatar-upload" title="Cambiar foto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          <input type="file" accept="image/*" hidden (change)="onAvatarSelected($event)"/>
+        </label>
+      </div>
+
+      <div class="mp-profile-info">
+        <h2 class="mp-name">{{ user()!.full_name ?? user()!.username }}</h2>
+        <p class="mp-username">&#64;{{ user()!.username }}</p>
+        <p class="mp-email">{{ user()!.email }}</p>
+
+        <div class="mp-badges">
+          <app-user-status-badge [type]="user()!.is_active ? 'active' : 'inactive'"/>
+          <app-user-status-badge [type]="user()!.is_verified ? 'verified' : 'unverified'"/>
+          @if (user()!.is_staff) { <app-user-status-badge type="staff"/> }
+        </div>
+      </div>
+
+      @if (user()!.avatar) {
+        <button class="mp-delete-avatar" (click)="deleteAvatar()" title="Eliminar foto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          </svg>
+          Quitar foto
+        </button>
+      }
+    </div>
+
+    <!-- TABS -->
+    <div class="mp-tabs">
+      <button class="mp-tab" [class.active]="activeTab() === 'info'" (click)="setTab('info')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        Información personal
+      </button>
+
+      <button class="mp-tab" [class.active]="activeTab() === 'security'" (click)="setTab('security')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        Seguridad
+      </button>
+    </div>
+
+    <!-- TAB: INFO -->
+    @if (activeTab() === 'info') {
+      @if (personData()) {
+        <app-person-form
+          mode="edit"
+          [person]="personData()"
+          [loading]="submitting()"
+          (formSubmit)="onUpdatePerson($event)"
+          (formCancel)="loadProfile()"
+        />
+      } @else {
+        <div class="mp-alert">
+          <p>No hay información de persona vinculada a tu usuario.</p>
+        </div>
+      }
+    }
+
+    <!-- TAB: SECURITY -->
+    @if (activeTab() === 'security') {
+      <div class="mp-security-grid">
+
+        <!-- Password card -->
+        <div class="mp-sec-card">
+          <div class="mp-sec-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+              <rect x="3" y="11" width="18" height="11" rx="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <div class="mp-sec-card__body">
+            <h3>Contraseña</h3>
+            <p>Cambia tu contraseña regularmente para mantener tu cuenta segura.</p>
+            @if (user()!.last_password_change) {
+              <p class="mp-sec-card__meta">
+                Último cambio: {{ formatDate(user()!.last_password_change) }}
+              </p>
+            }
+          </div>
+          <button class="mp-btn mp-btn--primary" (click)="openPasswordModal()">
+            Cambiar contraseña
+          </button>
+        </div>
+
+        <!-- Login info -->
+        <div class="mp-sec-card">
+          <div class="mp-sec-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div class="mp-sec-card__body">
+            <h3>Actividad de acceso</h3>
+            <p>Último inicio de sesión:</p>
+            <p class="mp-sec-card__meta">
+              {{ formatDate(user()!.last_login) }}
+              @if (user()!.last_login_ip) {
+                · desde {{ user()!.last_login_ip }}
+              }
+            </p>
+          </div>
+        </div>
+
+        <!-- Verification -->
+        <div class="mp-sec-card">
+          <div class="mp-sec-card__icon" [class.mp-sec-card__icon--verified]="user()!.is_verified">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+              <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+          </div>
+          <div class="mp-sec-card__body">
+            <h3>Verificación de cuenta</h3>
+            @if (user()!.is_verified) {
+              <p>Tu cuenta está verificada</p>
+              <p class="mp-sec-card__meta">
+                Verificado el {{ formatDate(user()!.verified_at) }}
+              </p>
+            } @else {
+              <p>Tu cuenta aún no está verificada</p>
+              <p class="mp-sec-card__meta">
+                Contacta a un administrador para verificar tu cuenta.
+              </p>
+            }
+          </div>
+        </div>
+
+      </div>
+    }
+  }
+</div>
+
+<!-- MODAL: CAMBIAR CONTRASEÑA -->
+<app-modal
+  [isOpen]="showPasswordModal()"
+  title="Cambiar contraseña"
+  size="sm"
+  [showFooter]="false"
+  (close)="closePasswordModal()"
+>
+  <div class="mp-pwd-form">
+    <div class="mp-field">
+      <label>Contraseña actual</label>
+      <div class="mp-input-wrap">
+        <input
+          [type]="showOldPwd() ? 'text' : 'password'"
+          class="mp-input"
+          placeholder="Tu contraseña actual"
+          [ngModel]="oldPassword()"
+          (ngModelChange)="oldPassword.set($event)"
+        />
+        <button type="button" class="mp-eye" (click)="toggleOldPwd()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="mp-field">
+      <label>Nueva contraseña</label>
+      <div class="mp-input-wrap">
+        <input
+          [type]="showNewPwd() ? 'text' : 'password'"
+          class="mp-input"
+          placeholder="Mínimo 8 caracteres"
+          [ngModel]="newPassword()"
+          (ngModelChange)="newPassword.set($event)"
+        />
+        <button type="button" class="mp-eye" (click)="toggleNewPwd()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="mp-field">
+      <label>Confirmar nueva contraseña</label>
+      <div class="mp-input-wrap">
+        <input
+          [type]="showConfirmPwd() ? 'text' : 'password'"
+          class="mp-input"
+          placeholder="Repite la contraseña"
+          [ngModel]="newPasswordConfirm()"
+          (ngModelChange)="newPasswordConfirm.set($event)"
+        />
+        <button type="button" class="mp-eye" (click)="toggleConfirmPwd()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    @if (passwordError()) {
+      <div class="mp-pwd-error">{{ passwordError() }}</div>
+    }
+
+    <div class="mp-modal-actions">
+      <button class="mp-btn mp-btn--ghost" (click)="closePasswordModal()">Cancelar</button>
+      <button class="mp-btn mp-btn--primary" [disabled]="submitting()" (click)="confirmPasswordChange()">
+        @if (submitting()) { <span class="mp-spinner mp-spinner--sm"></span> }
+        Actualizar contraseña
+      </button>
+    </div>
+  </div>
+</app-modal>

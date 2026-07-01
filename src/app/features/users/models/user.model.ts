@@ -215,6 +215,22 @@ export interface UserCreatePayload {
   password_confirm: string;
 }
 
+export interface PersonUpdateSelfPayload {
+  first_name?: string;
+  second_name?: string;
+  last_name?: string;
+  second_last_name?: string;
+  legal_name?: string;
+  phone_number?: string;
+  address?: string;
+  birth_date?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+  gender?: string;
+}
+
+
 export interface UserUpdatePayload {
   username?: string;
   avatar?: File | null;

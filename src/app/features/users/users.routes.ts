@@ -31,4 +31,12 @@ export const USERS_ROUTES: Routes = [
       ),
     title: 'Detalle de Usuario',
   },
+  {
+  path: 'profile',
+  loadComponent: () =>
+    import('./pages/my-profile/my-profile.component').then(
+      (m) => m.MyProfileComponent
+    ),
+  title: 'Mi Perfil',
+},
 ];

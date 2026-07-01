@@ -39,7 +39,8 @@
   <div class="dash-kpi-grid">
     <app-kpi-card
       label="Capital por Invertir"
-      [value]="facade.formatCOP(facade.kpis()?.currentCapital ?? 0)"
+      format=currency
+      [value]="facade.kpis()?.currentCapital ?? 0"
       color="blue"
     >
       <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
