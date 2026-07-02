@@ -1,0 +1,94 @@
+<!-- investor-navbar.component.html -->
+<header class="inv-nav" [class.inv-nav--scrolled]="scrolled">
+  <div class="inv-nav-container">
+
+    <!-- Logo & Brand -->
+    <div class="inv-nav-brand">
+      <div class="inv-nav-brand__content">
+        <div class="inv-nav-logo">
+          <img src="assets/logo.png" alt="Logo Ganadería Veracruz"/>
+        </div>
+        <div class="inv-nav-brand__text">
+          <h1 class="inv-nav-brand__title">Ganadería Veracruz Y.P</h1>
+          <p class="inv-nav-brand__subtitle">Portal del Inversionista</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="inv-nav-actions">
+      @if (authService.currentUser$ | async; as user) {
+
+        <!-- Notificaciones -->
+        <button class="inv-nav-icon-btn" aria-label="Notificaciones">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+          </svg>
+          <span class="inv-nav-notification-dot"></span>
+        </button>
+
+        <!-- User Dropdown -->
+        <div class="inv-nav-user-container">
+          <button
+            class="inv-nav-user-trigger"
+            type="button"
+            (click)="toggleUserMenu()"
+            [attr.aria-expanded]="userMenuOpen"
+            aria-label="Menú de usuario"
+          >
+            <div class="inv-nav-avatar">
+              <span>{{ getInitials(user.full_name) }}</span>
+            </div>
+            <div class="inv-nav-user-info">
+              <span class="inv-nav-user-name">{{ user.full_name }}</span>
+              <span class="inv-nav-user-role">{{ getRoleLabel(user.roles[0]) }}</span>
+            </div>
+            <svg
+              class="inv-nav-chevron"
+              [class.open]="userMenuOpen"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+
+          <!-- Dropdown -->
+          <div class="inv-nav-dropdown" [class.open]="userMenuOpen">
+            <div class="inv-nav-dropdown__header">
+              <div class="inv-nav-dropdown__avatar">
+                <span>{{ getInitials(user.full_name) }}</span>
+              </div>
+              <div class="inv-nav-dropdown__info">
+                <p class="inv-nav-d-name">{{ user.full_name }}</p>
+                <p class="inv-nav-d-email">{{ user.email || user.username }}</p>
+              </div>
+            </div>
+
+            <div class="inv-nav-divider"></div>
+
+            <div class="inv-nav-dropdown__body">
+              <!-- <button class="inv-nav-d-item" type="button" (click)="navigateToProfile()">
+                <svg class="inv-nav-d-icon" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+                <span>Mi Perfil</span>
+              </button> -->
+
+              <div class="inv-nav-divider"></div>
+
+              <button class="inv-nav-d-item inv-nav-d-item--danger" type="button" (click)="logout()">
+                <svg class="inv-nav-d-icon" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                </svg>
+                <span>Cerrar Sesión</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</header>

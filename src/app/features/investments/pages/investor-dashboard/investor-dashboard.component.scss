@@ -5,15 +5,32 @@ $inv-primary: #185FA5;
 $inv-green:   #1D9E75;
 $inv-amber:   #BA7517;
 $inv-danger:  #ef4444;
+$inv-navbar-height: 64px;
 
-// ── Layout ────────────────────────────────────────────────────────
+// ── Layout wrapper para respetar el navbar fijo ──────────────────
+.inv-dash-layout {
+  min-height:  100vh;
+  padding-top: $inv-navbar-height;
+  background:  $slate-50;
+}
+
+// ── Dashboard container ──────────────────────────────────────────
 .dashboard {
   display:        flex;
   flex-direction: column;
   gap:            1.5rem;
+  padding:        1.5rem;
+  max-width:      1400px;
+  margin:         0 auto;
+
+  @media (max-width: 640px) {
+    padding: 1rem;
+    gap:     1rem;
+  }
 }
 
-// ── Error / retry ─────────────────────────────────────────────────
+// ── (el resto del scss que ya tenías queda igual) ────────────────
+
 .dash-error {
   display:        flex;
   flex-direction: column;
@@ -40,7 +57,6 @@ $inv-danger:  #ef4444;
   &:hover { background: rgba($inv-primary, 0.12); }
 }
 
-// ── Profile ───────────────────────────────────────────────────────
 .dash-profile {
   display:       flex;
   align-items:   center;
@@ -104,14 +120,12 @@ $inv-danger:  #ef4444;
   }
 }
 
-// ── KPIs ──────────────────────────────────────────────────────────
 .dash-kpi-grid {
   display:               grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap:                   1rem;
 }
 
-// ── Tabs ──────────────────────────────────────────────────────────
 .dash-tabs {
   display:       flex;
   gap:           0;
@@ -182,7 +196,6 @@ $inv-danger:  #ef4444;
   50%      { opacity: 0.7; }
 }
 
-// ── Cards ─────────────────────────────────────────────────────────
 .dash-card {
   background:    white;
   border:        1px solid $border-color;
@@ -226,7 +239,6 @@ $inv-danger:  #ef4444;
   &:hover { color: darken($inv-primary, 12%); }
 }
 
-// ── Charts ────────────────────────────────────────────────────────
 .dash-charts {
   display:               grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -238,7 +250,6 @@ $inv-danger:  #ef4444;
   position: relative;
 }
 
-// ── Section label ─────────────────────────────────────────────────
 .dash-section-label {
   display:        flex;
   align-items:    center;
@@ -250,7 +261,6 @@ $inv-danger:  #ef4444;
   letter-spacing: 0.06em;
 }
 
-// ── Decisions grid ────────────────────────────────────────────────
 .dash-decisions-grid {
   display:               grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -258,7 +268,6 @@ $inv-danger:  #ef4444;
   margin-top:            0.75rem;
 }
 
-// ── Empty states ──────────────────────────────────────────────────
 .dash-empty-msg {
   font-size:  0.85rem;
   color:      $slate-400;
@@ -288,7 +297,6 @@ $inv-danger:  #ef4444;
   }
 }
 
-// ── cell helpers ──────────────────────────────────────────────────
 ::ng-deep {
   .cell-income { color: $inv-green !important; font-weight: 600; }
   .cell-expense { color: $inv-danger !important; font-weight: 600; }
@@ -298,7 +306,6 @@ $inv-danger:  #ef4444;
   }
 }
 
-// ── Responsive ────────────────────────────────────────────────────
 @media (max-width: 768px) {
   .dash-kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .dash-charts   { grid-template-columns: 1fr; }
@@ -306,14 +313,13 @@ $inv-danger:  #ef4444;
 }
 
 @media (max-width: 640px) {
-  .dashboard       { gap: 1rem; }
-  .dash-tabs       { overflow-x: auto; }
-  .dash-tab        { padding: 0.625rem 0.875rem; font-size: 0.8rem; }
-  .dash-kpi-grid   { grid-template-columns: 1fr 1fr; }
+  .dash-tabs { overflow-x: auto; }
+  .dash-tab  { padding: 0.625rem 0.875rem; font-size: 0.8rem; }
+  .dash-kpi-grid { grid-template-columns: 1fr 1fr; }
 
   .dash-profile {
     flex-direction: column;
-    text-align: center;
+    text-align:     center;
   }
 
   .dash-profile__name { justify-content: center; }

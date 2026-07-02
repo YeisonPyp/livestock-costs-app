@@ -91,19 +91,29 @@ export interface CattleOwnerReport {
 
 export interface CattleOwnershipSummary {
   id: string;
+  investorCode: string;
+  investorName: string;
+  ownershipType: OwnershipType;
+  quantity: number;
+  ownershipPercentage: string;
+  purchaseValue: string;
+  currentValue: string;
+  valueAppreciation: string;
+  valueAppreciationPercentage: string;
+  initialWeight: string | null;
+  currentWeight: string | null;
+  weightGain: string;
+  weightGainPercentage: string;
+  acquisitionDate: string;
+  status: CattleOwnershipStatus;
+  animalId: string | null;
   tagNumber: string;
-  name: string;
+  animalName: string | null;
   breedName: string
   gender: string;
   category: string;
-  lotCode: string;
-  currentWeight: string;
-  currentValue: string;
-  ageMonths: string;
-  weightGain: string;
+  lotCode: string | null;
   dailyGain: string;
-  purchasePrice: string;
-  status: CattleOwnershipStatus;
-  entryDate: string;
   lastWeightDate: string;
+  ageMonths: number | null;
 }

@@ -55,7 +55,6 @@ export interface InvestmentMovement {
   referenceId: string | null;
   isCredit: boolean;
   isDebit: boolean;
-  createdByName: string | null;
   createdByUsername: string | null;
   createdAt: string;
 }

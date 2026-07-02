@@ -10,7 +10,6 @@ import {
   effect,
   ViewChild,
   ElementRef,
-  untracked,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import Chart from 'chart.js/auto';
@@ -30,6 +29,7 @@ import { TableColumn, ExportEvent } from '../../../../shared/components/data-dis
 
 import type { SaleDecisionSummary } from '../../models/sale.model';
 import { SaleDecisionType }         from '../../models/enums';
+import { InvestorNavbarComponent } from '../../components/investor-navbar/investor-navbar.component';
 
 @Component({
   selector:        'app-investor-dashboard',
@@ -45,6 +45,7 @@ import { SaleDecisionType }         from '../../models/enums';
     TableComponent,
     DecisionCardComponent,
     PartialDecisionModalComponent,
+    InvestorNavbarComponent,
   ],
   templateUrl: './investor-dashboard.component.html',
   styleUrl:    './investor-dashboard.component.scss',
@@ -52,26 +53,37 @@ import { SaleDecisionType }         from '../../models/enums';
 export class InvestorDashboardComponent
   implements OnInit, AfterViewInit, OnDestroy
 {
-  readonly facade = inject(InvestorDashboardFacade);
-  private readonly cdr = inject(ChangeDetectorRef);
+  readonly facade    = inject(InvestorDashboardFacade);
+  private  readonly cdr = inject(ChangeDetectorRef);
 
-  @ViewChild('capitalCanvas')   capitalCanvas!:   ElementRef<HTMLCanvasElement>;
-  @ViewChild('portfolioCanvas') portfolioCanvas!: ElementRef<HTMLCanvasElement>;
+  private capitalCanvas?:   ElementRef<HTMLCanvasElement>;
+  private portfolioCanvas?: ElementRef<HTMLCanvasElement>;
+
+  @ViewChild('capitalCanvas')
+  set capitalCanvasRef(ref: ElementRef<HTMLCanvasElement> | undefined) {
+    this.capitalCanvas = ref;
+    if (ref) {
+      queueMicrotask(() => this.buildCharts());
+    }
+  }
+
+  @ViewChild('portfolioCanvas')
+  set portfolioCanvasRef(ref: ElementRef<HTMLCanvasElement> | undefined) {
+    this.portfolioCanvas = ref;
+    if (ref) {
+      queueMicrotask(() => this.buildCharts());
+    }
+  }
 
   private capitalChart?:   Chart;
   private portfolioChart?: Chart;
-  private viewReady = false;
 
-  // ── Columnas para app-table ─────────────────────────────────
+  // ══════════════════════════════════════════════════════════════
+  // COLUMNAS
+  // ══════════════════════════════════════════════════════════════
 
   movementColumns: TableColumn[] = [
-    {
-      key: 'createdAt',
-      label: 'Fecha',
-      type: 'date',
-      width: '110px',
-      sortable: true,
-    },
+    { key: 'createdAt', label: 'Fecha', type: 'date', width: '110px', sortable: true },
     {
       key: 'movementTypeDisplay',
       label: 'Tipo',
@@ -80,11 +92,7 @@ export class InvestorDashboardComponent
       format: (v) => v ?? '—',
       badgeColor: (_v, row) => (row?.isCredit ? 'success' : 'danger'),
     },
-    {
-      key: 'description',
-      label: 'Descripción',
-      format: (v) => v || '—',
-    },
+    { key: 'description', label: 'Descripción', format: (v) => v || '—' },
     {
       key: 'amount',
       label: 'Monto',
@@ -93,17 +101,11 @@ export class InvestorDashboardComponent
       width: '150px',
       cellClass: (_v, row) => (row?.isCredit ? 'cell-income' : 'cell-expense'),
     },
-    {
-      key: 'balanceAfter',
-      label: 'Saldo',
-      type: 'currency',
-      align: 'right',
-      width: '150px',
-    },
+    { key: 'balanceAfter', label: 'Saldo', type: 'currency', align: 'right', width: '150px' },
   ];
 
   cattleColumns: TableColumn[] = [
-    { key: 'tagNumber',    label: 'Arete',     width: '100px', cellClass: 'cell-tag' },
+    { key: 'tagNumber', label: 'Arete', width: '100px', cellClass: 'cell-tag' },
     {
       key: 'name',
       label: 'Nombre / Raza',
@@ -113,8 +115,8 @@ export class InvestorDashboardComponent
         return `${name}${breed}`;
       },
     },
-    { key: 'category',     label: 'Categoría', format: (v) => v ?? '—' },
-    { key: 'lotCode',      label: 'Lote',       format: (v) => v || '—' },
+    { key: 'category', label: 'Categoría', format: (v) => v ?? '—' },
+    { key: 'lotCode', label: 'Lote', format: (v) => v || '—' },
     {
       key: 'currentWeight',
       label: 'Peso actual',
@@ -137,20 +139,8 @@ export class InvestorDashboardComponent
         return n > 0 ? 'cell-income' : '';
       },
     },
-    {
-      key: 'currentValue',
-      label: 'Valor actual',
-      type: 'currency',
-      align: 'right',
-      width: '140px',
-    },
-    {
-      key: 'purchasePrice',
-      label: 'Precio compra',
-      type: 'currency',
-      align: 'right',
-      width: '140px',
-    },
+    { key: 'currentValue',  label: 'Valor actual',  type: 'currency', align: 'right', width: '140px' },
+    { key: 'purchasePrice', label: 'Precio compra', type: 'currency', align: 'right', width: '140px' },
     {
       key: 'status',
       label: 'Estado',
@@ -163,13 +153,7 @@ export class InvestorDashboardComponent
   ];
 
   decisionHistoryColumns: TableColumn[] = [
-    {
-      key: 'decisionDate',
-      label: 'Fecha',
-      type: 'date',
-      width: '110px',
-      sortable: true,
-    },
+    { key: 'decisionDate', label: 'Fecha', type: 'date', width: '110px', sortable: true },
     {
       key: 'decisionTypeDisplay',
       label: 'Decisión',
@@ -183,13 +167,7 @@ export class InvestorDashboardComponent
         return 'warning';
       },
     },
-    {
-      key: 'investorAmount',
-      label: 'Monto total',
-      type: 'currency',
-      align: 'right',
-      width: '140px',
-    },
+    { key: 'investorAmount', label: 'Monto total', type: 'currency', align: 'right', width: '140px' },
     {
       key: 'reinvestAmount',
       label: 'Reinvertido',
@@ -199,7 +177,7 @@ export class InvestorDashboardComponent
       cellClass: 'cell-income',
       format: (v) => {
         const n = parseFloat(String(v ?? 0));
-        return n > 0 ? undefined as any : '—';
+        return n > 0 ? (undefined as any) : '—';
       },
     },
     {
@@ -210,58 +188,60 @@ export class InvestorDashboardComponent
       width: '140px',
       format: (v) => {
         const n = parseFloat(String(v ?? 0));
-        return n > 0 ? undefined as any : '—';
+        return n > 0 ? (undefined as any) : '—';
       },
     },
   ];
 
-  // ── Chart effect ──────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════
+  // Chart effect
+  // ══════════════════════════════════════════════════════════════
 
   constructor() {
     effect(() => {
-      const summary = this.facade.summary();
-      const tab     = this.facade.activeTab();
-      if (!summary || tab !== 'resumen') return;
+      const capital   = this.facade.capitalChartData();
+      const portfolio = this.facade.portfolioChartData();
+      const tab       = this.facade.activeTab();
 
-      untracked(() => {
-        requestAnimationFrame(() => {
-          if (this.viewReady) {
-            this.buildCharts();
-            this.cdr.markForCheck();
-          }
-        });
+      if (tab !== 'resumen') return;
+      if (!capital.labels.length && !portfolio.values.length) return;
+
+      queueMicrotask(() => {
+        this.buildCharts();
+        this.cdr.markForCheck();
       });
     });
   }
 
-  // ── Lifecycle ─────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════
+  // Lifecycle
+  // ══════════════════════════════════════════════════════════════
 
   ngOnInit(): void {
     this.facade.load();
   }
 
-  ngAfterViewInit(): void {
-    this.viewReady = true;
-    if (this.facade.summary() && this.facade.activeTab() === 'resumen') {
-      requestAnimationFrame(() => this.buildCharts());
-    }
-  }
+  ngAfterViewInit(): void {}
 
   ngOnDestroy(): void {
     this.capitalChart?.destroy();
     this.portfolioChart?.destroy();
   }
 
-  // ── Tabs ──────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════
+  // Tabs
+  // ══════════════════════════════════════════════════════════════
 
   setTab(tab: DashboardTab): void {
     this.facade.setTab(tab);
-    if (tab === 'resumen' && this.viewReady) {
-      requestAnimationFrame(() => this.buildCharts());
+    if (tab === 'resumen') {
+      queueMicrotask(() => this.buildCharts());
     }
   }
 
-  // ── Decisiones ────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════
+  // Decisiones
+  // ══════════════════════════════════════════════════════════════
 
   onDecide(event: {
     decision: SaleDecisionSummary;
@@ -277,49 +257,53 @@ export class InvestorDashboardComponent
     this.facade.onPartialSubmit(result);
   }
 
-  // ── Export ────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════
+  // Export
+  // ══════════════════════════════════════════════════════════════
 
-  onExportMovements(event: ExportEvent): void {
-    this.facade.exportMovements(event);
-  }
+  onExportMovements(event: ExportEvent):  void { this.facade.exportMovements(event); }
+  onExportCattle(event: ExportEvent):     void { this.facade.exportCattle(event); }
+  onExportDecisions(event: ExportEvent):  void { this.facade.exportDecisions(event); }
 
-  onExportCattle(event: ExportEvent): void {
-    this.facade.exportCattle(event);
-  }
-
-  onExportDecisions(event: ExportEvent): void {
-    this.facade.exportDecisions(event);
-  }
-
-  // ── Charts ────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════
+  // Charts
+  // ══════════════════════════════════════════════════════════════
 
   private buildCharts(): void {
-    if (!this.capitalCanvas?.nativeElement || !this.portfolioCanvas?.nativeElement) return;
-    this.buildCapitalChart();
-    this.buildPortfolioChart();
+    const capitalEl   = this.capitalCanvas?.nativeElement;
+    const portfolioEl = this.portfolioCanvas?.nativeElement;
+
+    // ✅ Guard clause: si alguno no existe, salir
+    if (!capitalEl || !portfolioEl) return;
+
+    // ✅ Pasamos los elementos como parámetros — ya garantizados no-null
+    this.buildCapitalChart(capitalEl);
+    this.buildPortfolioChart(portfolioEl);
   }
 
-  private buildCapitalChart(): void {
-    this.capitalChart?.destroy();
+  private buildCapitalChart(canvas: HTMLCanvasElement): void {
     const { labels, values } = this.facade.capitalChartData();
+
+    // Destruir siempre el anterior
+    this.capitalChart?.destroy();
+    this.capitalChart = undefined;
+
     if (!labels.length) return;
 
-    this.capitalChart = new Chart(this.capitalCanvas.nativeElement, {
+    this.capitalChart = new Chart(canvas, {
       type: 'line',
       data: {
         labels,
-        datasets: [
-          {
-            data:            values,
-            borderColor:     '#185FA5',
-            backgroundColor: 'rgba(24,95,165,0.08)',
-            borderWidth:     1.5,
-            fill:            true,
-            tension:         0.35,
-            pointRadius:     0,
-            pointHoverRadius: 4,
-          },
-        ],
+        datasets: [{
+          data:             values,
+          borderColor:      '#185FA5',
+          backgroundColor:  'rgba(24,95,165,0.08)',
+          borderWidth:      1.5,
+          fill:             true,
+          tension:          0.35,
+          pointRadius:      0,
+          pointHoverRadius: 4,
+        }],
       },
       options: {
         responsive:          true,
@@ -346,22 +330,23 @@ export class InvestorDashboardComponent
     });
   }
 
-  private buildPortfolioChart(): void {
-    this.portfolioChart?.destroy();
+  private buildPortfolioChart(canvas: HTMLCanvasElement): void {
     const { labels, values, colors } = this.facade.portfolioChartData();
+
+    this.portfolioChart?.destroy();
+    this.portfolioChart = undefined;
+
     if (!values.some((v) => v > 0)) return;
 
-    this.portfolioChart = new Chart(this.portfolioCanvas.nativeElement, {
+    this.portfolioChart = new Chart(canvas, {
       type: 'doughnut',
       data: {
         labels,
-        datasets: [
-          {
-            data:            values,
-            backgroundColor: colors,
-            borderWidth:     0,
-          },
-        ],
+        datasets: [{
+          data:            values,
+          backgroundColor: colors,
+          borderWidth:     0,
+        }],
       },
       options: {
         responsive:          true,

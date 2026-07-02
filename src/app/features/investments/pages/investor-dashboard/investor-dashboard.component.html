@@ -1,319 +1,320 @@
 <!-- investor-dashboard.component.html -->
 
-@if (facade.loading()) {
-  <app-loader [overlay]="false" type="spinner" />
-} @else if (facade.error()) {
-  <div class="dash-error">
-    <app-alert type="danger" [message]="facade.error()" />
-    <button class="dash-retry-btn" (click)="facade.reload()">
-      Reintentar
-    </button>
-  </div>
-} @else {
+<!-- ✅ Navbar del inversionista (sin sidebar) -->
+<app-investor-navbar/>
 
-<div class="dashboard">
+<!-- Contenedor principal con padding-top para el navbar fijo -->
+<div class="inv-dash-layout">
 
-  <!-- ══════════ PERFIL ══════════ -->
-  <div class="dash-profile">
-    <div class="dash-profile__avatar">{{ facade.initials() }}</div>
-    <div class="dash-profile__info">
-      <div class="dash-profile__name">
-        {{ facade.investor()?.name }}
-        <app-badge color="success" size="sm">Activo</app-badge>
-      </div>
-      <div class="dash-profile__meta">
-        {{ facade.investor()?.code }}
-        · Inversionista desde {{ facade.investor()?.joinedDate | date:'dd MMM yyyy':'':'es' }}
-      </div>
+  @if (facade.loading()) {
+    <app-loader [overlay]="false" type="spinner" />
+  } @else if (facade.error()) {
+    <div class="dash-error">
+      <app-alert type="danger" [message]="facade.error()" />
+      <button class="dash-retry-btn" (click)="facade.reload()">
+        Reintentar
+      </button>
     </div>
-    <button class="dash-refresh-btn" (click)="facade.reload()" title="Actualizar datos">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        width="18" height="18">
-        <polyline points="23 4 23 10 17 10"/>
-        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-      </svg>
-    </button>
-  </div>
+  } @else {
 
-  <!-- ══════════ KPIs ══════════ -->
-  <div class="dash-kpi-grid">
-    <app-kpi-card
-      label="Capital por Invertir"
-      format=currency
-      [value]="facade.kpis()?.currentCapital ?? 0"
-      color="blue"
-    >
-      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="1" x2="12" y2="23"/>
-        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-      </svg>
-    </app-kpi-card>
+    <div class="dashboard">
 
-    <app-kpi-card
-      label="Ganancias Totales"
-      [value]="facade.formatCOP(facade.kpis()?.totalProfits ?? 0)"
-      color="green"
-      [subtitle]="'ROI: ' + (facade.kpis()?.roi ?? 0).toFixed(1) + '%'"
-    >
-      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-        <polyline points="16 7 22 7 22 13"/>
-      </svg>
-    </app-kpi-card>
-
-    <app-kpi-card
-      label="Cabezas Activas"
-      [value]="(facade.kpis()?.activeHeads ?? 0).toString()"
-      color="yellow"
-      [subtitle]="'Valor: ' + facade.formatCOP(facade.kpis()?.cattleValue ?? 0)"
-    >
-      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-      </svg>
-    </app-kpi-card>
-
-    <app-kpi-card
-      label="Decisiones Pendientes"
-      [value]="(facade.kpis()?.pendingDecisions ?? 0).toString()"
-      [color]="(facade.kpis()?.pendingDecisions ?? 0) > 0 ? 'red' : 'green'"
-      [subtitle]="(facade.kpis()?.pendingDecisions ?? 0) > 0 ? 'Requieren tu atención' : 'Al día ✓'"
-    >
-      <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
-    </app-kpi-card>
-  </div>
-
-  <!-- ══════════ TABS NAV ══════════ -->
-  <div class="dash-tabs">
-    <button class="dash-tab" [class.active]="facade.activeTab() === 'resumen'" (click)="setTab('resumen')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-        <rect x="3" y="3" width="18" height="18" rx="2"/>
-        <path d="M3 9h18"/>
-      </svg>
-      Resumen
-    </button>
-
-    <button class="dash-tab" [class.active]="facade.activeTab() === 'ganado'" (click)="setTab('ganado')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-        <circle cx="12" cy="12" r="10"/>
-      </svg>
-      Ganado
-      <span class="dash-tab__count">{{ facade.kpis()?.activeHeads ?? 0 }}</span>
-    </button>
-
-    <button class="dash-tab" [class.active]="facade.activeTab() === 'movimientos'" (click)="setTab('movimientos')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-      </svg>
-      Movimientos
-    </button>
-
-    <button class="dash-tab" [class.active]="facade.activeTab() === 'decisiones'" (click)="setTab('decisiones')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
-      Decisiones
-      @if (facade.pendingCount() > 0) {
-        <span class="dash-tab__badge">{{ facade.pendingCount() }}</span>
-      }
-    </button>
-  </div>
-
-  <!-- ══════════ TAB: RESUMEN ══════════ -->
-  @if (facade.activeTab() === 'resumen') {
-    <!-- Charts -->
-    <div class="dash-charts">
-      <div class="dash-card">
-        <div class="dash-card__title">Evolución del capital</div>
-        <div class="dash-chart-wrap">
-          @if (facade.capitalChartData().labels.length === 0) {
-            <p class="dash-empty-msg">Sin movimientos para graficar.</p>
-          } @else {
-            <canvas #capitalCanvas></canvas>
-          }
-        </div>
-      </div>
-
-      <div class="dash-card">
-        <div class="dash-card__title">Distribución del portafolio</div>
-        <div class="dash-chart-wrap">
-          <canvas #portfolioCanvas></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Últimos movimientos -->
-    <div class="dash-card">
-      <div class="dash-card__header">
-        <div class="dash-card__title">Últimos movimientos</div>
-        @if (facade.movements().length > 5) {
-          <button class="dash-link-btn" (click)="setTab('movimientos')">
-            Ver todos →
-          </button>
-        }
-      </div>
-
-      @if (facade.recentMovements().length === 0) {
-        <p class="dash-empty-msg">No hay movimientos registrados.</p>
-      } @else {
-        <app-table
-          [columns]="movementColumns"
-          [data]="facade.recentMovements()"
-          [config]="{
-            searchable: false,
-            paginated: false,
-            striped: true,
-            hover: true,
-            compact: true,
-            exportable: false
-          }"
-          emptyMessage="Sin movimientos"
-        />
-      }
-    </div>
-
-    <!-- Decisiones pendientes resumen -->
-    @if (facade.pendingCount() > 0) {
-      <div class="dash-card dash-card--alert">
-        <div class="dash-card__header">
-          <div class="dash-card__title">
-            ⚠ {{ facade.pendingCount() }} decisiones pendientes
+      <!-- ══════════ PERFIL ══════════ -->
+      <div class="dash-profile">
+        <div class="dash-profile__avatar">{{ facade.initials() }}</div>
+        <div class="dash-profile__info">
+          <div class="dash-profile__name">
+            {{ facade.investor()?.name }}
+            <app-badge color="success" size="sm">Activo</app-badge>
           </div>
-          <button class="dash-link-btn" (click)="setTab('decisiones')">
-            Ir a decidir →
-          </button>
+          <div class="dash-profile__meta">
+            {{ facade.investor()?.code }}
+            · Inversionista desde {{ facade.investor()?.joinedDate | date:'dd MMM yyyy':'':'es' }}
+          </div>
         </div>
-      </div>
-    }
-  }
-
-  <!-- ══════════ TAB: GANADO ══════════ -->
-  @if (facade.activeTab() === 'ganado') {
-    <div class="dash-card">
-      <app-table
-        [columns]="cattleColumns"
-        [data]="facade.cattleList()"
-        [config]="{
-          searchable: true,
-          searchPlaceholder: 'Buscar por arete, nombre, lote...',
-          paginated: true,
-          pageSize: 15,
-          pageSizeOptions: [10, 15, 25],
-          striped: true,
-          hover: true,
-          exportable: true,
-          exportFormats: ['excel', 'pdf'],
-          exportFileName: 'ganado-inversionista',
-          showResultCount: true
-        }"
-        emptyMessage="No tienes ganado activo actualmente"
-        emptyIcon="table"
-        (exportData)="onExportCattle($event)"
-      />
-    </div>
-  }
-
-  <!-- ══════════ TAB: MOVIMIENTOS ══════════ -->
-  @if (facade.activeTab() === 'movimientos') {
-    <div class="dash-card">
-      <app-table
-        [columns]="movementColumns"
-        [data]="facade.movements()"
-        [config]="{
-          searchable: true,
-          searchPlaceholder: 'Buscar movimiento...',
-          paginated: true,
-          pageSize: 15,
-          pageSizeOptions: [10, 15, 25, 50],
-          striped: true,
-          hover: true,
-          exportable: true,
-          exportFormats: ['excel', 'pdf'],
-          exportFileName: 'movimientos-inversion',
-          showResultCount: true,
-          showFirstLastPage: true
-        }"
-        emptyMessage="No hay movimientos registrados"
-        emptyIcon="table"
-        (exportData)="onExportMovements($event)"
-      />
-    </div>
-  }
-
-  <!-- ══════════ TAB: DECISIONES ══════════ -->
-  @if (facade.activeTab() === 'decisiones') {
-
-    <!-- Pendientes -->
-    @if (facade.pendingDecisions().length > 0) {
-      <div class="dash-section-label">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        Pendientes de decisión ({{ facade.pendingCount() }})
+        <button class="dash-refresh-btn" (click)="facade.reload()" title="Actualizar datos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            width="18" height="18">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+        </button>
       </div>
 
-      <div class="dash-decisions-grid">
-        @for (d of facade.pendingDecisions(); track d.id) {
-          <app-decision-card
-            [decision]="d"
-            [saving]="facade.decisionSaving()"
-            (decide)="onDecide($event)"
-          />
-        }
-      </div>
-    } @else {
-      <div class="dash-card">
-        <div class="dash-empty-ok">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="36" height="36">
-            <polyline points="20 6 9 17 4 12"/>
+      <!-- ══════════ KPIs ══════════ -->
+      <div class="dash-kpi-grid">
+        <app-kpi-card
+          label="Capital por Invertir"
+          format="currency"
+          [value]="facade.kpis()?.currentCapital ?? 0"
+          color="blue"
+        >
+          <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </app-kpi-card>
+
+        <app-kpi-card
+          label="Ganancias Totales"
+          [value]="facade.formatCOP(facade.kpis()?.totalProfits ?? 0)"
+          color="green"
+          [subtitle]="'ROI: ' + (facade.kpis()?.roi ?? 0).toFixed(1) + '%'"
+        >
+          <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+            <polyline points="16 7 22 7 22 13"/>
+          </svg>
+        </app-kpi-card>
+
+        <app-kpi-card
+          label="Cabezas Activas"
+          [value]="(facade.kpis()?.activeHeads ?? 0).toString()"
+          color="yellow"
+          [subtitle]="'Valor: ' + facade.formatCOP(facade.kpis()?.cattleValue ?? 0)"
+        >
+          <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
           </svg>
-          <p>No tienes decisiones pendientes</p>
-          <span class="dash-empty-ok__sub">Todas tus decisiones están al día</span>
-        </div>
+        </app-kpi-card>
+
+        <app-kpi-card
+          label="Decisiones Pendientes"
+          [value]="(facade.kpis()?.pendingDecisions ?? 0).toString()"
+          [color]="(facade.kpis()?.pendingDecisions ?? 0) > 0 ? 'red' : 'green'"
+          [subtitle]="(facade.kpis()?.pendingDecisions ?? 0) > 0 ? 'Requieren tu atención' : 'Al día ✓'"
+        >
+          <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </app-kpi-card>
       </div>
-    }
 
-    <!-- Modal parcial -->
-    @if (facade.partialModalOpen()) {
-      <app-partial-decision-modal
-        [totalAmount]="facade.parseDecimal(
-          facade.pendingDecisionForPartial()?.investorAmount ?? '0'
-        )"
-        (submitted)="onPartialSubmit($event)"
-        (cancelled)="facade.closePartialModal()"
-      />
-    }
+      <!-- ══════════ TABS NAV ══════════ -->
+      <div class="dash-tabs">
+        <button class="dash-tab" [class.active]="facade.activeTab() === 'resumen'" (click)="setTab('resumen')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <path d="M3 9h18"/>
+          </svg>
+          Resumen
+        </button>
 
-    <!-- Historial -->
-    <div class="dash-card" style="margin-top: 1.5rem">
-      <app-table
-        [columns]="decisionHistoryColumns"
-        [data]="facade.processedDecisions()"
-        [config]="{
-          searchable: false,
-          paginated: true,
-          pageSize: 10,
-          striped: true,
-          hover: true,
-          exportable: true,
-          exportFormats: ['excel'],
-          exportFileName: 'decisiones-historial',
-          showResultCount: true
-        }"
-        emptyMessage="No hay decisiones procesadas aún"
-        emptyIcon="filter"
-        (exportData)="onExportDecisions($event)"
-      />
+        <button class="dash-tab" [class.active]="facade.activeTab() === 'ganado'" (click)="setTab('ganado')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <circle cx="12" cy="12" r="10"/>
+          </svg>
+          Ganado
+          <span class="dash-tab__count">{{ facade.kpis()?.activeHeads ?? 0 }}</span>
+        </button>
+
+        <button class="dash-tab" [class.active]="facade.activeTab() === 'movimientos'" (click)="setTab('movimientos')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+          </svg>
+          Movimientos
+        </button>
+
+        <button class="dash-tab" [class.active]="facade.activeTab() === 'decisiones'" (click)="setTab('decisiones')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          Decisiones
+          @if (facade.pendingCount() > 0) {
+            <span class="dash-tab__badge">{{ facade.pendingCount() }}</span>
+          }
+        </button>
+      </div>
+
+      <!-- ══════════ TAB: RESUMEN ══════════ -->
+      @if (facade.activeTab() === 'resumen') {
+        <div class="dash-charts">
+          <div class="dash-card">
+            <div class="dash-card__title">Evolución del capital</div>
+            <div class="dash-chart-wrap">
+              @if (facade.capitalChartData().labels.length === 0) {
+                <p class="dash-empty-msg">Sin movimientos para graficar.</p>
+              } @else {
+                <canvas #capitalCanvas></canvas>
+              }
+            </div>
+          </div>
+
+          <div class="dash-card">
+            <div class="dash-card__title">Distribución del portafolio</div>
+            <div class="dash-chart-wrap">
+              <canvas #portfolioCanvas></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-card">
+          <div class="dash-card__header">
+            <div class="dash-card__title">Últimos movimientos</div>
+            @if (facade.movements().length > 5) {
+              <button class="dash-link-btn" (click)="setTab('movimientos')">
+                Ver todos →
+              </button>
+            }
+          </div>
+
+          @if (facade.recentMovements().length === 0) {
+            <p class="dash-empty-msg">No hay movimientos registrados.</p>
+          } @else {
+            <app-table
+              [columns]="movementColumns"
+              [data]="facade.recentMovements()"
+              [config]="{
+                searchable: false,
+                paginated: false,
+                striped: true,
+                hover: true,
+                compact: true,
+                exportable: false
+              }"
+              emptyMessage="Sin movimientos"
+            />
+          }
+        </div>
+
+        @if (facade.pendingCount() > 0) {
+          <div class="dash-card dash-card--alert">
+            <div class="dash-card__header">
+              <div class="dash-card__title">
+                ⚠ {{ facade.pendingCount() }} decisiones pendientes
+              </div>
+              <button class="dash-link-btn" (click)="setTab('decisiones')">
+                Ir a decidir →
+              </button>
+            </div>
+          </div>
+        }
+      }
+
+      <!-- ══════════ TAB: GANADO ══════════ -->
+      @if (facade.activeTab() === 'ganado') {
+        <div class="dash-card">
+          <app-table
+            [columns]="cattleColumns"
+            [data]="facade.cattleList()"
+            [config]="{
+              searchable: true,
+              searchPlaceholder: 'Buscar por arete, nombre, lote...',
+              paginated: true,
+              pageSize: 15,
+              pageSizeOptions: [10, 15, 25],
+              striped: true,
+              hover: true,
+              exportable: true,
+              exportFormats: ['excel', 'pdf'],
+              exportFileName: 'ganado-inversionista',
+              showResultCount: true
+            }"
+            emptyMessage="No tienes ganado activo actualmente"
+            emptyIcon="table"
+            (exportData)="onExportCattle($event)"
+          />
+        </div>
+      }
+
+      <!-- ══════════ TAB: MOVIMIENTOS ══════════ -->
+      @if (facade.activeTab() === 'movimientos') {
+        <div class="dash-card">
+          <app-table
+            [columns]="movementColumns"
+            [data]="facade.movements()"
+            [config]="{
+              searchable: true,
+              searchPlaceholder: 'Buscar movimiento...',
+              paginated: true,
+              pageSize: 15,
+              pageSizeOptions: [10, 15, 25, 50],
+              striped: true,
+              hover: true,
+              exportable: true,
+              exportFormats: ['excel', 'pdf'],
+              exportFileName: 'movimientos-inversion',
+              showResultCount: true,
+              showFirstLastPage: true
+            }"
+            emptyMessage="No hay movimientos registrados"
+            emptyIcon="table"
+            (exportData)="onExportMovements($event)"
+          />
+        </div>
+      }
+
+      <!-- ══════════ TAB: DECISIONES ══════════ -->
+      @if (facade.activeTab() === 'decisiones') {
+
+        @if (facade.pendingDecisions().length > 0) {
+          <div class="dash-section-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            Pendientes de decisión ({{ facade.pendingCount() }})
+          </div>
+
+          <div class="dash-decisions-grid">
+            @for (d of facade.pendingDecisions(); track d.id) {
+              <app-decision-card
+                [decision]="d"
+                [saving]="facade.decisionSaving()"
+                (decide)="onDecide($event)"
+              />
+            }
+          </div>
+        } @else {
+          <div class="dash-card">
+            <div class="dash-empty-ok">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="36" height="36">
+                <polyline points="20 6 9 17 4 12"/>
+                <circle cx="12" cy="12" r="10"/>
+              </svg>
+              <p>No tienes decisiones pendientes</p>
+              <span class="dash-empty-ok__sub">Todas tus decisiones están al día</span>
+            </div>
+          </div>
+        }
+
+        @if (facade.partialModalOpen()) {
+          <app-partial-decision-modal
+            [totalAmount]="facade.parseDecimal(
+              facade.pendingDecisionForPartial()?.investorAmount ?? '0'
+            )"
+            (submitted)="onPartialSubmit($event)"
+            (cancelled)="facade.closePartialModal()"
+          />
+        }
+
+        <div class="dash-card" style="margin-top: 1.5rem">
+          <app-table
+            [columns]="decisionHistoryColumns"
+            [data]="facade.processedDecisions()"
+            [config]="{
+              searchable: false,
+              paginated: true,
+              pageSize: 10,
+              striped: true,
+              hover: true,
+              exportable: true,
+              exportFormats: ['excel'],
+              exportFileName: 'decisiones-historial',
+              showResultCount: true
+            }"
+            emptyMessage="No hay decisiones procesadas aún"
+            emptyIcon="filter"
+            (exportData)="onExportDecisions($event)"
+          />
+        </div>
+      }
+
     </div>
   }
-
 </div>
-}

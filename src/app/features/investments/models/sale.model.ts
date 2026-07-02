@@ -54,21 +54,29 @@ export interface SaleEventDetail extends SaleEventList {
 // ── Sale Decision ──────────────────────────────────────────────────
 export interface SaleDecisionSummary {
   id: string;
+  saleEvent: string;
+  saleEventDate: string;
+  saleEventDescription: string;
   investorCode: string;
   investorName: string;
   investorAmount: string;
   profitLoss: string;
-  isLoss: boolean;
-  isTotalLoss: boolean;
   decisionType: SaleDecisionType;
-  decisionTypeDisplay: string;
+  decisionTypeDisplay: string;  
   reinvestAmount: string;
   withdrawAmount: string;
   decisionDate: string | null;
   decisionDeadline: string | null;
+  createdAt: string;
   isPending: boolean;
+  isDecided: boolean;
+  isLoss: boolean;
+  isTotalLoss: boolean;
+  isOverdue: boolean;
+  daysUntilDeadline: number | null;
   isProcessed: boolean;
   processedAt: string | null;
+  notes: string;
 }
 
 export interface SaleDecisionList {

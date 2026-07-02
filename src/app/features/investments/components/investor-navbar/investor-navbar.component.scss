@@ -1,0 +1,346 @@
+// investor-navbar.component.scss
+$inv-primary: #185FA5;
+$inv-navbar-height: 64px;
+$inv-border: #e2e8f0;
+$inv-text: #1a1f2e;
+$inv-muted: #64748b;
+$inv-surface: #f8fafc;
+$inv-danger: #ef4444;
+$inv-t: 0.15s ease;
+
+.inv-nav {
+  position:       fixed;
+  top:            0;
+  left:           0;
+  right:          0;
+  height:         $inv-navbar-height;
+  background:     #ffffff;
+  border-bottom:  1px solid $inv-border;
+  z-index:        100;
+  transition:     box-shadow 0.3s ease;
+
+  &--scrolled {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.inv-nav-container {
+  display:     flex;
+  align-items: center;
+  height:      100%;
+  padding:     0 1.5rem;
+  gap:         1rem;
+  max-width:   100%;
+}
+
+// ── Brand ─────────────────────────────────────────────────────────
+.inv-nav-brand {
+  flex:      1;
+  min-width: 0;
+
+  &__content {
+    display:     flex;
+    align-items: center;
+    gap:         0.75rem;
+  }
+
+  &__text {
+    min-width: 0;
+
+    @media (max-width: 480px) {
+      display: none;
+    }
+  }
+
+  &__title {
+    font-size:      1rem;
+    font-weight:    700;
+    margin:         0;
+    color:          $inv-text;
+    white-space:    nowrap;
+    overflow:       hidden;
+    text-overflow:  ellipsis;
+    line-height:    1.2;
+
+    @media (max-width: 640px) {
+      font-size: 0.875rem;
+    }
+  }
+
+  &__subtitle {
+    font-size:  0.72rem;
+    color:      $inv-primary;
+    margin:     2px 0 0;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+
+    @media (max-width: 640px) {
+      display: none;
+    }
+  }
+}
+
+.inv-nav-logo img {
+  height: 38px;
+  width:  auto;
+  display: block;
+}
+
+// ── Actions ───────────────────────────────────────────────────────
+.inv-nav-actions {
+  display:     flex;
+  align-items: center;
+  gap:         0.5rem;
+  flex-shrink: 0;
+}
+
+.inv-nav-icon-btn {
+  position:        relative;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  background:      none;
+  border:          none;
+  cursor:          pointer;
+  padding:         0.5rem;
+  border-radius:   8px;
+  color:           $inv-muted;
+  transition:      background $inv-t, color $inv-t;
+
+  svg {
+    width:   22px;
+    height:  22px;
+    display: block;
+  }
+
+  &:hover {
+    background: $inv-surface;
+    color:      $inv-text;
+  }
+}
+
+.inv-nav-notification-dot {
+  position:      absolute;
+  top:           7px;
+  right:         7px;
+  width:         8px;
+  height:        8px;
+  background:    $inv-danger;
+  border-radius: 50%;
+  border:        2px solid white;
+}
+
+// ── User Menu ─────────────────────────────────────────────────────
+.inv-nav-user-container {
+  position: relative;
+}
+
+.inv-nav-user-trigger {
+  display:       flex;
+  align-items:   center;
+  gap:           0.5rem;
+  background:    none;
+  border:        none;
+  cursor:        pointer;
+  padding:       0.375rem 0.5rem;
+  border-radius: 8px;
+  transition:    background $inv-t;
+
+  &:hover {
+    background: $inv-surface;
+  }
+
+  &:focus-visible {
+    outline:        2px solid $inv-primary;
+    outline-offset: 2px;
+  }
+}
+
+.inv-nav-avatar {
+  width:           34px;
+  height:          34px;
+  border-radius:   50%;
+  background:      linear-gradient(135deg, $inv-primary, #6366f1);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  flex-shrink:     0;
+
+  span {
+    color:       white;
+    font-weight: 700;
+    font-size:   0.8rem;
+    line-height: 1;
+  }
+}
+
+.inv-nav-user-info {
+  display:        flex;
+  flex-direction: column;
+  text-align:     left;
+  min-width:      0;
+
+  @media (max-width: 640px) {
+    display: none;
+  }
+}
+
+.inv-nav-user-name {
+  font-size:      0.825rem;
+  font-weight:    600;
+  color:          $inv-text;
+  white-space:    nowrap;
+  overflow:       hidden;
+  text-overflow:  ellipsis;
+  max-width:      140px;
+  line-height:    1.2;
+}
+
+.inv-nav-user-role {
+  font-size:   0.7rem;
+  color:       $inv-primary;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.inv-nav-chevron {
+  width:      16px;
+  height:     16px;
+  color:      #94a3b8;
+  transition: transform $inv-t ease;
+  flex-shrink: 0;
+
+  &.open {
+    transform: rotate(180deg);
+  }
+
+  @media (max-width: 640px) {
+    display: none;
+  }
+}
+
+// ── Dropdown ──────────────────────────────────────────────────────
+.inv-nav-dropdown {
+  position:    absolute;
+  top:         calc(100% + 8px);
+  right:       0;
+  width:       272px;
+  background:  white;
+  border-radius: 12px;
+  box-shadow:  0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+  border:      1px solid $inv-border;
+  opacity:     0;
+  visibility:  hidden;
+  transform:   translateY(-6px) scale(0.98);
+  transition:  opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+  z-index:     1000;
+  overflow:    hidden;
+
+  &.open {
+    opacity:    1;
+    visibility: visible;
+    transform:  translateY(0) scale(1);
+  }
+
+  @media (max-width: 360px) {
+    width: calc(100vw - 2rem);
+    right: -0.5rem;
+  }
+
+  &__header {
+    display:     flex;
+    align-items: center;
+    gap:         0.75rem;
+    padding:     1rem;
+    background:  $inv-surface;
+  }
+
+  &__avatar {
+    width:           42px;
+    height:          42px;
+    border-radius:   50%;
+    background:      linear-gradient(135deg, $inv-primary, #6366f1);
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    flex-shrink:     0;
+
+    span {
+      color:       white;
+      font-weight: 700;
+      font-size:   0.95rem;
+    }
+  }
+
+  &__info {
+    min-width: 0;
+    flex:      1;
+  }
+
+  &__body {
+    padding: 0.5rem;
+  }
+}
+
+.inv-nav-d-name {
+  font-weight:   600;
+  font-size:     0.875rem;
+  color:         $inv-text;
+  margin:        0 0 2px;
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+}
+
+.inv-nav-d-email {
+  font-size:     0.75rem;
+  color:         $inv-muted;
+  margin:        0;
+  white-space:   nowrap;
+  overflow:      hidden;
+  text-overflow: ellipsis;
+}
+
+.inv-nav-divider {
+  height:     1px;
+  background: $inv-border;
+}
+
+.inv-nav-d-item {
+  display:       flex;
+  align-items:   center;
+  gap:           0.625rem;
+  width:         100%;
+  padding:       0.625rem 0.75rem;
+  border:        none;
+  background:    none;
+  cursor:        pointer;
+  border-radius: 8px;
+  color:         #374151;
+  font-size:     0.875rem;
+  font-weight:   500;
+  transition:    background $inv-t;
+  text-align:    left;
+  font-family:   inherit;
+
+  &:hover {
+    background: $inv-surface;
+  }
+
+  &--danger {
+    color: $inv-danger;
+
+    .inv-nav-d-icon { color: $inv-danger; }
+
+    &:hover {
+      background: #fef2f2;
+    }
+  }
+}
+
+.inv-nav-d-icon {
+  width:       18px;
+  height:      18px;
+  flex-shrink: 0;
+  color:       $inv-muted;
+}
