@@ -20,15 +20,20 @@ export enum InvestmentStatus {
   SUSPENDED = 'suspended',
 }
 
+// src/features/investments/models/enums.ts
+
 export enum InvestmentMovementType {
-  CONTRIBUTION = 'contribution',
-  WITHDRAWAL = 'withdrawal',
-  REINVESTMENT = 'reinvestment',
-  SALE_REVENUE = 'sale_revenue',
-  COST_SHARE = 'cost_share',
-  SALE_PROFIT = 'sale_profit',
-  SALE_LOSS = 'sale_loss',
-  ADJUSTMENT = 'adjustment',
+  CONTRIBUTION         = 'contribution',
+  WITHDRAWAL           = 'withdrawal',
+  SALE_PROFIT          = 'sale_profit',
+  DIVIDEND             = 'dividend',
+  REINVESTMENT         = 'reinvestment',
+  COST_SHARE           = 'cost_share',
+  ADJUSTMENT           = 'adjustment',
+  SALE_REVENUE         = 'sale_revenue',
+  SALE_LOSS            = 'sale_loss',
+  CATTLE_PURCHASE      = 'cattle_purchase',      // ✅ nuevo
+  OPERATOR_COMMISSION  = 'operator_commission',   // ✅ nuevo
 }
 
 export enum SaleDecisionType {

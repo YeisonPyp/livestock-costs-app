@@ -55,15 +55,25 @@ export class InvestmentDetailComponent implements OnInit, OnDestroy {
   private exportService = inject(ExportService);
 
   // ── Movement type options (sin cambios) ───────────────────────────
-  readonly movementTypeOptions = [
-    { value: '',                                  label: 'Todos los tipos'  },
-    { value: InvestmentMovementType.CONTRIBUTION, label: 'Aporte'           },
-    { value: InvestmentMovementType.WITHDRAWAL,   label: 'Retiro'           },
-    { value: InvestmentMovementType.SALE_PROFIT,  label: 'Ganancia venta'   },
-    { value: InvestmentMovementType.SALE_LOSS,    label: 'Pérdida venta'    },
-    { value: InvestmentMovementType.COST_SHARE,   label: 'Costos'           },
-    { value: InvestmentMovementType.ADJUSTMENT,   label: 'Ajuste'           },
-  ];
+// investment-detail.component.ts
+
+readonly movementTypeOptions = [
+  { value: '',                                          label: 'Todos los tipos'    },
+  // Créditos
+  { value: InvestmentMovementType.CONTRIBUTION,         label: 'Aporte'             },
+  { value: InvestmentMovementType.DIVIDEND,             label: 'Dividendo'          },
+  { value: InvestmentMovementType.SALE_PROFIT,          label: 'Ganancia venta'     },
+  { value: InvestmentMovementType.REINVESTMENT,         label: 'Reinversión'        },
+  // Débitos
+  { value: InvestmentMovementType.WITHDRAWAL,           label: 'Retiro'             },
+  { value: InvestmentMovementType.COST_SHARE,           label: 'Costos'             },
+  { value: InvestmentMovementType.CATTLE_PURCHASE,      label: 'Compra de ganado'   },
+  { value: InvestmentMovementType.SALE_LOSS,            label: 'Pérdida venta'      },
+  // Informativos
+  { value: InvestmentMovementType.SALE_REVENUE,         label: 'Ingreso por venta'  },
+  { value: InvestmentMovementType.OPERATOR_COMMISSION,  label: 'Comisión operador'  },
+  { value: InvestmentMovementType.ADJUSTMENT,           label: 'Ajuste'             },
+];
 
   // ── Columnas (sin cambios, las mismas) ────────────────────────────
 
@@ -80,7 +90,7 @@ export class InvestmentDetailComponent implements OnInit, OnDestroy {
       width: '140px',
       type: 'badge',
       format: (v) => v ?? '—',
-      badgeColor: (_v, row) => row?.isCredit ? 'success' : 'danger',
+      badgeColor: (_v, row) => this.getMovementCategoryColor(row?.movementType),
     },
     {
       key: 'description',
@@ -89,11 +99,11 @@ export class InvestmentDetailComponent implements OnInit, OnDestroy {
     },
     {
       key: 'amount',
-      label: 'Monto',
+      label: 'Valor movimiento',
       align: 'right',
       width: '140px',
       type: 'currency',
-      cellClass: (_v, row) => row?.isCredit ? 'cell-income' : 'cell-expense',
+      cellClass: (_v, row) => this.getMovementCellClass(row?.movementType),
     },
     {
       key: 'balanceAfter',
@@ -166,6 +176,62 @@ export class InvestmentDetailComponent implements OnInit, OnDestroy {
       },
     },
   ];
+
+// investment-detail.component.ts
+
+// ══════════════════════════════════════════════════════════════════
+// HELPERS DE CATEGORÍA DE MOVIMIENTO
+// ══════════════════════════════════════════════════════════════════
+
+/**
+ * Categorías de movimientos según el backend:
+ * - credit:        incrementan balance (verde)
+ * - debit:         decrementan balance (rojo)
+ * - informational: no afectan balance (azul/info)
+ */
+private readonly CREDIT_TYPES: string[] = [
+  InvestmentMovementType.CONTRIBUTION,
+  InvestmentMovementType.DIVIDEND,
+  InvestmentMovementType.SALE_PROFIT,
+  InvestmentMovementType.REINVESTMENT,
+];
+
+private readonly DEBIT_TYPES: string[] = [
+  InvestmentMovementType.WITHDRAWAL,
+  InvestmentMovementType.COST_SHARE,
+  InvestmentMovementType.CATTLE_PURCHASE,
+  InvestmentMovementType.SALE_LOSS,
+];
+
+private readonly INFORMATIONAL_TYPES: string[] = [
+  InvestmentMovementType.SALE_REVENUE,
+  InvestmentMovementType.OPERATOR_COMMISSION,
+  InvestmentMovementType.ADJUSTMENT,
+];
+
+/**
+ * Retorna el color del badge según el tipo de movimiento
+ */
+private getMovementCategoryColor(
+  movementType?: string
+): 'success' | 'danger' | 'info' | 'default' {
+  if (!movementType) return 'default';
+  if (this.CREDIT_TYPES.includes(movementType))        return 'success';
+  if (this.DEBIT_TYPES.includes(movementType))         return 'danger';
+  if (this.INFORMATIONAL_TYPES.includes(movementType)) return 'info';
+  return 'default';
+}
+
+/**
+ * Retorna la clase CSS para la celda del monto
+ */
+private getMovementCellClass(movementType?: string): string {
+  if (!movementType) return '';
+  if (this.CREDIT_TYPES.includes(movementType))        return 'cell-income';
+  if (this.DEBIT_TYPES.includes(movementType))         return 'cell-expense';
+  if (this.INFORMATIONAL_TYPES.includes(movementType)) return 'cell-info';
+  return '';
+}
 
   // ══════════════════════════════════════════════════════════════════
   // LIFECYCLE

@@ -196,7 +196,7 @@ export class InvestorDetailComponent implements OnInit, OnDestroy {
     },
     {
       key: 'investorAmount',
-      label: 'Monto',
+      label: 'Valor venta',
       align: 'right',
       width: '140px',
       type: 'currency',

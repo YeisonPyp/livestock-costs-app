@@ -86,7 +86,8 @@
     </app-kpi-card>
     <app-kpi-card
       label="Ganancia Total"
-      [value]="formatCurrency(facade.summary()?.investments?.totalProfits ?? 0)"
+      format=currency
+      [value]="facade.summary()?.investments?.totalProfits ?? 0"
       color="green"
     >
       <svg icon viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

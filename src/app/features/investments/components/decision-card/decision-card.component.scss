@@ -1,31 +1,67 @@
 // decision-card.component.scss
 @use '../../../../styles/variables' as *;
 
-$dec-primary: #185FA5;
-$dec-green:   #1D9E75;
-$dec-amber:   #BA7517;
-$dec-danger:  #ef4444;
+// ── Tokens ────────────────────────────────────────────────────────
+$dec-primary:  #185FA5;
+$dec-green:    #1D9E75;
+$dec-amber:    #BA7517;
+$dec-danger:   #ef4444;
+$dec-white:    #ffffff;
+$dec-radius:   12px;
+$dec-radius-sm: 8px;
+$dec-t:        0.16s ease;
+
+// ══════════════════════════════════════════════════════════════════
+// CARD
+// ══════════════════════════════════════════════════════════════════
 
 .decision-card {
-  background:    white;
+  background:    $dec-white;
   border:        1px solid $border-color;
-  border-radius: 12px;
+  border-radius: $dec-radius;
   padding:       1.25rem;
-  box-shadow:    0 1px 3px rgba(0,0,0,0.06);
+  box-shadow:    0 1px 3px rgba(0, 0, 0, 0.06);
   transition:    all 0.2s ease;
+  position:      relative;
+  overflow:      hidden;
+
+  // Barra de color superior sutil
+  &::before {
+    content:  '';
+    position: absolute;
+    top:      0;
+    left:     0;
+    right:    0;
+    height:   3px;
+    background: linear-gradient(90deg, $dec-primary, #6366f1);
+    opacity:   0;
+    transition: opacity $dec-t;
+  }
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transform:  translateY(-1px);
+
+    &::before { opacity: 1; }
   }
 
   &.urgent {
     border-color: rgba($dec-danger, 0.4);
-    background:   rgba($dec-danger, 0.02);
-    box-shadow:   0 0 0 3px rgba($dec-danger, 0.08);
+    background:   linear-gradient(180deg, rgba($dec-danger, 0.02), $dec-white 60%);
+    box-shadow:   0 0 0 3px rgba($dec-danger, 0.08),
+                  0 4px 12px rgba($dec-danger, 0.1);
+
+    &::before {
+      background: linear-gradient(90deg, $dec-danger, #f97316);
+      opacity:    1;
+    }
   }
 }
 
-// ── Header ────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// HEADER
+// ══════════════════════════════════════════════════════════════════
+
 .dec-header {
   display:         flex;
   justify-content: space-between;
@@ -33,170 +69,268 @@ $dec-danger:  #ef4444;
   gap:             0.75rem;
   margin-bottom:   1rem;
 
-  &__info { flex: 1; min-width: 0; }
+  &__info {
+    flex:      1;
+    min-width: 0;
+  }
 }
 
 .dec-title {
-  display:     flex;
+  display:     inline-flex;
   align-items: center;
   gap:         6px;
-  font-size:   0.875rem;
-  font-weight: 600;
-  color:       $slate-800;
+  padding:     4px 10px;
+  background:  $slate-50;
+  border:      1px solid $border-color;
+  border-radius: 6px;
+  font-size:   0.75rem;
+  font-weight: 700;
+  color:       $slate-700;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.02em;
 
-  svg { color: $slate-400; flex-shrink: 0; }
+  svg {
+    color:       $slate-400;
+    flex-shrink: 0;
+  }
+
+  &__id { color: $slate-800; }
 }
 
 .dec-meta {
-  display:     flex;
-  align-items: center;
-  gap:         8px;
-  font-size:   0.75rem;
-  color:       $slate-400;
-  margin-top:  4px;
+  display:      flex;
+  align-items:  center;
+  gap:          10px;
+  flex-wrap:    wrap;
+  font-size:    0.72rem;
+  color:        $slate-500;
+  margin-top:   8px;
+
+  &__date {
+    display:     inline-flex;
+    align-items: center;
+    gap:         4px;
+    color:       $slate-500;
+
+    svg { opacity: 0.7; }
+  }
 }
 
 .dec-deadline {
-  display:     inline-flex;
-  align-items: center;
-  gap:         3px;
-  font-weight: 600;
+  display:      inline-flex;
+  align-items:  center;
+  gap:          4px;
+  padding:      2px 8px;
+  border-radius: 12px;
+  font-weight:  700;
+  font-size:    0.7rem;
 
-  &--urgent  { color: $dec-danger; }
-  &--warning { color: $dec-amber; }
-  &--ok      { color: $dec-green; }
+  svg { flex-shrink: 0; }
+
+  &--urgent {
+    background: rgba($dec-danger, 0.1);
+    color:      $dec-danger;
+  }
+
+  &--warning {
+    background: rgba($dec-amber, 0.1);
+    color:      $dec-amber;
+  }
+
+  &--ok {
+    background: rgba($dec-green, 0.1);
+    color:      $dec-green;
+  }
 }
 
 .dec-urgent-badge {
-  padding:       2px 8px;
+  display:       inline-flex;
+  align-items:   center;
+  gap:           4px;
+  padding:       4px 10px;
   border-radius: 20px;
-  background:    rgba($dec-danger, 0.1);
-  color:         $dec-danger;
+  background:    $dec-danger;
+  color:         $dec-white;
   font-size:     0.65rem;
   font-weight:   800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   flex-shrink:   0;
   animation:     urgentPulse 2s infinite;
+  box-shadow:    0 2px 8px rgba($dec-danger, 0.35);
 }
 
 @keyframes urgentPulse {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.6; }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.85; transform: scale(1.04); }
 }
 
-// ── Body ──────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// BODY
+// ══════════════════════════════════════════════════════════════════
+
 .dec-body {
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .dec-amount {
   display:        flex;
   flex-direction: column;
-  gap:            2px;
-  margin-bottom:  8px;
+  gap:            3px;
+  margin-bottom:  10px;
 
   &__label {
     font-size:      0.7rem;
-    font-weight:    500;
+    font-weight:    600;
     color:          $slate-400;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
   }
 
   &__value {
-    font-size:   1.5rem;
+    font-size:   1.75rem;
     font-weight: 800;
     color:       $slate-900;
-    line-height: 1.2;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
   }
 }
 
 .dec-profit {
-  display:     flex;
-  align-items: center;
-  gap:         5px;
-  font-size:   0.85rem;
-  font-weight: 600;
-  color:       $slate-500;
+  display:       inline-flex;
+  align-items:   center;
+  gap:           6px;
+  padding:       5px 10px;
+  border-radius: 6px;
+  background:    $slate-50;
+  font-size:     0.85rem;
+  font-weight:   700;
+  color:         $slate-500;
 
-  &--positive { color: $dec-green; }
-  &--negative { color: $dec-danger; }
+  &--positive {
+    background: rgba($dec-green, 0.1);
+    color:      $dec-green;
+  }
+
+  &--negative {
+    background: rgba($dec-danger, 0.1);
+    color:      $dec-danger;
+  }
 
   &__icon {
     display:     flex;
     align-items: center;
   }
 
+  &__value {
+    font-weight: 700;
+  }
+
   &__label {
     font-size:   0.75rem;
-    font-weight: 400;
-    opacity:     0.8;
+    font-weight: 500;
+    opacity:     0.75;
     margin-left: 2px;
   }
 }
 
-// ── Divider ───────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// DIVIDER
+// ══════════════════════════════════════════════════════════════════
+
 .dec-divider {
   height:       1px;
   background:   $border-color;
   margin-bottom: 1rem;
+  margin-left:  -1.25rem;
+  margin-right: -1.25rem;
 }
 
-// ── Actions ───────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// ACTIONS — 3 columnas iguales
+// ══════════════════════════════════════════════════════════════════
+
 .dec-actions {
-  display:   flex;
-  gap:       8px;
-  flex-wrap: wrap;
+  display:               grid;
+  grid-template-columns: 1fr 1fr 1fr;   // ✅ 3 columnas iguales
+  gap:                   6px;
+  align-items:           stretch;
 }
 
 .dec-btn {
-  display:       inline-flex;
-  align-items:   center;
-  gap:           5px;
-  padding:       8px 14px;
-  border-radius: 8px;
-  border:        1.5px solid transparent;
-  font-size:     0.8rem;
-  font-weight:   600;
-  font-family:   inherit;
-  cursor:        pointer;
-  transition:    all 0.15s;
-  white-space:   nowrap;
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             5px;
+  height:          38px;
+  padding:         0 8px;               // ✅ menos padding para que quepa el texto
+  border-radius:   $dec-radius-sm;
+  border:          1.5px solid transparent;
+  font-size:       0.78rem;             // ✅ texto un poco más pequeño
+  font-weight:     600;
+  font-family:     inherit;
+  cursor:          pointer;
+  transition:      all $dec-t;
+  white-space:     nowrap;
+  position:        relative;
+  overflow:        hidden;
+  min-width:       0;                   // ✅ permite ajuste flexible
 
-  &:disabled {
-    opacity: 0.5;
-    cursor:  not-allowed;
+  svg { flex-shrink: 0; }
+
+  // El texto puede truncar con ellipsis si es necesario
+  span {
+    overflow:      hidden;
+    text-overflow: ellipsis;
+    min-width:     0;
   }
 
-  &:active:not(:disabled) { transform: scale(0.97); }
+  &:disabled {
+    opacity:   0.5;
+    cursor:    not-allowed;
+    transform: none !important;
+  }
 
-  // Reinvertir — botón principal verde
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline:        2px solid $dec-primary;
+    outline-offset: 2px;
+  }
+
+  // ── Reinvertir — CTA principal ──────────────────────────────
   &--reinvest {
     background:   $dec-green;
-    color:        white;
+    color:        $dec-white;
     border-color: $dec-green;
+    box-shadow:   0 1px 3px rgba($dec-green, 0.25);
 
     &:hover:not(:disabled) {
-      background: darken($dec-green, 8%);
-      box-shadow: 0 2px 8px rgba($dec-green, 0.3);
+      background:   darken($dec-green, 8%);
+      border-color: darken($dec-green, 8%);
+      box-shadow:   0 4px 12px rgba($dec-green, 0.35);
+      transform:    translateY(-1px);
     }
   }
 
-  // Retirar — outline danger
+  // ── Retirar — outline rojo ─────────────────────────────────
   &--withdraw {
-    background:   white;
+    background:   $dec-white;
     color:        $dec-danger;
     border-color: rgba($dec-danger, 0.4);
 
     &:hover:not(:disabled) {
       background:   rgba($dec-danger, 0.06);
       border-color: $dec-danger;
+      box-shadow:   0 2px 8px rgba($dec-danger, 0.15);
+      transform:    translateY(-1px);
     }
   }
 
-  // Parcial — outline neutral
+  // ── Parcial — outline neutral ──────────────────────────────
   &--partial {
-    background:   white;
+    background:   $dec-white;
     color:        $slate-600;
     border-color: $border-color;
 
@@ -204,22 +338,50 @@ $dec-danger:  #ef4444;
       background:   $slate-50;
       border-color: $slate-400;
       color:        $slate-800;
+      box-shadow:   0 2px 6px rgba(0, 0, 0, 0.06);
+      transform:    translateY(-1px);
     }
   }
 }
 
-// ── Responsive ────────────────────────────────────────────────────
-@media (max-width: 480px) {
+// ══════════════════════════════════════════════════════════════════
+// RESPONSIVE
+// ══════════════════════════════════════════════════════════════════
+
+@media (max-width: 640px) {
+  .decision-card {
+    padding: 1rem;
+  }
+
   .dec-actions {
-    flex-direction: column;
+    grid-template-columns: 1fr;   // ✅ apilar botones en mobile
+    gap: 6px;
   }
 
   .dec-btn {
-    width:           100%;
-    justify-content: center;
+    width:  100%;
+    height: 42px;
+    font-size: 0.85rem;           // texto normal cuando es full width
+    padding: 0 14px;
   }
 
   .dec-amount__value {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
+  }
+
+  .dec-header {
+    flex-wrap: wrap;
+  }
+
+  .dec-title {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .dec-meta {
+    flex-direction: column;
+    align-items:    flex-start;
+    gap:            6px;
   }
 }

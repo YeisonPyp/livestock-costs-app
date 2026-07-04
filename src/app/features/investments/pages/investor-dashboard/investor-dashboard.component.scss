@@ -263,9 +263,17 @@ $inv-navbar-height: 64px;
 
 .dash-decisions-grid {
   display:               grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(3, 1fr);   // ✅ máximo 3
   gap:                   1rem;
   margin-top:            0.75rem;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);  // Tablet
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;              // Mobile
+  }
 }
 
 .dash-empty-msg {

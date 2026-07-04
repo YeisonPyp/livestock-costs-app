@@ -43,10 +43,10 @@
   <div class="kpi-grid">
     <app-kpi-card label="Cabezas"      [decimals]="0" [value]="sale.totalHeads.toString()"                                    color="blue" />
     <app-kpi-card label="Peso Total"   [decimals]="2" [value]="sale.totalWeight.toString() + ' kg'"                          color="yellow" />
-    <app-kpi-card label="Precio / kg"  [decimals]="2" [value]="facade.formatCurrency(facade.parseDecimal(sale.pricePerKg))" color="purple" />
-    <app-kpi-card label="Monto Bruto"  [decimals]="2" [value]="facade.formatCurrency(facade.parseDecimal(sale.grossAmount))" color="blue" />
-    <app-kpi-card label="Costos"       [decimals]="2" [value]="facade.formatCurrency(facade.parseDecimal(sale.saleCosts))"  color="red" />
-    <app-kpi-card label="Monto Neto"   [decimals]="2" [value]="facade.formatCurrency(facade.parseDecimal(sale.netAmount))"  color="green" />
+    <app-kpi-card label="Precio / kg"  format=currency  [decimals]="2" [value]="facade.parseDecimal(sale.pricePerKg)" color="purple" />
+    <app-kpi-card label="Monto Bruto"  format=currency  [decimals]="2" [value]="facade.parseDecimal(sale.grossAmount)" color="blue" />
+    <app-kpi-card label="Costos"       format=currency  [decimals]="2" [value]="facade.parseDecimal(sale.saleCosts)"  color="red" />
+    <app-kpi-card label="Monto Neto"   format=currency  [decimals]="2" [value]="facade.parseDecimal(sale.netAmount)"  color="green" />
   </div>
 
   <!-- Info card -->

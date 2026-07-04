@@ -239,3 +239,29 @@
 .tab-content {
   padding: $space-5 0;
 }
+
+// investment-detail.component.scss
+
+// ── Clases de celda por tipo de movimiento ─────────────────────
+::ng-deep {
+  .cell-income {
+    color: #16a34a !important;   // verde
+    font-weight: 600;
+  }
+
+  .cell-expense {
+    color: #ef4444 !important;   // rojo
+    font-weight: 600;
+  }
+
+  .cell-info {
+    color: #0284c7 !important;   // azul info
+    font-weight: 600;
+    font-style: italic;          // opcional: itálica para diferenciarlos
+  }
+
+  .cell-gain-positive {
+    color: #16a34a !important;
+    font-weight: 600;
+  }
+}
