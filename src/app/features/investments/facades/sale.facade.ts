@@ -476,9 +476,28 @@ submitCreate(payload: CreateSaleEventPayload, onSuccess: () => void): void {
       });
   }
 
-  resetDecision(): void {
+  clearDecisionState(): void {
     this.decision.set(null);
     this.selectedType.set(null);
+  }
+
+  resetDecision(decisionId: string, saleId: string): void {
+    this.decisionSaving.set(true);
+
+    this.saleDecisionSvc
+      .resetDecision(decisionId)
+      .pipe(finalize(() => this.decisionSaving.set(false)))
+      .subscribe({
+        next: () => {
+          this.notify.success('Decisión reiniciada correctamente');
+          // Recargar el detalle para ver el cambio
+          this.loadSaleDetail(saleId);
+        },
+        error: (err) =>
+          this.notify.error(
+            err?.error?.error ?? 'Error al reiniciar la decisión'
+          ),
+      });
   }
 
   // ═══════════════════════════════════════════════════════════════════════

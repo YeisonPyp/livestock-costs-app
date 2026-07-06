@@ -81,3 +81,96 @@
 .bc-sep  { margin: 0 $space-2; color: $slate-400; font-size: $font-sm; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+// sale-detail.component.scss
+// ... tu SCSS existente ...
+
+// ══════════════════════════════════════════════════════════════════
+// ROW ACTIONS
+// ══════════════════════════════════════════════════════════════════
+
+.row-actions {
+  display:         flex;
+  align-items:     center;
+  justify-content: flex-end;
+  gap:             6px;
+}
+
+.btn-action {
+  display:         inline-flex;
+  align-items:     center;
+  gap:             5px;
+  padding:         6px 12px;
+  border-radius:   6px;
+  border:          1.5px solid transparent;
+  background:      white;
+  font-size:       0.78rem;
+  font-weight:     600;
+  font-family:     inherit;
+  cursor:          pointer;
+  text-decoration: none;
+  transition:      all 0.15s ease;
+  white-space:     nowrap;
+
+  svg { flex-shrink: 0; }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor:  not-allowed;
+  }
+
+  &:active:not(:disabled) { transform: scale(0.97); }
+
+  &:focus-visible {
+    outline:        2px solid #3b6bde;
+    outline-offset: 2px;
+  }
+
+  // ── Primary (Decidir) ────────────────────────────────
+  &--primary {
+    background:   #3b6bde;
+    color:        white;
+    border-color: #3b6bde;
+    box-shadow:   0 1px 3px rgba(59, 107, 222, 0.25);
+
+    &:hover:not(:disabled) {
+      background:   #2a54c7;
+      border-color: #2a54c7;
+      box-shadow:   0 3px 8px rgba(59, 107, 222, 0.35);
+    }
+  }
+
+  // ── Warning (Reiniciar) ──────────────────────────────
+  &--warning {
+    background:   white;
+    color:        #b45309;
+    border-color: rgba(180, 83, 9, 0.35);
+
+    &:hover:not(:disabled) {
+      background:   #fef3c7;
+      border-color: #b45309;
+      box-shadow:   0 2px 6px rgba(180, 83, 9, 0.15);
+    }
+  }
+}
+
+.row-locked {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           4px;
+  padding:       4px 10px;
+  border-radius: 6px;
+  background:    #f1f5f9;
+  color:         #94a3b8;
+  font-size:     0.72rem;
+  font-weight:   600;
+  font-style:    italic;
+
+  svg { opacity: 0.7; }
+}
+
+// ── Utilidad para alineación derecha en TD ─────────────────────
+.data-table th.right,
+.data-table td.right {
+  text-align: right;
+}

@@ -57,7 +57,7 @@ export class SaleDecisionDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void { this.facade.resetDecision(); }
+  ngOnDestroy(): void { this.facade.clearDecisionState(); }
 
   onSelectType(type: SaleDecisionType): void {
     this.facade.selectDecisionType(type);
