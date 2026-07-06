@@ -81,7 +81,9 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th>Inversionista</th><th>Monto</th><th>Ganancia/Pérdida</th>
+            <th>Inversionista</th>
+            <!-- <th>Valor venta</th> -->
+            <th>Ganancia/Pérdida</th>
             <th>Decisión</th><th>Reinvertir</th><th>Retirar</th>
             <th>Procesado</th><th>Límite</th><th></th>
           </tr>
@@ -95,7 +97,7 @@
                   <span>{{ d.investorName }}</span>
                 </div>
               </td>
-              <td><app-amount-display [amount]="facade.parseDecimal(d.investorAmount)" type="income" size="sm" /></td>
+              <!-- <td><app-amount-display [amount]="facade.parseDecimal(d.investorAmount)" type="income" size="sm" /></td> -->
               <td>
                 <app-amount-display
                   [amount]="facade.parseDecimal(d.profitLoss)"

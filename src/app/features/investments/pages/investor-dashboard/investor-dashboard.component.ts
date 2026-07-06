@@ -95,7 +95,7 @@ export class InvestorDashboardComponent
     { key: 'description', label: 'Descripción', format: (v) => v || '—' },
     {
       key: 'amount',
-      label: 'Monto',
+      label: 'Valor del movimiento',
       type: 'currency',
       align: 'right',
       width: '150px',
@@ -167,7 +167,7 @@ export class InvestorDashboardComponent
         return 'warning';
       },
     },
-    { key: 'investorAmount', label: 'Monto total', type: 'currency', align: 'right', width: '140px' },
+    { key: 'investorAmount', label: 'Valor total', type: 'currency', align: 'right', width: '140px' },
     {
       key: 'reinvestAmount',
       label: 'Reinvertido',
