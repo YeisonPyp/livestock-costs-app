@@ -4,7 +4,7 @@ import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, map } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 
 import { CattleService } from '../../../services/cattle.service';
@@ -18,7 +18,6 @@ import {
   AnimalDetail,
 } from '../../../models/cattle.model';
 
-// ✅ Importar ExportService
 import { ExportService, ExportConfig } from '../../../../../core/services/export.service';
 import { NotificationService } from '../../../../../core/services/notification.service';
 
@@ -33,8 +32,8 @@ import { AnimalEditComponent } from '../animal-edit/animal-edit.component';
 import { ConfirmDialogComponent } from '../../../../../shared/components/feedback/confirm-dialog/confirm-dialog.component';
 
 @Component({
-  selector: 'app-animal-list',
-  standalone: true,
+  selector:    'app-animal-list',
+  standalone:  true,
   imports: [
     CommonModule,
     AnimalEditComponent,
@@ -47,17 +46,15 @@ import { ConfirmDialogComponent } from '../../../../../shared/components/feedbac
     WeightBulkImportComponent,
   ],
   templateUrl: './animal-list.component.html',
-  styleUrl: './animal-list.component.scss',
+  styleUrl:    './animal-list.component.scss',
 })
 export class AnimalListComponent implements OnInit, OnDestroy {
-  private svc    = inject(CattleService);
-  private notify = inject(NotificationService);
-  private router = inject(Router);
-  private dialog = inject(MatDialog);
-  private destroy$ = new Subject<void>();
-
-  // ✅ Inyectar ExportService
+  private svc           = inject(CattleService);
+  private notify        = inject(NotificationService);
+  private router        = inject(Router);
+  private dialog        = inject(MatDialog);
   private exportService = inject(ExportService);
+  private destroy$      = new Subject<void>();
 
   // ══════════════════════════════════════════════════════════════════
   // STATE
@@ -68,6 +65,7 @@ export class AnimalListComponent implements OnInit, OnDestroy {
   owners     = signal<any[]>([]);
   pagination = signal<any>(null);
   loading    = signal(true);
+  exporting  = signal(false);   // ✅ NUEVO: estado de exportación
 
   showBulkImport   = signal(false);
   showWeightImport = signal(false);
@@ -190,9 +188,9 @@ export class AnimalListComponent implements OnInit, OnDestroy {
   // ══════════════════════════════════════════════════════════════════
 
   kpis = computed(() => {
-    const list  = this.animals();
-    const total = this.pagination()?.count ?? list.length;
-    const male  = list.filter((a) => a.gender === 'M').length;
+    const list   = this.animals();
+    const total  = this.pagination()?.count ?? list.length;
+    const male   = list.filter((a) => a.gender === 'M').length;
     const female = list.filter((a) => a.gender === 'F').length;
     const weights = list
       .map((a) => parseFloat(a.current_weight ?? '0'))
@@ -255,17 +253,10 @@ export class AnimalListComponent implements OnInit, OnDestroy {
   load(): void {
     this.loading.set(true);
 
-    const filters: AnimalFilters = {
-      page: this.currentPage,
+    const filters = this.buildCurrentFilters({
+      page:      this.currentPage,
       page_size: this.pageSize,
-      ordering: this.ordering,
-    };
-
-    if (this.searchTerm) filters.search = this.searchTerm;
-    if (this.sexFilter)  filters.gender = this.sexFilter;
-    if (this.statusFilter) filters.status = this.statusFilter as any;
-    if (this.breedFilter)  filters.breed  = this.breedFilter;
-    if (this.ownerFilter)  filters.owner  = this.ownerFilter;
+    });
 
     this.svc
       .getAnimals(filters)
@@ -283,6 +274,25 @@ export class AnimalListComponent implements OnInit, OnDestroy {
           this.notify.error('Error al cargar animales');
         },
       });
+  }
+
+  /**
+   * ✅ NUEVO: Construye los filtros actuales sin paginación
+   * Reutilizado por load() y por onExport()
+   */
+  private buildCurrentFilters(overrides: Partial<AnimalFilters> = {}): AnimalFilters {
+    const filters: AnimalFilters = {
+      ordering: this.ordering,
+      ...overrides,
+    };
+
+    if (this.searchTerm)          filters.search = this.searchTerm;
+    if (this.sexFilter)           filters.gender = this.sexFilter;
+    if (this.statusFilter)        filters.status = this.statusFilter as any;
+    if (this.breedFilter)         filters.breed  = this.breedFilter;
+    if (this.ownerFilter)         filters.owner  = this.ownerFilter;
+
+    return filters;
   }
 
   // ══════════════════════════════════════════════════════════════════
@@ -326,11 +336,13 @@ export class AnimalListComponent implements OnInit, OnDestroy {
   }
 
   // ══════════════════════════════════════════════════════════════════
-  // EXPORT
+  // ✅ EXPORT - Ahora obtiene TODOS los registros
   // ══════════════════════════════════════════════════════════════════
 
-  onExport(event: ExportEvent): void {
-    // ✅ Construir filtros activos para el reporte
+  async onExport(event: ExportEvent): Promise<void> {
+    if (this.exporting()) return;
+
+    // ── 1. Construir filtros activos para mostrar en el reporte ──
     const activeFilters: Record<string, string> = {};
 
     if (this.statusFilter && this.statusFilter !== 'active') {
@@ -358,7 +370,7 @@ export class AnimalListComponent implements OnInit, OnDestroy {
         `${event.filters.sort.column} (${event.filters.sort.direction})`;
     }
 
-    // ✅ Configuración del reporte
+    // ── 2. Configuración del reporte ─────────────────────────────
     const config: Partial<ExportConfig> = {
       fileName:    event.fileName ?? 'inventario-ganado',
       title:       'Inventario de Ganado',
@@ -366,20 +378,48 @@ export class AnimalListComponent implements OnInit, OnDestroy {
       companyName: 'Ganadería Veracruz Y.P',
       generatedBy: 'Admin', // TODO: obtener del AuthService
       filters:     activeFilters,
-      orientation: 'landscape', // Porque son muchas columnas
+      orientation: 'landscape',
     };
 
-    // ✅ Exportar
-    this.exportService.export(
-      event.format,
-      event.columns,
-      event.data,
-      config
-    );
+    // ── 3. Ejecutar exportación ──────────────────────────────────
+    this.exporting.set(true);
+    this.notify.info('Obteniendo todos los registros para exportar...');
 
-    this.notify.success(
-      `${event.format === 'excel' ? 'Excel' : 'PDF'} descargado correctamente`
-    );
+    try {
+      // ✅ Si es paginación de servidor, usamos fetcher con paginate=false
+      if (event.isServerPaginated) {
+        await this.exportService.export(
+          event.format,
+          event.columns,
+          [],   // data vacía (el fetcher la obtendrá)
+          config,
+          // ✅ FETCHER: obtiene TODOS los registros sin paginación
+          () => this.svc.getAnimals({
+            ...this.buildCurrentFilters(),
+            paginate: false,
+          } as any).pipe(
+            map((res) => res.data ?? [])
+          )
+        );
+      } else {
+        // Paginación local: usar los datos ya cargados
+        await this.exportService.export(
+          event.format,
+          event.columns,
+          event.data,
+          config
+        );
+      }
+
+      this.notify.success(
+        `${event.format === 'excel' ? 'Excel' : 'PDF'} descargado correctamente`
+      );
+    } catch (err) {
+      console.error('Error al exportar:', err);
+      this.notify.error('Error al exportar los datos');
+    } finally {
+      this.exporting.set(false);
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════
@@ -413,10 +453,10 @@ export class AnimalListComponent implements OnInit, OnDestroy {
     this.dialog
       .open(ConfirmDialogComponent, {
         data: {
-          title: 'Eliminar Animal',
-          message: `¿Deseas eliminar el registro "${animal.tag_number}"? Esta acción no se puede deshacer.`,
+          title:       'Eliminar Animal',
+          message:     `¿Deseas eliminar el registro "${animal.tag_number}"? Esta acción no se puede deshacer.`,
           confirmText: 'Eliminar',
-          type: 'danger',
+          type:        'danger',
         },
       })
       .afterClosed()

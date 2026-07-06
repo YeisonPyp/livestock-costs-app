@@ -510,6 +510,7 @@ export interface LotsSummaryReport {
 export interface AnimalFilters {
   page?: number;
   page_size?: number;
+  paginate?:  boolean;
   search?: string;
   status?: AnimalStatus;
   gender?: AnimalGender;

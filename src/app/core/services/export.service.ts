@@ -4,6 +4,8 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { Observable } from 'rxjs/internal/Observable';
+import { firstValueFrom } from 'rxjs/internal/firstValueFrom';
 
 // ── Tipos ─────────────────────────────────────────────────────────
 
@@ -52,6 +54,8 @@ const DEFAULT_CONFIG: Partial<ExportConfig> = {
   headerColor: '1e293b',
   orientation: 'landscape',
 };
+
+export type ExportDataFetcher<T = any> = () => Observable<T[]> | Promise<T[]>;
 
 @Injectable({
   providedIn: 'root',
@@ -116,6 +120,9 @@ export class ExportService {
     if (cfg.generatedBy) {
       reportHeader.push([`Generado por: ${cfg.generatedBy}`]);
     }
+
+    // ✅ NUEVO: mostrar total de registros
+    reportHeader.push([`Total de registros: ${data.length}`]);
 
     // Fila vacía de separación
     reportHeader.push([]);
@@ -333,16 +340,45 @@ export class ExportService {
   /**
    * Exportar directamente desde un ExportEvent del app-table
    */
-  export(
-    format: 'excel' | 'pdf',
+  // export(
+  //   format: 'excel' | 'pdf',
+  //   columns: ExportColumn[],
+  //   data: any[],
+  //   config?: Partial<ExportConfig>,
+  // ): void {
+  //   if (format === 'excel') {
+  //     this.exportToExcel(columns, data, config);
+  //   } else {
+  //     this.exportToPdf(columns, data, config);
+  //   }
+  // }
+
+  async export(
+    format:  'excel' | 'pdf',
     columns: ExportColumn[],
-    data: any[],
+    data:    any[],
     config?: Partial<ExportConfig>,
-  ): void {
+    fetcher?: ExportDataFetcher,
+  ): Promise<void> {
+    let finalData = data;
+
+    // ✅ Si hay fetcher, obtener todos los datos del servidor
+    if (fetcher) {
+      try {
+        const result = fetcher();
+        finalData = result instanceof Promise
+          ? await result
+          : await firstValueFrom(result);
+      } catch (err) {
+        console.error('Error al obtener datos para exportación:', err);
+        throw new Error('No se pudieron obtener los datos para exportar');
+      }
+    }
+
     if (format === 'excel') {
-      this.exportToExcel(columns, data, config);
+      this.exportToExcel(columns, finalData, config);
     } else {
-      this.exportToPdf(columns, data, config);
+      this.exportToPdf(columns, finalData, config);
     }
   }
 

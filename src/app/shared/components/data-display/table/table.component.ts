@@ -453,6 +453,7 @@ export class TableComponent implements OnInit, OnChanges, OnDestroy {
         search: this.searchTerm || undefined,
         sort: this.sortState.direction ? { ...this.sortState } : undefined,
       },
+      isServerPaginated: this.cfg.serverPagination,
     });
   }
   

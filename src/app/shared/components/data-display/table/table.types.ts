@@ -105,6 +105,7 @@ export interface ExportEvent {
     search?: string;
     sort?: SortState;
   };
+  isServerPaginated?: boolean;
 }
 
 // ── Defaults ──────────────────────────────────────────────────────────────────
