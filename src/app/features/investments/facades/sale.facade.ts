@@ -15,6 +15,7 @@ import type {
   SaleEventFilters,
   MakeDecisionPayload,
   GenerateDecisionsPayload,
+  SaleSummary,
 } from '../models/sale.model';
 import { SaleDecisionType } from '../models/enums';
 import { formatCurrency, parseDecimal } from '../../../core/utils/helpers';
@@ -616,4 +617,36 @@ submitCreate(payload: CreateSaleEventPayload, onSuccess: () => void): void {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
   }
+
+
+  // sale.facade.ts
+
+  // ── State del reporte ──────────────────────────────────────────
+  readonly summaryLoading = signal(false);
+  readonly summaryReport  = signal<SaleSummary | null>(null);
+  readonly showSummaryReport = signal(false);
+
+  // ── Cargar reporte de resumen ─────────────────────────────────
+
+  loadSaleSummary(id: string): void {
+    this.summaryLoading.set(true);
+    this.summaryReport.set(null);
+    this.showSummaryReport.set(true);
+
+    this.saleEventSvc
+      .getSummary(id)
+      .pipe(finalize(() => this.summaryLoading.set(false)))
+      .subscribe({
+        next: (res) => this.summaryReport.set(res.data),
+        error: () => {
+          this.notify.error('Error al cargar el resumen de la venta');
+          this.showSummaryReport.set(false);
+        },
+      });
+  }
+
+  closeSummaryReport(): void {
+    this.showSummaryReport.set(false);
+    this.summaryReport.set(null);
+}
 }

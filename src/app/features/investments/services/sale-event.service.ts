@@ -24,6 +24,7 @@ import {
   toSaleEventDetail,
   toGenerateDecisionsResult,
   toFinalizeResult,
+  toSaleSummary,
 } from '../mappers/investment.mapper';
 
 @Injectable({ providedIn: 'root' })
@@ -77,7 +78,12 @@ export class SaleEventService {
   // ── Resumen ───────────────────────────────────────────────────────
 
   getSummary(id: string): Observable<ApiResponse<SaleSummary>> {
-    return this.api.get<any>(ENDPOINTS.SALE_EVENT_SUMMARY(id));
+    return this.api.get<any>(ENDPOINTS.SALE_EVENT_SUMMARY(id)).pipe(
+      map((res) => ({
+        ...res,
+        data: toSaleSummary(res.data),
+      }))
+    );
   }
 
   // ── Evidencia ─────────────────────────────────────────────────────

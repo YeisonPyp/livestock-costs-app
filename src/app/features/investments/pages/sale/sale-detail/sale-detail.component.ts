@@ -24,6 +24,7 @@ import { ConfirmDialogComponent } from '../../../../../shared/components/feedbac
 import { SafeDatePipe } from '../../../../../shared/pipes/safe-date.pipe';
 
 import type { SaleDecisionList } from '../../../models/sale.model';
+import { SaleSummaryReportComponent } from '../../../components/sale-summary-report/sale-summary-report.component';
 
 @Component({
   selector:        'app-sale-detail',
@@ -40,6 +41,7 @@ import type { SaleDecisionList } from '../../../models/sale.model';
     KpiCardComponent,
     AmountDisplayComponent,
     SafeDatePipe,
+    SaleSummaryReportComponent,
   ],
   templateUrl: './sale-detail.component.html',
   styleUrl:    './sale-detail.component.scss',
@@ -111,5 +113,19 @@ export class SaleDetailComponent implements OnInit, OnDestroy {
       .subscribe((ok) => {
         if (ok) this.facade.resetDecision(d.id, sale.id);
       });
+  }
+
+    // ═══════════════════════════════════════════════════════════════
+  // ✅ REPORTE
+  // ═══════════════════════════════════════════════════════════════
+
+  openReport(): void {
+    const sale = this.facade.detail();
+    if (!sale) return;
+    this.facade.loadSaleSummary(sale.id);
+  }
+
+  closeReport(): void {
+    this.facade.closeSummaryReport();
   }
 }

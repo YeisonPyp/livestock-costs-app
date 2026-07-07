@@ -1,0 +1,681 @@
+// sale-summary-report.component.scss
+
+$ssr-primary: #185FA5;
+$ssr-success: #16a34a;
+$ssr-danger:  #ef4444;
+$ssr-warning: #f59e0b;
+$ssr-border:  #e2e8f0;
+$ssr-text:    #1a1f2e;
+$ssr-muted:   #64748b;
+$ssr-surface: #f8fafc;
+
+// ══════════════════════════════════════════════════════════════════
+// BACKDROP + MODAL
+// ══════════════════════════════════════════════════════════════════
+
+.ssr-backdrop {
+  position:        fixed;
+  inset:           0;
+  background:      rgba(0, 0, 0, 0.55);
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  z-index:         1000;
+  padding:         1rem;
+  animation:       ssrFadeIn 0.2s ease;
+}
+
+.ssr-modal {
+  background:    white;
+  border-radius: 12px;
+  width:         100%;
+  max-width:     1200px;
+  max-height:    92vh;
+  display:       flex;
+  flex-direction: column;
+  box-shadow:    0 20px 60px rgba(0, 0, 0, 0.3);
+  animation:     ssrSlideUp 0.25s ease;
+  overflow:      hidden;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// HEADER
+// ══════════════════════════════════════════════════════════════════
+
+.ssr-header {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             1rem;
+  padding:         1.25rem 1.5rem;
+  border-bottom:   1px solid $ssr-border;
+  background:      $ssr-surface;
+
+  &__title {
+    display:     flex;
+    align-items: flex-start;
+    gap:         12px;
+    color:       $ssr-primary;
+    flex:        1;
+    min-width:   0;
+
+    h2 {
+      margin:      0;
+      font-size:   1.15rem;
+      font-weight: 700;
+      color:       $ssr-text;
+    }
+  }
+
+  &__subtitle {
+    margin:    3px 0 0;
+    font-size: 0.8125rem;
+    color:     $ssr-muted;
+    font-weight: 500;
+  }
+
+  &__actions {
+    display:     flex;
+    align-items: center;
+    gap:         8px;
+    flex-shrink: 0;
+  }
+}
+
+.ssr-close {
+  width:           32px;
+  height:          32px;
+  border-radius:   8px;
+  border:          none;
+  background:      transparent;
+  cursor:          pointer;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  color:           $ssr-muted;
+  transition:      all 0.15s;
+
+  &:hover {
+    background: rgba($ssr-danger, 0.1);
+    color:      $ssr-danger;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// BUTTONS
+// ══════════════════════════════════════════════════════════════════
+
+.ssr-btn {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           5px;
+  padding:       7px 14px;
+  border-radius: 7px;
+  border:        1.5px solid transparent;
+  background:    white;
+  font-size:     0.8rem;
+  font-weight:   600;
+  font-family:   inherit;
+  cursor:        pointer;
+  transition:    all 0.15s;
+
+  svg { flex-shrink: 0; }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor:  not-allowed;
+  }
+
+  &:active:not(:disabled) { transform: scale(0.97); }
+
+  &--excel {
+    color:        #16a34a;
+    border-color: rgba(#16a34a, 0.4);
+
+    &:hover:not(:disabled) {
+      background:   rgba(#16a34a, 0.08);
+      border-color: #16a34a;
+    }
+  }
+
+  &--pdf {
+    color:        $ssr-danger;
+    border-color: rgba($ssr-danger, 0.4);
+
+    &:hover:not(:disabled) {
+      background:   rgba($ssr-danger, 0.08);
+      border-color: $ssr-danger;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// BODY
+// ══════════════════════════════════════════════════════════════════
+
+.ssr-body {
+  overflow-y: auto;
+  padding:    1.5rem;
+  flex:       1;
+}
+
+.ssr-loading {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  gap:             1rem;
+  padding:         3rem;
+  color:           $ssr-muted;
+
+  p { margin: 0; font-size: 0.9rem; }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// SECTIONS
+// ══════════════════════════════════════════════════════════════════
+
+.ssr-section {
+  margin-bottom: 1.5rem;
+
+  &:last-child { margin-bottom: 0; }
+
+  &__title {
+    font-size:      0.78rem;
+    font-weight:    700;
+    color:          $ssr-muted;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin:         0 0 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom:  2px solid $ssr-border;
+  }
+}
+
+// ── Info grid ────────────────────────────────────────────────
+.ssr-info-grid {
+  display:               grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap:                   1rem;
+  padding:               1rem;
+  background:            $ssr-surface;
+  border-radius:         10px;
+}
+
+.ssr-info-item {
+  display:        flex;
+  flex-direction: column;
+  gap:            3px;
+}
+
+.ssr-info-label {
+  font-size:      0.7rem;
+  color:          $ssr-muted;
+  font-weight:    600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ssr-info-value {
+  font-size:   0.9rem;
+  font-weight: 600;
+  color:       $ssr-text;
+}
+
+// ── Figures grid ─────────────────────────────────────────────
+.ssr-figures-grid {
+  display:               grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap:                   0.75rem;
+}
+
+.ssr-figure {
+  padding:       1rem;
+  background:    white;
+  border:        1px solid $ssr-border;
+  border-radius: 10px;
+  display:       flex;
+  flex-direction: column;
+  gap:           4px;
+  border-left:   4px solid $ssr-primary;
+
+  &__label {
+    font-size:      0.7rem;
+    color:          $ssr-muted;
+    font-weight:    600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &__value {
+    font-size:   1.15rem;
+    font-weight: 800;
+    color:       $ssr-text;
+  }
+
+  &--highlight {
+    border-left-color: $ssr-primary;
+    background: rgba($ssr-primary, 0.04);
+  }
+
+  &--success {
+    border-left-color: $ssr-success;
+    background: rgba($ssr-success, 0.04);
+
+    .ssr-figure__value { color: $ssr-success; }
+  }
+
+  &--danger {
+    border-left-color: $ssr-danger;
+    background: rgba($ssr-danger, 0.04);
+
+    .ssr-figure__value { color: $ssr-danger; }
+  }
+}
+
+// ── Split grid ───────────────────────────────────────────────
+.ssr-split-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   1rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ssr-split {
+  display:       flex;
+  align-items:   center;
+  gap:           1rem;
+  padding:       1.25rem;
+  border-radius: 10px;
+  border:        1px solid $ssr-border;
+
+  &__icon {
+    width:           48px;
+    height:          48px;
+    border-radius:   50%;
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    flex-shrink:     0;
+  }
+
+  &__label {
+    margin: 0;
+    font-size: 0.8rem;
+    color:     $ssr-muted;
+    font-weight: 600;
+  }
+
+  &__value {
+    margin: 3px 0 0;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color:     $ssr-text;
+  }
+
+  &--investor {
+    background: rgba($ssr-primary, 0.06);
+    border-color: rgba($ssr-primary, 0.2);
+    .ssr-split__icon { background: rgba($ssr-primary, 0.15); color: $ssr-primary; }
+    .ssr-split__value { color: $ssr-primary; }
+  }
+
+  &--operator {
+    background: rgba($ssr-warning, 0.06);
+    border-color: rgba($ssr-warning, 0.2);
+    .ssr-split__icon { background: rgba($ssr-warning, 0.15); color: #b45309; }
+    .ssr-split__value { color: #b45309; }
+  }
+}
+
+// ── Decisions summary ────────────────────────────────────────
+.ssr-decisions-summary {
+  display:               grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:                   0.75rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ssr-decision-stat {
+  padding:        1rem;
+  border-radius:  10px;
+  background:     $ssr-surface;
+  border:         1px solid $ssr-border;
+  text-align:     center;
+  display:        flex;
+  flex-direction: column;
+  gap:            4px;
+
+  &__value {
+    font-size:   1.75rem;
+    font-weight: 800;
+    color:       $ssr-text;
+    line-height: 1;
+  }
+
+  &__label {
+    font-size:      0.72rem;
+    color:          $ssr-muted;
+    font-weight:    600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &--warning {
+    background:   rgba($ssr-warning, 0.06);
+    border-color: rgba($ssr-warning, 0.25);
+    .ssr-decision-stat__value { color: #b45309; }
+  }
+
+  &--success {
+    background:   rgba($ssr-success, 0.06);
+    border-color: rgba($ssr-success, 0.25);
+    .ssr-decision-stat__value { color: $ssr-success; }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TABLE
+// ══════════════════════════════════════════════════════════════════
+
+.ssr-table-wrap {
+  overflow-x: auto;
+  border:     1px solid $ssr-border;
+  border-radius: 10px;
+}
+
+.ssr-table {
+  width:           100%;
+  border-collapse: collapse;
+  font-size:       0.8125rem;
+
+  thead {
+    background: $ssr-surface;
+
+    th {
+      padding:        0.75rem 1rem;
+      text-align:     left;
+      font-size:      0.7rem;
+      font-weight:    700;
+      color:          $ssr-muted;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom:  1px solid $ssr-border;
+      white-space:    nowrap;
+
+      &.center { text-align: center; }
+      &.right  { text-align: right; }
+    }
+  }
+
+  tbody td {
+    padding:        0.75rem 1rem;
+    border-bottom:  1px solid #f1f5f9;
+    vertical-align: middle;
+
+    &.center { text-align: center; }
+    &.right  { text-align: right; }
+  }
+
+  tbody tr:hover      { background: $ssr-surface; }
+  tbody tr:last-child td { border-bottom: none; }
+}
+
+.ssr-investor-cell {
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+}
+
+.ssr-investor-code {
+  font-family:    'Courier New', monospace;
+  font-size:      0.7rem;
+  color:          $ssr-primary;
+  font-weight:    700;
+  letter-spacing: 0.04em;
+}
+
+.ssr-investor-name {
+  font-size:   0.85rem;
+  font-weight: 600;
+  color:       $ssr-text;
+}
+
+.ssr-code {
+  padding:     2px 6px;
+  border-radius: 4px;
+  background:  #f1f5f9;
+  color:       $ssr-text;
+  font-family: 'Courier New', monospace;
+  font-size:   0.75rem;
+}
+
+.muted { color: #cbd5e1; }
+
+// sale-summary-report.component.scss
+
+// ══════════════════════════════════════════════════════════════════
+// GRUPO DE INVERSIONISTA (con animales)
+// ══════════════════════════════════════════════════════════════════
+
+.ssr-investor-group {
+  background:    white;
+  border:        1px solid $ssr-border;
+  border-radius: 10px;
+  overflow:      hidden;
+  margin-bottom: 1rem;
+
+  &:last-child { margin-bottom: 0; }
+
+  &__header {
+    display:         flex;
+    align-items:     center;
+    justify-content: space-between;
+    gap:             1rem;
+    padding:         1rem 1.25rem;
+    background:      linear-gradient(90deg, rgba($ssr-primary, 0.06), transparent);
+    border-bottom:   1px solid $ssr-border;
+    flex-wrap:       wrap;
+  }
+
+  &__info {
+    display:        flex;
+    flex-direction: column;
+    gap:            2px;
+    min-width:      0;
+    flex:           1;
+  }
+
+  &__name {
+    margin:      0;
+    font-size:   1rem;
+    font-weight: 700;
+    color:       $ssr-text;
+  }
+
+  &__stats {
+    display:     flex;
+    align-items: center;
+    gap:         1.25rem;
+    flex-shrink: 0;
+  }
+}
+
+// Mini estadísticas del inversionista
+.ssr-mini-stat {
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+  text-align:     right;
+
+  &__label {
+    font-size:      0.65rem;
+    color:          $ssr-muted;
+    font-weight:    600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &__value {
+    font-size:   0.9rem;
+    font-weight: 700;
+    color:       $ssr-text;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TABLA DE ANIMALES
+// ══════════════════════════════════════════════════════════════════
+
+.ssr-animals-table-wrap {
+  overflow-x: auto;
+}
+
+.ssr-animals-table {
+  width:           100%;
+  border-collapse: collapse;
+  font-size:       0.8rem;
+
+  thead {
+    background: $ssr-surface;
+
+    th {
+      padding:        0.6rem 1rem;
+      text-align:     left;
+      font-size:      0.68rem;
+      font-weight:    700;
+      color:          $ssr-muted;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom:  1px solid $ssr-border;
+      white-space:    nowrap;
+
+      &.center { text-align: center; }
+      &.right  { text-align: right; }
+    }
+  }
+
+  tbody td {
+    padding:        0.55rem 1rem;
+    border-bottom:  1px solid #f1f5f9;
+    vertical-align: middle;
+
+    &.center { text-align: center; }
+    &.right  { text-align: right; }
+  }
+
+  tbody tr:hover      { background: rgba($ssr-primary, 0.02); }
+  tbody tr:last-child td { border-bottom: 1px solid $ssr-border; }
+
+  tfoot td {
+    padding:     0.65rem 1rem;
+    background:  $ssr-surface;
+    font-weight: 700;
+    color:       $ssr-text;
+    font-size:   0.82rem;
+
+    &.right { text-align: right; }
+  }
+}
+
+.ssr-animal-num {
+  color:       $ssr-muted;
+  font-weight: 600;
+  font-size:   0.75rem;
+  width:       40px;
+}
+
+.ssr-tag {
+  padding:        3px 8px;
+  border-radius:  5px;
+  background:     rgba($ssr-primary, 0.1);
+  color:          $ssr-primary;
+  font-family:    'Courier New', monospace;
+  font-size:      0.78rem;
+  font-weight:    700;
+  letter-spacing: 0.03em;
+}
+
+.ssr-animals-total {
+  color:          $ssr-muted;
+  font-weight:    700;
+  text-transform: uppercase;
+  font-size:      0.72rem;
+  letter-spacing: 0.04em;
+}
+
+.ssr-animals-total-value {
+  color:     $ssr-primary;
+  font-size: 0.9rem;
+}
+
+.ssr-empty-small {
+  padding:    1.5rem;
+  text-align: center;
+  color:      $ssr-muted;
+  font-size:  0.85rem;
+  margin:     0;
+  font-style: italic;
+}
+
+// ── Responsive ──────────────────────────────────────────────────
+@media (max-width: 640px) {
+  .ssr-investor-group__header {
+    flex-direction: column;
+    align-items:    flex-start;
+  }
+
+  .ssr-investor-group__stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .ssr-mini-stat {
+    text-align: left;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ANIMATIONS
+// ══════════════════════════════════════════════════════════════════
+
+@keyframes ssrFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes ssrSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RESPONSIVE
+// ══════════════════════════════════════════════════════════════════
+
+@media (max-width: 768px) {
+  .ssr-modal {
+    max-height: 96vh;
+    border-radius: 0;
+  }
+
+  .ssr-header {
+    padding: 1rem;
+
+    h2 { font-size: 1rem; }
+
+    &__subtitle { font-size: 0.75rem; }
+  }
+
+  .ssr-body { padding: 1rem; }
+
+  .ssr-figures-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

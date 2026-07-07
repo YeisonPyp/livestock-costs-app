@@ -32,6 +32,8 @@ import {
   ParticipationReport,
   CattleOwnerReport,
   CattleOwnershipSummary,
+  SaleSummaryInvestor,
+  SaleFinancials,
 } from '../models';
 
 // ── Contracts ──────────────────────────────────────────────────────
@@ -533,5 +535,76 @@ export function toCattleOwnerReport(raw: any): CattleOwnerReport {
     currentValue: raw.current_value,
     weightGain: raw.weight_gain,
     acquisitionDate: raw.acquisition_date,
+  };
+}
+
+// ── Sale Summary ───────────────────────────────────────────────────
+
+export function toSaleFinancials(raw: any): SaleFinancials {
+  return {
+    grossSale: raw.gross_sale,
+    costShare: raw.cost_share,
+    netSale: raw.net_sale,
+    purchaseValue: raw.purchase_value,
+    profitLoss: raw.profit_loss,
+    isProfit: raw.is_profit,
+    contractNumber: raw.contract_number,
+    investorPct: raw.investor_pct,
+    operatorPct: raw.operator_pct,
+    investorProfitShare: raw.investor_profit_share,
+    operatorProfitShare: raw.operator_profit_share,
+    investorReceivable: raw.investor_receivable,
+  };
+}
+
+
+export function toSaleSummaryInvestor(raw: any): SaleSummaryInvestor {
+  return {
+    investorCode: raw.investor_code,
+    investorName: raw.investor_name,
+    heads:        raw.heads,
+    animals:      (raw.animals ?? []).map((a: any) => ({
+      tag:         a.tag,
+      weight:      a.weight,
+      pricePerKg:  a.price_per_kg,
+      grossAmount: a.gross_amount,
+    })),
+    decision: {
+      type:           raw.decision.type,
+      investorAmount: raw.decision.investor_amount,
+      profitLoss:     raw.decision.profit_loss,
+      reinvestAmount: raw.decision.reinvest_amount,
+      withdrawAmount: raw.decision.withdraw_amount,
+      isProcessed:    raw.decision.is_processed,
+      isPending:      raw.decision.is_pending,
+    },
+    financials: raw.financials ? toSaleFinancials(raw.financials) : null,
+  };
+}
+
+export function toSaleSummary(raw: any): SaleSummary {
+  return {
+    saleEvent: {
+      id:          raw.sale_event.id,
+      saleDate:    raw.sale_event.sale_date,
+      description: raw.sale_event.description,
+      buyer:       raw.sale_event.buyer,
+      totalHeads:  raw.sale_event.total_heads,
+      totalWeight: raw.sale_event.total_weight,
+      pricePerKg:  raw.sale_event.price_per_kg,
+      grossAmount: raw.sale_event.gross_amount,
+      saleCosts:   raw.sale_event.sale_costs,
+      netAmount:   raw.sale_event.net_amount,
+      isFinalized: raw.sale_event.is_finalized,
+      finalizedAt: raw.sale_event.finalized_at,
+    },
+    byInvestor: (raw.by_investor ?? []).map(toSaleSummaryInvestor),
+    totals: {
+      totalProfitLoss:     raw.totals.total_profit_loss,
+      totalInvestorShare:  raw.totals.total_investor_share,
+      totalOperatorShare:  raw.totals.total_operator_share,
+      decisionsPending:    raw.totals.decisions_pending,
+      decisionsProcessed:  raw.totals.decisions_processed,
+    },
   };
 }

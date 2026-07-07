@@ -1,0 +1,396 @@
+<!-- sale-summary-report.component.html -->
+
+@if (isOpen()) {
+  <div class="ssr-backdrop" (click)="onBackdropClick($event)">
+    <div class="ssr-modal">
+
+      <!-- ══════════ HEADER ══════════ -->
+      <div class="ssr-header">
+        <div class="ssr-header__title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" width="20" height="20">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          <div>
+            <h2>Reporte de Venta</h2>
+            @if (summary()) {
+              <p class="ssr-header__subtitle">
+                {{ summary()!.saleEvent.description }} · {{ summary()!.saleEvent.saleDate }}
+              </p>
+            }
+          </div>
+        </div>
+
+        <div class="ssr-header__actions">
+          @if (summary() && !loading()) {
+            <button
+              class="ssr-btn ssr-btn--excel"
+              [disabled]="exporting()"
+              (click)="exportExcel()"
+              title="Descargar Excel"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" width="15" height="15">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              Excel
+            </button>
+
+            <button
+              class="ssr-btn ssr-btn--pdf"
+              [disabled]="exporting()"
+              (click)="exportPdf()"
+              title="Descargar PDF"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" width="15" height="15">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <path d="M12 18v-6"/>
+                <path d="m9 15 3 3 3-3"/>
+              </svg>
+              PDF
+            </button>
+          }
+
+          <button class="ssr-close" (click)="onClose()" aria-label="Cerrar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.5" width="18" height="18">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ══════════ BODY ══════════ -->
+      <div class="ssr-body">
+
+        @if (loading()) {
+          <div class="ssr-loading">
+            <app-loader [overlay]="false" type="spinner" />
+            <p>Generando reporte...</p>
+          </div>
+        }
+
+        @if (!loading() && summary(); as s) {
+
+          <!-- ── Info general de la venta ────────────────── -->
+          <section class="ssr-section">
+            <h3 class="ssr-section__title">Información de la venta</h3>
+            <div class="ssr-info-grid">
+              <div class="ssr-info-item">
+                <span class="ssr-info-label">Fecha</span>
+                <span class="ssr-info-value">{{ s.saleEvent.saleDate }}</span>
+              </div>
+              <div class="ssr-info-item">
+                <span class="ssr-info-label">Comprador</span>
+                <span class="ssr-info-value">{{ s.saleEvent.buyer }}</span>
+              </div>
+              <div class="ssr-info-item">
+                <span class="ssr-info-label">Estado</span>
+                <span class="ssr-info-value">
+                  <app-badge [color]="s.saleEvent.isFinalized ? 'success' : 'warning'">
+                    {{ s.saleEvent.isFinalized ? 'Finalizada' : 'Pendiente' }}
+                  </app-badge>
+                </span>
+              </div>
+              <div class="ssr-info-item">
+                <span class="ssr-info-label">Total cabezas</span>
+                <span class="ssr-info-value">{{ s.saleEvent.totalHeads }}</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- ── Cifras generales ────────────────────────── -->
+          <section class="ssr-section">
+            <h3 class="ssr-section__title">Cifras generales</h3>
+            <div class="ssr-figures-grid">
+              <div class="ssr-figure">
+                <span class="ssr-figure__label">Peso total</span>
+                <span class="ssr-figure__value">{{ s.saleEvent.totalWeight }} kg</span>
+              </div>
+              <div class="ssr-figure">
+                <span class="ssr-figure__label">Precio / kg</span>
+                <span class="ssr-figure__value">
+                  {{ formatCurrency(parseDecimal(s.saleEvent.pricePerKg)) }}
+                </span>
+              </div>
+              <div class="ssr-figure">
+                <span class="ssr-figure__label">Monto bruto</span>
+                <span class="ssr-figure__value">
+                  {{ formatCurrency(parseDecimal(s.saleEvent.grossAmount)) }}
+                </span>
+              </div>
+              <div class="ssr-figure ssr-figure--danger">
+                <span class="ssr-figure__label">Costos</span>
+                <span class="ssr-figure__value">
+                  {{ formatCurrency(parseDecimal(s.saleEvent.saleCosts)) }}
+                </span>
+              </div>
+              <div class="ssr-figure ssr-figure--highlight">
+                <span class="ssr-figure__label">Monto neto</span>
+                <span class="ssr-figure__value">
+                  {{ formatCurrency(parseDecimal(s.saleEvent.netAmount)) }}
+                </span>
+              </div>
+              <div class="ssr-figure"
+                [class.ssr-figure--success]="totalProfitLoss() >= 0"
+                [class.ssr-figure--danger]="totalProfitLoss() < 0">
+                <span class="ssr-figure__label">
+                  {{ totalProfitLoss() >= 0 ? 'Ganancia total' : 'Pérdida total' }}
+                </span>
+                <span class="ssr-figure__value">
+                  {{ formatCurrency(totalProfitLoss()) }}
+                </span>
+              </div>
+            </div>
+          </section>
+
+          <!-- ── Totales de reparto ──────────────────────── -->
+          <section class="ssr-section">
+            <h3 class="ssr-section__title">Totales de reparto</h3>
+            <div class="ssr-split-grid">
+              <div class="ssr-split ssr-split--investor">
+                <div class="ssr-split__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" width="20" height="20">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="ssr-split__label">Inversionistas</p>
+                  <p class="ssr-split__value">
+                    {{ formatCurrency(totalInvestorShare()) }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="ssr-split ssr-split--operator">
+                <div class="ssr-split__icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" width="20" height="20">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="ssr-split__label">Operador</p>
+                  <p class="ssr-split__value">
+                    {{ formatCurrency(totalOperatorShare()) }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ── Estado de decisiones ────────────────────── -->
+          <section class="ssr-section">
+            <h3 class="ssr-section__title">Estado de decisiones</h3>
+            <div class="ssr-decisions-summary">
+              <div class="ssr-decision-stat">
+                <span class="ssr-decision-stat__value">{{ investorCount() }}</span>
+                <span class="ssr-decision-stat__label">Total inversionistas</span>
+              </div>
+              <div class="ssr-decision-stat ssr-decision-stat--warning">
+                <span class="ssr-decision-stat__value">
+                  {{ s.totals.decisionsPending }}
+                </span>
+                <span class="ssr-decision-stat__label">Pendientes</span>
+              </div>
+              <div class="ssr-decision-stat ssr-decision-stat--success">
+                <span class="ssr-decision-stat__value">
+                  {{ s.totals.decisionsProcessed }}
+                </span>
+                <span class="ssr-decision-stat__label">Procesadas</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- ── Tabla detallada por inversionista ───────── -->
+          <section class="ssr-section">
+            <h3 class="ssr-section__title">Detalle por inversionista</h3>
+            <div class="ssr-table-wrap">
+              <table class="ssr-table">
+                <thead>
+                  <tr>
+                    <th>Inversionista</th>
+                    <th class="center">Cabezas</th>
+                    <th>Contrato</th>
+                    <th class="right">% Inv</th>
+                    <th class="right">Venta neta</th>
+                    <th class="right">Ganancia</th>
+                    <th class="right">A recibir</th>
+                    <th class="center">Decisión</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (inv of s.byInvestor; track inv.investorCode) {
+                    <tr>
+                      <td>
+                        <div class="ssr-investor-cell">
+                          <span class="ssr-investor-code">{{ inv.investorCode }}</span>
+                          <span class="ssr-investor-name">{{ inv.investorName }}</span>
+                        </div>
+                      </td>
+                      <td class="center">{{ inv.heads }}</td>
+                      <td>
+                        @if (inv.financials?.contractNumber) {
+                          <code class="ssr-code">{{ inv.financials!.contractNumber }}</code>
+                        } @else {
+                          <span class="muted">—</span>
+                        }
+                      </td>
+                      <td class="right">
+                        @if (inv.financials) {
+                          {{ inv.financials.investorPct }}%
+                        } @else {
+                          <span class="muted">—</span>
+                        }
+                      </td>
+                      <td class="right">
+                        @if (inv.financials) {
+                          <app-amount-display
+                            [amount]="parseDecimal(inv.financials.netSale)"
+                            type="neutral"
+                            size="sm"
+                          />
+                        } @else {
+                          <span class="muted">—</span>
+                        }
+                      </td>
+                      <td class="right">
+                        @if (inv.financials) {
+                          <app-amount-display
+                            [amount]="parseDecimal(inv.financials.profitLoss)"
+                            [type]="parseDecimal(inv.financials.profitLoss) >= 0 ? 'income' : 'expense'"
+                            [showSign]="true"
+                            size="sm"
+                          />
+                        } @else {
+                          <span class="muted">—</span>
+                        }
+                      </td>
+                      <td class="right">
+                        @if (inv.financials) {
+                          <strong>
+                            {{ formatCurrency(parseDecimal(inv.financials.investorReceivable)) }}
+                          </strong>
+                        } @else {
+                          <span class="muted">—</span>
+                        }
+                      </td>
+                      <td class="center">
+                        <app-badge [color]="decisionColor(inv.decision.type)" size="sm">
+                          {{ decisionLabel(inv.decision.type) }}
+                        </app-badge>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- sale-summary-report.component.html -->
+
+<!-- ── (después de la sección "Detalle por inversionista") ── -->
+
+<!-- ══════════ DETALLE DE ANIMALES POR INVERSIONISTA ══════════ -->
+<section class="ssr-section">
+  <h3 class="ssr-section__title">Detalle de animales vendidos</h3>
+
+  @for (inv of s.byInvestor; track inv.investorCode) {
+    <div class="ssr-investor-group">
+
+      <!-- Header del grupo -->
+      <div class="ssr-investor-group__header">
+        <div class="ssr-investor-group__info">
+          <span class="ssr-investor-code">{{ inv.investorCode }}</span>
+          <h4 class="ssr-investor-group__name">{{ inv.investorName }}</h4>
+        </div>
+        <div class="ssr-investor-group__stats">
+          <div class="ssr-mini-stat">
+            <span class="ssr-mini-stat__label">Cabezas</span>
+            <span class="ssr-mini-stat__value">{{ inv.heads }}</span>
+          </div>
+          <div class="ssr-mini-stat">
+            <span class="ssr-mini-stat__label">Total bruto</span>
+            <span class="ssr-mini-stat__value">
+              @if (inv.financials) {
+                {{ formatCurrency(parseDecimal(inv.financials.grossSale)) }}
+              } @else {
+                —
+              }
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de animales -->
+      @if (inv.animals && inv.animals.length > 0) {
+        <div class="ssr-animals-table-wrap">
+          <table class="ssr-animals-table">
+            <thead>
+              <tr>
+                <th class="center">#</th>
+                <th>Arete</th>
+                <th class="right">Peso (kg)</th>
+                <th class="right">Precio / kg</th>
+                <th class="right">Valor bruto</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (animal of inv.animals; track animal.tag; let idx = $index) {
+                <tr>
+                  <td class="center ssr-animal-num">{{ idx + 1 }}</td>
+                  <td>
+                    <code class="ssr-tag">{{ animal.tag }}</code>
+                  </td>
+                  <td class="right">
+                    {{ animal.weight }}
+                  </td>
+                  <td class="right">
+                    {{ formatCurrency(parseDecimal(animal.pricePerKg)) }}
+                  </td>
+                  <td class="right">
+                    <strong>
+                      {{ formatCurrency(parseDecimal(animal.grossAmount)) }}
+                    </strong>
+                  </td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2" class="ssr-animals-total">Total</td>
+                <td class="right">
+                  {{ getAnimalsTotalWeight(inv.animals).toFixed(2) }} kg
+                </td>
+                <td></td>
+                <td class="right">
+                  <strong class="ssr-animals-total-value">
+                    {{ formatCurrency(getAnimalsTotalGross(inv.animals)) }}
+                  </strong>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      } @else {
+        <p class="ssr-empty-small">Sin animales registrados</p>
+      }
+
+    </div>
+  }
+</section>
+        }
+      </div>
+    </div>
+  </div>
+}
