@@ -25,15 +25,15 @@ export class PartialDecisionModalComponent implements OnInit {
   sumError = false;
 
   form = this.fb.group({
-    reinvestAmount: [0, [Validators.required, Validators.min(0)]],
-    withdrawAmount: [{ value: 0, disabled: true }],
+    reinvestAmount: [{ value: 0, disabled: true }],
+    withdrawAmount: [0, [Validators.required, Validators.min(0)]]
   });
 
   ngOnInit(): void {
-    this.form.get('reinvestAmount')?.valueChanges.subscribe(v => {
-      const reinvest = +(v ?? 0);
-      this.form.get('withdrawAmount')?.setValue(
-        Number(Math.max(0, this.totalAmount() - reinvest).toFixed(2)),
+    this.form.get('withdrawAmount')?.valueChanges.subscribe(v => {
+      const withdraw = +(v ?? 0);
+      this.form.get('reinvestAmount')?.setValue(
+        Number(Math.max(0, this.totalAmount() - withdraw).toFixed(2)),
         { emitEvent: false }
       );
     });
