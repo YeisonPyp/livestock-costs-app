@@ -64,6 +64,7 @@ readonly movementTypeOptions = [
   { value: InvestmentMovementType.DIVIDEND,             label: 'Dividendo'          },
   { value: InvestmentMovementType.SALE_PROFIT,          label: 'Ganancia venta'     },
   { value: InvestmentMovementType.REINVESTMENT,         label: 'Reinversión'        },
+  { value: InvestmentMovementType.FINANCIAL_TAX,        label: 'Impuesto financiero' },
   // Débitos
   { value: InvestmentMovementType.WITHDRAWAL,           label: 'Retiro'             },
   { value: InvestmentMovementType.COST_SHARE,           label: 'Costos'             },
@@ -201,6 +202,7 @@ private readonly DEBIT_TYPES: string[] = [
   InvestmentMovementType.COST_SHARE,
   InvestmentMovementType.CATTLE_PURCHASE,
   InvestmentMovementType.SALE_LOSS,
+  InvestmentMovementType.FINANCIAL_TAX,
 ];
 
 private readonly INFORMATIONAL_TYPES: string[] = [

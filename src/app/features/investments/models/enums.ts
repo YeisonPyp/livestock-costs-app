@@ -34,6 +34,7 @@ export enum InvestmentMovementType {
   SALE_LOSS            = 'sale_loss',
   CATTLE_PURCHASE      = 'cattle_purchase',      // ✅ nuevo
   OPERATOR_COMMISSION  = 'operator_commission',   // ✅ nuevo
+  FINANCIAL_TAX        = 'financial_tax',         // ✅ nuevo
 }
 
 export enum SaleDecisionType {
