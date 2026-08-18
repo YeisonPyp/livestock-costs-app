@@ -120,7 +120,9 @@ export interface ContributionPayload {
   description?: string;
 }
 
-export type WithdrawalPayload = ContributionPayload;
+export interface WithdrawalPayload extends ContributionPayload {
+  taxesIncluded?: boolean;  // 👈 Nuevo campo solo para retiros
+}
 
 // ── Filtros ────────────────────────────────────────────────────────
 export interface InvestmentFilters {

@@ -61,6 +61,28 @@
       />
     </div>
 
+    <!-- 👇 NUEVO: Campo taxes_included (solo para retiros) -->
+    @if (isWithdrawal) {
+      <div class="form-group">
+        <div class="checkbox-wrapper">
+          <input
+            type="checkbox"
+            id="taxesIncluded"
+            class="form-checkbox"
+            formControlName="taxesIncluded"
+          />
+          <label for="taxesIncluded" class="checkbox-label">
+            <span class="checkbox-text">
+              📋 Incluir retención de impuestos
+            </span>
+            <span class="checkbox-hint">
+              Al marcar esta opción se registrará como pago de impuestos en lugar de retiro
+            </span>
+          </label>
+        </div>
+      </div>
+    }
+
     <div class="panel-footer">
       <button
         type="button"

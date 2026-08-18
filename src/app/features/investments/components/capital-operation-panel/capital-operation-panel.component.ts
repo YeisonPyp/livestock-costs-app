@@ -3,11 +3,13 @@
 // Componente presentacional puro. Recibe tipo de operación y max via Input.
 // Emite el payload listo para que el padre lo envíe al facade.
 
+// components/capital-operation-panel/capital-operation-panel.component.ts
 import {
   Component, OnInit, OnChanges, SimpleChanges,
   ChangeDetectionStrategy, input, output, inject
 } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 import { formatCurrency } from '../../../../core/utils/helpers';
 import type { ContributionPayload, WithdrawalPayload } from '../../models/investment.model';
@@ -18,7 +20,7 @@ export type OperationType = 'contribute' | 'withdraw';
   selector: 'app-capital-operation-panel',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './capital-operation-panel.component.html',
   styleUrl: './capital-operation-panel.component.scss',
 })
@@ -39,6 +41,7 @@ export class CapitalOperationPanelComponent implements OnInit, OnChanges {
     amount:        [null as number | null, [Validators.required, Validators.min(0.01)]],
     effectiveDate: [this.today],
     description:   [''],
+    taxesIncluded: [false],  // 👈 Nuevo campo
   });
 
   ngOnInit(): void { this.configureValidators(); }
@@ -61,22 +64,36 @@ export class CapitalOperationPanelComponent implements OnInit, OnChanges {
     return '';
   }
 
+  get isWithdrawal(): boolean {
+    return this.type() === 'withdraw';
+  }
+
   onSubmit(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
     const v = this.form.value;
-    this.submitted.emit({
+    
+    const payload: WithdrawalPayload | ContributionPayload = {
       amount:        v.amount!,
       effectiveDate: v.effectiveDate || undefined,
       description:   v.description   || undefined,
-    });
+    };
+
+    // 👇 Solo agregar taxesIncluded si es retiro
+    if (this.isWithdrawal) {
+      (payload as WithdrawalPayload).taxesIncluded = v.taxesIncluded ?? false;
+    }
+
+    this.submitted.emit(payload);
   }
 
   private configureValidators(): void {
     const amountCtrl = this.form.get('amount');
     const validators = [Validators.required, Validators.min(0.01)];
+    
     if (this.type() === 'withdraw' && this.maxAmount() > 0) {
       validators.push(Validators.max(this.maxAmount()));
     }
+    
     amountCtrl?.setValidators(validators);
     amountCtrl?.updateValueAndValidity();
 

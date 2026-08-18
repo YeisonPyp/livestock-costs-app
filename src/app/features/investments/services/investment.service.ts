@@ -76,6 +76,7 @@ export class InvestmentService {
       amount: payload.amount,
       effective_date: payload.effectiveDate,
       description: payload.description,
+      taxes_included: payload.taxesIncluded ?? false,
     }).pipe(
       map(res => ({ ...res, data: toInvestmentDetail(res.data) }))
     );
