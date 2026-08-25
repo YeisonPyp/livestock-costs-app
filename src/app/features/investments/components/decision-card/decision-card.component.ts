@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   input,
   output,
+  computed,
 } from '@angular/core';
 
 import { SaleDecisionType } from '../../models/enums';
@@ -26,8 +27,22 @@ export class DecisionCardComponent {
   }>();
 
   readonly SaleDecisionType = SaleDecisionType;
-  readonly fmt = (v: string | number) => formatCurrency(parseDecimal(v));
+  
+  // Helpers de conversión
+  readonly fmt = (v: number) => formatCurrency(v);
   readonly pd  = parseDecimal;
+
+  // ── 🧠 Señales Computadas para Cálculos Financieros ─────────────────
+  readonly totalAmount = computed(() => this.pd(this.decision().investorAmount));
+  readonly profitLoss  = computed(() => this.pd(this.decision().profitLoss));
+  
+  // 4x1000 basado en el valor total de la participación (0.4% -> 0.004)
+  readonly tax4x1000 = computed(() => this.totalAmount() * 0.004);
+
+  // Valor a decidir = Valor total - ganancias - 4x1000
+  readonly valueToDecide = computed(() => {
+    return this.totalAmount() - this.profitLoss() - this.tax4x1000();
+  });
 
   emit(type: SaleDecisionType): void {
     if (this.saving()) return;
