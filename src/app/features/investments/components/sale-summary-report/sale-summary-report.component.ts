@@ -1,4 +1,3 @@
-// components/sale-summary-report/sale-summary-report.component.ts
 import {
   Component,
   ChangeDetectionStrategy,
@@ -123,26 +122,16 @@ export class SaleSummaryReportComponent {
     });
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // HELPERS DE ANIMALES
-  // ══════════════════════════════════════════════════════════════
-
-  /**
-   * Calcula el peso total de una lista de animales
-   */
   getAnimalsTotalWeight(animals: SaleSummaryInvestor['animals']): number {
     return animals.reduce((sum, a) => sum + parseDecimal(a.weight), 0);
   }
 
-  /**
-   * Calcula el valor bruto total de una lista de animales
-   */
   getAnimalsTotalGross(animals: SaleSummaryInvestor['animals']): number {
     return animals.reduce((sum, a) => sum + parseDecimal(a.grossAmount), 0);
   }
 
   // ══════════════════════════════════════════════════════════════
-  // EXPORT EXCEL
+  // EXPORT EXCEL (ACTUALIZADO CON DESGLOSE FINANCIERO)
   // ══════════════════════════════════════════════════════════════
 
   async exportExcel(): Promise<void> {
@@ -154,9 +143,9 @@ export class SaleSummaryReportComponent {
     try {
       const wb = XLSX.utils.book_new();
 
-      // ── Hoja 1: Resumen general ──────────────────────────
+      // ── Hoja 1: Resumen General ──
       const generalData: any[][] = [
-        ['REPORTE DE VENTA'],
+        ['REPORTE DE LIQUIDACIÓN DE VENTA'],
         ['Ganadería Veracruz Y.P'],
         [`Generado: ${new Date().toLocaleDateString('es-CO', {
           day: '2-digit', month: 'long', year: 'numeric',
@@ -178,7 +167,7 @@ export class SaleSummaryReportComponent {
         ['Costos',          this.formatCurrency(parseDecimal(data.saleEvent.saleCosts))],
         ['Monto neto',      this.formatCurrency(parseDecimal(data.saleEvent.netAmount))],
         [],
-        ['TOTALES'],
+        ['TOTALES REPARTIDOS'],
         ['Ganancia / Pérdida total', this.formatCurrency(this.totalProfitLoss())],
         ['Total inversionistas',     this.formatCurrency(this.totalInvestorShare())],
         ['Total operador',           this.formatCurrency(this.totalOperatorShare())],
@@ -198,66 +187,59 @@ export class SaleSummaryReportComponent {
       ];
       XLSX.utils.book_append_sheet(wb, wsGeneral, 'Resumen General');
 
-      // ── Hoja 2: Detalle por inversionista ────────────────
+      // ── Hoja 2: Detalle por Inversionista ──
       const investorHeaders = [
         'Código',
         'Nombre',
         'Cabezas',
         'Contrato',
-        '% Inversionista',
-        '% Operador',
-        'Venta bruta',
-        'Costos',
-        'Venta neta',
-        'Valor compra',
-        'Ganancia/Pérdida',
-        'Ganancia Inversionista',
-        'Ganancia Operador',
-        'Total a recibir',
-        'Decisión',
-        'Reinvertir',
-        'Retirar',
-        'Estado',
+        'Venta Neta',
+        'Valor Compra',
+        'Participación Total',
+        'Ganancias',
+        'GMF (4x1000)',
+        'VALOR NETO A DECIDIR',
+        'Decisión Seleccionada',
+        'Reinvertido Real',
+        'Retirado Real',
+        'Estado de Decisión',
       ];
 
       const investorRows = data.byInvestor.map((inv) => {
         const f = inv.financials;
+        const d = inv.decision;
         return [
           inv.investorCode,
           inv.investorName,
           inv.heads,
           f?.contractNumber ?? '—',
-          f ? `${f.investorPct}%` : '—',
-          f ? `${f.operatorPct}%` : '—',
-          f ? parseDecimal(f.grossSale)           : 0,
-          f ? parseDecimal(f.costShare)           : 0,
-          f ? parseDecimal(f.netSale)             : 0,
-          f ? parseDecimal(f.purchaseValue)       : 0,
-          f ? parseDecimal(f.profitLoss)          : 0,
-          f ? parseDecimal(f.investorProfitShare) : 0,
-          f ? parseDecimal(f.operatorProfitShare) : 0,
-          f ? parseDecimal(f.investorReceivable)  : 0,
-          this.decisionLabel(inv.decision.type),
-          parseDecimal(inv.decision.reinvestAmount),
-          parseDecimal(inv.decision.withdrawAmount),
-          inv.decision.isProcessed ? 'Procesada' : 'Pendiente',
+          f ? parseDecimal(f.netSale)               : 0,
+          f ? parseDecimal(f.purchaseValue)         : 0,
+          parseDecimal(d.investorAmount),
+          parseDecimal(d.effectiveProfit),
+          parseDecimal(d.tax4x1000),
+          parseDecimal(d.netValueToDecide),
+          this.decisionLabel(d.type),
+          parseDecimal(d.reinvestAmount),
+          parseDecimal(d.withdrawAmount),
+          d.isProcessed ? 'Procesada' : 'Pendiente',
         ];
       });
 
       const wsInvestors = XLSX.utils.aoa_to_sheet([
-        ['DETALLE POR INVERSIONISTA'],
+        ['DETALLE DE LIQUIDACIONES POR INVERSIONISTA'],
         [],
         investorHeaders,
         ...investorRows,
       ]);
 
-      wsInvestors['!cols'] = investorHeaders.map(() => ({ wch: 20 }));
+      wsInvestors['!cols'] = investorHeaders.map(() => ({ wch: 22 }));
       wsInvestors['!merges'] = [
         { s: { r: 0, c: 0 }, e: { r: 0, c: investorHeaders.length - 1 } },
       ];
       XLSX.utils.book_append_sheet(wb, wsInvestors, 'Por Inversionista');
 
-      // ── Hoja 3: Animales por inversionista ───────────────
+      // ── Hoja 3: Animales por Inversionista ──
       const animalRows: any[][] = [
         ['DETALLE DE ANIMALES'],
         [],
@@ -283,12 +265,12 @@ export class SaleSummaryReportComponent {
       wsAnimals['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
       XLSX.utils.book_append_sheet(wb, wsAnimals, 'Animales');
 
-      // ── Guardar ──────────────────────────────────────────
+      // ── Guardar ──
       const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
       const blob = new Blob([buffer], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
-      const fileName = `reporte-venta-${data.saleEvent.saleDate}.xlsx`;
+      const fileName = `reporte-liquidacion-${data.saleEvent.saleDate}.xlsx`;
       saveAs(blob, fileName);
 
       this.notify.success('Excel descargado correctamente');
@@ -301,7 +283,7 @@ export class SaleSummaryReportComponent {
   }
 
   // ══════════════════════════════════════════════════════════════
-  // EXPORT PDF
+  // EXPORT PDF (AJUSTADO CON COLUMNAS FINANCIERAS)
   // ══════════════════════════════════════════════════════════════
 
   async exportPdf(): Promise<void> {
@@ -320,7 +302,7 @@ export class SaleSummaryReportComponent {
       const pageWidth = doc.internal.pageSize.getWidth();
       let yPos = 15;
 
-      // ── Header ───────────────────────────────────────────
+      // ── Header ──
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(30, 41, 59);
@@ -328,7 +310,7 @@ export class SaleSummaryReportComponent {
       yPos += 7;
 
       doc.setFontSize(13);
-      doc.text('Reporte de Venta', 14, yPos);
+      doc.text('Liquidación y Resumen de Venta', 14, yPos);
       yPos += 6;
 
       doc.setFontSize(9);
@@ -356,16 +338,15 @@ export class SaleSummaryReportComponent {
       doc.text(`Generado: ${dateStr}`, 14, yPos);
       yPos += 3;
 
-      // Línea separadora
       doc.setDrawColor(226, 232, 240);
       doc.line(14, yPos, pageWidth - 14, yPos);
       yPos += 5;
 
-      // ── Sección: Cifras generales ────────────────────────
+      // ── Sección: Cifras generales ──
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(30, 41, 59);
-      doc.text('CIFRAS GENERALES', 14, yPos);
+      doc.text('RESUMEN DE VENTA', 14, yPos);
       yPos += 4;
 
       autoTable(doc, {
@@ -376,7 +357,7 @@ export class SaleSummaryReportComponent {
           ['Peso total',    `${data.saleEvent.totalWeight} kg`],
           ['Precio por kg', formatCurrency(parseDecimal(data.saleEvent.pricePerKg))],
           ['Monto bruto',   formatCurrency(parseDecimal(data.saleEvent.grossAmount))],
-          ['Costos',        formatCurrency(parseDecimal(data.saleEvent.saleCosts))],
+          ['Costos hato',   formatCurrency(parseDecimal(data.saleEvent.saleCosts))],
           ['Monto neto',    formatCurrency(parseDecimal(data.saleEvent.netAmount))],
           ['Ganancia total', formatCurrency(this.totalProfitLoss())],
         ],
@@ -388,11 +369,11 @@ export class SaleSummaryReportComponent {
 
       yPos = (doc as any).lastAutoTable.finalY + 8;
 
-      // ── Sección: Detalle por inversionista ───────────────
+      // ── Sección: Detalle por inversionista (Alta densidad con GMF y Neto) ──
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(30, 41, 59);
-      doc.text('DETALLE POR INVERSIONISTA', 14, yPos);
+      doc.text('LIQUIDACIÓN DETALLADA POR INVERSIONISTA', 14, yPos);
       yPos += 4;
 
       autoTable(doc, {
@@ -400,24 +381,25 @@ export class SaleSummaryReportComponent {
         head: [[
           'Código',
           'Nombre',
-          'Cabezas',
-          'Venta neta',
-          'Ganancia',
-          '% Inv',
-          'A recibir',
+          'Contrato',
+          'Part. Total',
+          'Ganancias',
+          'GMF (4x1000)',
+          'Neto a Decidir',
           'Decisión',
         ]],
         body: data.byInvestor.map((inv) => {
           const f = inv.financials;
+          const d = inv.decision;
           return [
             inv.investorCode,
             inv.investorName,
-            inv.heads,
-            f ? formatCurrency(parseDecimal(f.netSale))              : '—',
-            f ? formatCurrency(parseDecimal(f.profitLoss))           : '—',
-            f ? `${f.investorPct}%`                                  : '—',
-            f ? formatCurrency(parseDecimal(f.investorReceivable))   : '—',
-            this.decisionLabel(inv.decision.type),
+            f?.contractNumber ?? '—',
+            formatCurrency(parseDecimal(d.investorAmount)),
+            formatCurrency(parseDecimal(d.effectiveProfit)),
+            `-${formatCurrency(parseDecimal(d.tax4x1000))}`,
+            formatCurrency(parseDecimal(d.netValueToDecide)),
+            this.decisionLabel(d.type),
           ];
         }),
         styles: { fontSize: 7.5, cellPadding: 2 },
@@ -430,8 +412,8 @@ export class SaleSummaryReportComponent {
         columnStyles: {
           2: { halign: 'center' },
           3: { halign: 'right' },
-          4: { halign: 'right', fontStyle: 'bold' },
-          5: { halign: 'center' },
+          4: { halign: 'right', fontStyle: 'bold', textColor: [22, 163, 74] }, // Verde ganancias
+          5: { halign: 'right', textColor: [239, 68, 68] }, // Rojo GMF
           6: { halign: 'right', fontStyle: 'bold' },
           7: { halign: 'center' },
         },
@@ -449,98 +431,90 @@ export class SaleSummaryReportComponent {
         },
       });
 
-      // sale-summary-report.component.ts - dentro de exportPdf()
+      yPos = (doc as any).lastAutoTable.finalY + 10;
 
-// ── (después del autoTable de inversionistas) ────────────────
+      const pageH = doc.internal.pageSize.getHeight();
+      if (yPos > pageH - 60) {
+        doc.addPage();
+        yPos = 15;
+      }
 
-yPos = (doc as any).lastAutoTable.finalY + 10;
+      // ── Sección: Detalle de animales por inversionista ──
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 41, 59);
+      doc.text('DETALLE DE ANIMALES VENDIDOS', 14, yPos);
+      yPos += 5;
 
-// Verificar espacio, sino nueva página
-const pageH = doc.internal.pageSize.getHeight();
-if (yPos > pageH - 60) {
-  doc.addPage();
-  yPos = 15;
-}
+      data.byInvestor.forEach((inv) => {
+        if (yPos > pageH - 50) {
+          doc.addPage();
+          yPos = 15;
+        }
 
-// ── Sección: Detalle de animales por inversionista ──────────
-doc.setFontSize(10);
-doc.setFont('helvetica', 'bold');
-doc.setTextColor(30, 41, 59);
-doc.text('DETALLE DE ANIMALES VENDIDOS', 14, yPos);
-yPos += 5;
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(24, 95, 165);
+        doc.text(`${inv.investorCode} — ${inv.investorName}`, 14, yPos);
+        yPos += 4;
 
-data.byInvestor.forEach((inv, idx) => {
-  // Verificar espacio para el grupo
-  if (yPos > pageH - 50) {
-    doc.addPage();
-    yPos = 15;
-  }
+        doc.setFontSize(7.5);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 116, 139);
+        const infoText = inv.financials
+          ? `${inv.heads} cabezas · Total bruto: ${formatCurrency(parseDecimal(inv.financials.grossSale))}`
+          : `${inv.heads} cabezas`;
+        doc.text(infoText, 14, yPos);
+        yPos += 3;
 
-  // Header del inversionista
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(24, 95, 165);
-  doc.text(`${inv.investorCode} — ${inv.investorName}`, 14, yPos);
-  yPos += 4;
+        const totalWeight = this.getAnimalsTotalWeight(inv.animals);
+        const totalGross  = this.getAnimalsTotalGross(inv.animals);
 
-  doc.setFontSize(7.5);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 116, 139);
-  const infoText = inv.financials
-    ? `${inv.heads} cabezas · Total bruto: ${formatCurrency(parseDecimal(inv.financials.grossSale))}`
-    : `${inv.heads} cabezas`;
-  doc.text(infoText, 14, yPos);
-  yPos += 3;
+        autoTable(doc, {
+          startY: yPos,
+          head: [['#', 'Arete', 'Peso (kg)', 'Precio/kg', 'Valor bruto']],
+          body: inv.animals.map((a, i) => [
+            i + 1,
+            a.tag,
+            a.weight,
+            formatCurrency(parseDecimal(a.pricePerKg)),
+            formatCurrency(parseDecimal(a.grossAmount)),
+          ]),
+          foot: [[
+            '',
+            'TOTAL',
+            totalWeight.toFixed(2),
+            '',
+            formatCurrency(totalGross),
+          ]],
+          styles: { fontSize: 7, cellPadding: 2 },
+          headStyles: {
+            fillColor: [30, 41, 59],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize:  7,
+          },
+          footStyles: {
+            fillColor: [248, 250, 252],
+            textColor: [30, 41, 59],
+            fontStyle: 'bold',
+          },
+          columnStyles: {
+            0: { halign: 'center', cellWidth: 15 },
+            1: { halign: 'left' },
+            2: { halign: 'right' },
+            3: { halign: 'right' },
+            4: { halign: 'right', fontStyle: 'bold' },
+          },
+          margin: { left: 14, right: 14 },
+          theme: 'grid',
+        });
 
-  // Tabla de animales
-  const totalWeight = this.getAnimalsTotalWeight(inv.animals);
-  const totalGross  = this.getAnimalsTotalGross(inv.animals);
+        yPos = (doc as any).lastAutoTable.finalY + 6;
+      });
 
-  autoTable(doc, {
-    startY: yPos,
-    head: [['#', 'Arete', 'Peso (kg)', 'Precio/kg', 'Valor bruto']],
-    body: inv.animals.map((a, i) => [
-      i + 1,
-      a.tag,
-      a.weight,
-      formatCurrency(parseDecimal(a.pricePerKg)),
-      formatCurrency(parseDecimal(a.grossAmount)),
-    ]),
-    foot: [[
-      '',
-      'TOTAL',
-      totalWeight.toFixed(2),
-      '',
-      formatCurrency(totalGross),
-    ]],
-    styles: { fontSize: 7, cellPadding: 2 },
-    headStyles: {
-      fillColor: [30, 41, 59],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      fontSize:  7,
-    },
-    footStyles: {
-      fillColor: [248, 250, 252],
-      textColor: [30, 41, 59],
-      fontStyle: 'bold',
-    },
-    columnStyles: {
-      0: { halign: 'center', cellWidth: 15 },
-      1: { halign: 'left' },
-      2: { halign: 'right' },
-      3: { halign: 'right' },
-      4: { halign: 'right', fontStyle: 'bold' },
-    },
-    margin: { left: 14, right: 14 },
-    theme: 'grid',
-  });
-
-  yPos = (doc as any).lastAutoTable.finalY + 6;
-});
-
-      // ── Guardar ──────────────────────────────────────────
-      const fileName = `reporte-venta-${data.saleEvent.saleDate}.pdf`;
+      // ── Guardar ──
+      const fileName = `reporte-liquidacion-${data.saleEvent.saleDate}.pdf`;
       doc.save(fileName);
 
       this.notify.success('PDF descargado correctamente');

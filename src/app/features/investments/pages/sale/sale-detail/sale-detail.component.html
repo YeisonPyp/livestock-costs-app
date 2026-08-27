@@ -1,5 +1,3 @@
-<!-- sale-detail.component.html -->
-
 <app-page-header [title]="facade.detail()?.description ?? 'Venta'">
   <ng-container breadcrumb>
     <a routerLink="/investments/sales" class="bc-link">Ventas</a>
@@ -9,14 +7,12 @@
 
   <ng-container actions>
     @if (facade.detail()) {
-      <!-- ✅ Botón de reporte -->
       <button
         class="btn btn-outline"
         (click)="openReport()"
         [disabled]="facade.summaryLoading()"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="2" width="15" height="15">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
           <polyline points="14 2 14 8 20 8"/>
           <line x1="16" y1="13" x2="8" y2="13"/>
@@ -26,7 +22,6 @@
       </button>
 
       @if (!facade.detail()!.isFinalized) {
-        <!-- ⚠️ Botón de finalizar venta -->
         <button
           class="btn btn-primary"
           (click)="openFinalizeConfirm()"
@@ -36,8 +31,7 @@
             <span class="btn-spinner-sm"></span>
             Finalizando...
           } @else {
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2.5" width="15" height="15">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
             Finalizar Venta
@@ -84,46 +78,12 @@
 
   <!-- KPIs -->
   <div class="kpi-grid">
-    <app-kpi-card
-      label="Cabezas"
-      [decimals]="0"
-      [value]="sale.totalHeads.toString()"
-      color="blue"
-    />
-    <app-kpi-card
-      label="Peso Total"
-      [decimals]="2"
-      [value]="sale.totalWeight.toString() + ' kg'"
-      color="yellow"
-    />
-    <app-kpi-card
-      label="Precio / kg"
-      format="currency"
-      [decimals]="2"
-      [value]="facade.parseDecimal(sale.pricePerKg)"
-      color="purple"
-    />
-    <app-kpi-card
-      label="Monto Bruto"
-      format="currency"
-      [decimals]="2"
-      [value]="facade.parseDecimal(sale.grossAmount)"
-      color="blue"
-    />
-    <app-kpi-card
-      label="Costos"
-      format="currency"
-      [decimals]="2"
-      [value]="facade.parseDecimal(sale.saleCosts)"
-      color="red"
-    />
-    <app-kpi-card
-      label="Monto Neto"
-      format="currency"
-      [decimals]="2"
-      [value]="facade.parseDecimal(sale.netAmount)"
-      color="green"
-    />
+    <app-kpi-card label="Cabezas" [decimals]="0" [value]="sale.totalHeads.toString()" color="blue" />
+    <app-kpi-card label="Peso Total" [decimals]="2" [value]="sale.totalWeight.toString() + ' kg'" color="yellow" />
+    <app-kpi-card label="Precio / kg" format="currency" [decimals]="2" [value]="facade.parseDecimal(sale.pricePerKg)" color="purple" />
+    <app-kpi-card label="Monto Bruto" format="currency" [decimals]="2" [value]="facade.parseDecimal(sale.grossAmount)" color="blue" />
+    <app-kpi-card label="Costos" format="currency" [decimals]="2" [value]="facade.parseDecimal(sale.saleCosts)" color="red" />
+    <app-kpi-card label="Monto Neto" format="currency" [decimals]="2" [value]="facade.parseDecimal(sale.netAmount)" color="green" />
   </div>
 
   <!-- Info card -->
@@ -176,12 +136,14 @@
         <thead>
           <tr>
             <th>Inversionista</th>
-            <th>Ganancia / Pérdida</th>
+            <th class="right">Part. Total</th>
+            <th class="right">Ganancias</th>
+            <th class="right">GMF (4x1000)</th>
+            <th class="right text-primary">Neto a Decidir</th>
             <th>Decisión</th>
-            <th>Reinvertir</th>
-            <th>Retirar</th>
+            <th class="right">Reinvertido</th>
+            <th class="right">Retirado</th>
             <th class="center">Procesado</th>
-            <th>Límite</th>
             <th class="right">Acciones</th>
           </tr>
         </thead>
@@ -192,28 +154,59 @@
               <td>
                 <div class="investor-cell">
                   <span class="code">{{ d.investorCode }}</span>
-                  <span>{{ d.investorName }}</span>
+                  <span class="name">{{ d.investorName }}</span>
                 </div>
               </td>
 
-              <!-- Ganancia / Pérdida -->
-              <td>
+              <!-- Valor de participación -->
+              <td class="right">
                 <app-amount-display
-                  [amount]="facade.parseDecimal(d.profitLoss)"
-                  [type]="facade.parseDecimal(d.profitLoss) >= 0 ? 'income' : 'expense'"
+                  [amount]="facade.parseDecimal(d.investorAmount)"
+                  type="income"
                   size="sm"
                 />
               </td>
 
-              <!-- Decisión -->
+              <!-- Ganancias brutas/efectivas -->
+              <td class="right">
+                <app-amount-display
+                  [amount]="facade.parseDecimal(d.effectiveProfit)"
+                  [type]="facade.parseDecimal(d.effectiveProfit) >= 0 ? 'income' : 'expense'"
+                  size="sm"
+                />
+              </td>
+
+              <!-- Impuesto GMF -->
+              <td class="right text-red">
+                @if (facade.parseDecimal(d.tax4x1000) > 0) {
+                  <app-amount-display
+                    [amount]="facade.parseDecimal(d.tax4x1000)"
+                    type="expense"
+                    size="sm"
+                  />
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+
+              <!-- Valor Neto Disponible -->
+              <td class="right highlight-net">
+                <app-amount-display
+                  [amount]="facade.parseDecimal(d.netValueToDecide)"
+                  type="income"
+                  size="sm"
+                />
+              </td>
+
+              <!-- Estado de la Decisión -->
               <td>
                 <app-badge [color]="facade.decisionColor(d.decisionType)">
                   {{ facade.decisionLabel(d.decisionType) }}
                 </app-badge>
               </td>
 
-              <!-- Reinvertir -->
-              <td>
+              <!-- Reinvertido real -->
+              <td class="right">
                 @if (facade.parseDecimal(d.reinvestAmount) > 0) {
                   <app-amount-display
                     [amount]="facade.parseDecimal(d.reinvestAmount)"
@@ -225,8 +218,8 @@
                 }
               </td>
 
-              <!-- Retirar -->
-              <td>
+              <!-- Retirado real -->
+              <td class="right">
                 @if (facade.parseDecimal(d.withdrawAmount) > 0) {
                   <app-amount-display
                     [amount]="facade.parseDecimal(d.withdrawAmount)"
@@ -240,57 +233,31 @@
 
               <!-- Procesado -->
               <td class="center">
-                <app-badge
-                  [color]="d.isProcessed ? 'success' : 'secondary'"
-                  size="sm"
-                >
+                <app-badge [color]="d.isProcessed ? 'success' : 'secondary'" size="sm">
                   {{ d.isProcessed ? 'Sí' : 'No' }}
                 </app-badge>
               </td>
 
-              <!-- Límite -->
-              <td class="date-cell">
-                {{ d.decisionDeadline ?? '—' }}
-              </td>
-
-              <!-- ══════════ ACCIONES ══════════ -->
+              <!-- Acciones Administrativas -->
               <td class="right">
                 <div class="row-actions">
-                  <!-- @if (d.decisionType === 'pending') {
-                   
-                    <a
-                      [routerLink]="['/investments/decisions', d.id]"
-                      class="btn-action btn-action--primary"
-                      title="Tomar decisión"
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" width="14" height="14">
-                        <polyline points="9 18 15 12 9 6"/>
-                      </svg>
-                      Decidir
-                    </a>
-                  } @else  -->
                   @if (!sale.isFinalized && d.decisionType !== 'pending') {
-                    <!-- Reiniciar -->
                     <button
                       type="button"
                       class="btn-action btn-action--warning"
                       [disabled]="facade.decisionSaving()"
                       (click)="confirmResetDecision(d)"
-                      title="Reiniciar decisión al estado pendiente"
+                      title="Reiniciar decisión del inversionista"
                     >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" width="14" height="14">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
                         <polyline points="23 4 23 10 17 10"/>
                         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                       </svg>
                       Reiniciar
                     </button>
                   } @else {
-                    <!-- Venta finalizada — bloqueado -->
-                    <span class="row-locked">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2" width="12" height="12">
+                    <span class="row-locked" title="No modificable">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
                         <rect x="3" y="11" width="18" height="11" rx="2"/>
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                       </svg>

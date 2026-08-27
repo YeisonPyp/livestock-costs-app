@@ -411,7 +411,7 @@ submitCreate(payload: CreateSaleEventPayload, onSuccess: () => void): void {
     this.decisions.set([]);
   }
 
-  // ═══════════════════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════════════
   // DECISION STATE
   // ═══════════════════════════════════════════════════════════════════════
 
@@ -425,6 +425,20 @@ submitCreate(payload: CreateSaleEventPayload, onSuccess: () => void): void {
     const d = this.decision();
     return !!d && d.decisionType !== SaleDecisionType.PENDING;
   });
+
+  // ── ✨ Desglose financiero reactivo desde el backend ────────────────
+  readonly investorAmount = computed(() =>
+    this.decision() ? parseDecimal(this.decision()!.investorAmount) : 0
+  );
+  readonly effectiveProfit = computed(() =>
+    this.decision() ? parseDecimal(this.decision()!.effectiveProfit) : 0
+  );
+  readonly tax4x1000 = computed(() =>
+    this.decision() ? parseDecimal(this.decision()!.tax4x1000) : 0
+  );
+  readonly netValueToDecide = computed(() =>
+    this.decision() ? parseDecimal(this.decision()!.netValueToDecide) : 0
+  );
 
   loadDecision(id: string): void {
     this.decisionLoading.set(true);
@@ -445,35 +459,60 @@ submitCreate(payload: CreateSaleEventPayload, onSuccess: () => void): void {
     this.selectedType.set(null);
   }
 
+  /**
+   * Confirma la decisión del inversionista.
+   *
+   * ⚠️ Lógica actualizada para PARTIAL:
+   *   - withdrawAmount se valida contra netValueToDecide (NO investorAmount)
+   *   - Las ganancias se retiran automáticamente por el backend
+   *   - Solo se envía withdrawAmount (el backend calcula reinvestAmount)
+   */
   confirmDecision(payload: MakeDecisionPayload): void {
-    const id = this.decision()?.id;
-    if (!id) return;
+    const d = this.decision();
+    if (!d) return;
 
+    // ── Validación específica para PARTIAL ──────────────────────────
     if (payload.decisionType === SaleDecisionType.PARTIAL) {
-      const total = parseDecimal(this.decision()!.investorAmount);
-      const sum = (payload.reinvestAmount ?? 0) + (payload.withdrawAmount ?? 0);
-      if (Math.abs(sum - total) > 0.01) {
+      const net = this.netValueToDecide();
+      const withdraw = payload.withdrawAmount ?? 0;
+
+      if (withdraw <= 0) {
         this.notify.warning(
-          'La suma de reinversión y retiro debe igualar el monto total',
+          'El monto a retirar del valor neto debe ser mayor a cero. ' +
+          'Use "Reinvertir" si desea reinvertir todo.'
         );
         return;
       }
+
+      if (withdraw > net + 0.01) {
+        this.notify.warning(
+          `El monto a retirar ($${withdraw.toLocaleString('es-CO')}) ` +
+          `excede el valor neto a decidir ($${net.toLocaleString('es-CO')}).`
+        );
+        return;
+      }
+
+      // Solo enviar withdrawAmount; el backend calcula el resto
+      payload = {
+        decisionType: SaleDecisionType.PARTIAL,
+        withdrawAmount: withdraw,
+        notes: payload.notes,
+      };
     }
 
     this.decisionSaving.set(true);
     this.saleDecisionSvc
-      .makeDecision(id, payload)
+      .makeDecision(d.id, payload)
       .pipe(finalize(() => this.decisionSaving.set(false)))
       .subscribe({
         next: () => {
           this.notify.success('Decisión registrada exitosamente');
-          this.router.navigate([
-            '/investments/sales',
-            this.decision()!.saleEventId,
-          ]);
+          this.router.navigate(['/investments/sales', d.saleEvent]);
         },
         error: (err) =>
-          this.notify.error(err?.error?.error || 'Error al registrar decisión'),
+          this.notify.error(
+            err?.error?.error || err?.error?.message || 'Error al registrar decisión'
+          ),
       });
   }
 
@@ -491,7 +530,6 @@ submitCreate(payload: CreateSaleEventPayload, onSuccess: () => void): void {
       .subscribe({
         next: () => {
           this.notify.success('Decisión reiniciada correctamente');
-          // Recargar el detalle para ver el cambio
           this.loadSaleDetail(saleId);
         },
         error: (err) =>

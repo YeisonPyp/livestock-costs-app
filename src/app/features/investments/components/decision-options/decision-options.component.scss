@@ -1,0 +1,170 @@
+@use '../../../../styles/variables' as *;
+
+// ── Tokens Internos ───────────────────────────────────────────────
+$opt-border-radius:  12px;
+$opt-transition:     all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+$opt-success:        #1D9E75;
+$opt-danger:         #ef4444;
+$opt-warning:        #BA7517;
+
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: $space-4;
+  margin-bottom: $space-5;
+}
+
+.option-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  background: $white;
+  border: 1.5px solid $border-color;
+  border-radius: $opt-border-radius;
+  padding: $space-5;
+  cursor: pointer;
+  outline: none;
+  transition: $opt-transition;
+  height: 100%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+
+  &:hover {
+    border-color: $slate-300;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  &:focus-visible {
+    border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.15);
+  }
+
+  // Estado Seleccionado 🌟
+  &.selected {
+    background: linear-gradient(180deg, $white 80%, rgba($primary, 0.02) 100%);
+    border-color: $primary;
+    box-shadow: 0 0 0 4px rgba($primary, 0.08), 0 4px 16px rgba($primary, 0.05);
+
+    .option-icon {
+      transform: scale(1.05);
+    }
+  }
+}
+
+// Badge superior para flags de tipo
+.option-badge {
+  position: absolute;
+  top: $space-3;
+  right: $space-3;
+  background: $slate-100;
+  color: $slate-500;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+// Iconos en contenedores circulares suaves
+.option-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  margin-bottom: $space-4;
+  transition: $opt-transition;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &--success {
+    background: rgba($opt-success, 0.1);
+    color: $opt-success;
+  }
+
+  &--danger {
+    background: rgba($opt-danger, 0.1);
+    color: $opt-danger;
+  }
+
+  &--warning {
+    background: rgba($opt-warning, 0.1);
+    color: $opt-warning;
+  }
+}
+
+// Contenido de la tarjeta
+.option-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  width: 100%;
+}
+
+.option-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: $slate-900;
+  margin-bottom: 6px;
+}
+
+.option-desc {
+  font-size: 0.8rem;
+  color: $slate-400;
+  line-height: 1.45;
+  margin-bottom: $space-4;
+  flex-grow: 1;
+
+  strong {
+    color: $slate-800;
+    font-weight: 600;
+  }
+}
+
+// Fila de desglose monetario al pie de cada tarjeta
+.option-breakdown {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px dashed rgba($border-color, 0.8);
+  padding-top: $space-3;
+  margin-top: auto;
+  width: 100%;
+
+  span:first-child {
+    font-size: 0.72rem;
+    color: $slate-400;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+}
+
+.option-amount {
+  font-size: 1.1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+
+  &.success { color: $opt-success; }
+  &.danger { color: $opt-danger; }
+  &.warning { color: $opt-warning; }
+}
+
+// ── Adaptabilidad ─────────────────────────────────────────────────
+@media (max-width: 640px) {
+  .options-grid {
+    grid-template-columns: 1fr;
+    gap: $space-3;
+  }
+
+  .option-card {
+    padding: $space-4;
+  }
+}

@@ -426,8 +426,13 @@ export function toSaleDecisionSummary(raw: any): SaleDecisionSummary {
     saleEventDescription: raw.sale_event_description,
     investorCode: raw.investor_code,
     investorName: raw.investor_name,
+    // ── Desglose Financiero ──
     investorAmount: raw.investor_amount,
     profitLoss: raw.profit_loss,
+    effectiveProfit: raw.effective_profit ?? '0',        // ✨
+    tax4x1000: raw.tax_4x1000 ?? '0',                    // ✨
+    netValueToDecide: raw.net_value_to_decide ?? '0',     // ✨
+    // ── Decisión ──
     decisionType: raw.decision_type,
     decisionTypeDisplay: raw.decision_type_display,
     reinvestAmount: raw.reinvest_amount,
@@ -435,6 +440,7 @@ export function toSaleDecisionSummary(raw: any): SaleDecisionSummary {
     decisionDate: raw.decision_date ?? null,
     decisionDeadline: raw.decision_deadline ?? null,
     createdAt: raw.created_at,
+    // ── Estados ──
     isPending: raw.is_pending,
     isDecided: raw.is_decided,
     isLoss: raw.is_loss,
@@ -443,7 +449,7 @@ export function toSaleDecisionSummary(raw: any): SaleDecisionSummary {
     daysUntilDeadline: raw.days_until_deadline ?? null,
     isProcessed: raw.is_processed,
     processedAt: raw.processed_at ?? null,
-    notes: raw.notes,
+    notes: raw.notes ?? '',
   };
 }
 
@@ -474,25 +480,30 @@ export function toSaleEventDetail(raw: any): SaleEventDetail {
 export function toSaleDecisionList(raw: any): SaleDecisionList {
   return {
     id: raw.id,
-    investmentId: raw.investment_id,
+    investmentId: raw.investment_id ?? raw.sale_event,
     investorCode: raw.investor_code,
     investorName: raw.investor_name,
-    saleEventId: raw.sale_event_id,
-    saleDate: raw.sale_date,
+    saleEventId: raw.sale_event_id ?? raw.sale_event,
+    saleDate: raw.sale_date ?? raw.sale_event_date,
+    // ── Desglose Financiero ──
     investorAmount: raw.investor_amount,
     profitLoss: raw.profit_loss,
+    effectiveProfit: raw.effective_profit ?? '0',        // ✨
+    tax4x1000: raw.tax_4x1000 ?? '0',                    // ✨
+    netValueToDecide: raw.net_value_to_decide ?? '0',     // ✨
+    // ── Decisión ──
     isLoss: raw.is_loss,
     decisionType: raw.decision_type,
     decisionTypeDisplay: raw.decision_type_display,
     reinvestAmount: raw.reinvest_amount,
     withdrawAmount: raw.withdraw_amount,
-    decisionDate: raw.decision_date,
-    decisionDeadline: raw.decision_deadline,
-    daysUntilDeadline: raw.days_until_deadline,
+    decisionDate: raw.decision_date ?? null,
+    decisionDeadline: raw.decision_deadline ?? null,
+    daysUntilDeadline: raw.days_until_deadline ?? null,
     isPending: raw.is_pending,
     isProcessed: raw.is_processed,
-    processedAt: raw.processed_at,
-    notes: raw.notes,
+    processedAt: raw.processed_at ?? null,
+    notes: raw.notes ?? '',
   };
 }
 
@@ -557,26 +568,28 @@ export function toSaleFinancials(raw: any): SaleFinancials {
   };
 }
 
-
 export function toSaleSummaryInvestor(raw: any): SaleSummaryInvestor {
   return {
     investorCode: raw.investor_code,
     investorName: raw.investor_name,
-    heads:        raw.heads,
-    animals:      (raw.animals ?? []).map((a: any) => ({
-      tag:         a.tag,
-      weight:      a.weight,
-      pricePerKg:  a.price_per_kg,
+    heads: raw.heads,
+    animals: (raw.animals ?? []).map((a: any) => ({
+      tag: a.tag,
+      weight: a.weight,
+      pricePerKg: a.price_per_kg,
       grossAmount: a.gross_amount,
     })),
     decision: {
-      type:           raw.decision.type,
+      type: raw.decision.type,
       investorAmount: raw.decision.investor_amount,
-      profitLoss:     raw.decision.profit_loss,
+      profitLoss: raw.decision.profit_loss,
+      effectiveProfit: raw.decision.effective_profit ?? '0',      // ✨
+      tax4x1000: raw.decision.tax_4x1000 ?? '0',                  // ✨
+      netValueToDecide: raw.decision.net_value_to_decide ?? '0',   // ✨
       reinvestAmount: raw.decision.reinvest_amount,
       withdrawAmount: raw.decision.withdraw_amount,
-      isProcessed:    raw.decision.is_processed,
-      isPending:      raw.decision.is_pending,
+      isProcessed: raw.decision.is_processed,
+      isPending: raw.decision.is_pending,
     },
     financials: raw.financials ? toSaleFinancials(raw.financials) : null,
   };

@@ -1,5 +1,3 @@
-// services/sale-decision.service.ts
-
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -16,6 +14,7 @@ import {
 } from '../models';
 
 import { toSaleDecisionList } from '../mappers/investment.mapper';
+import { SaleDecisionType } from '../models/enums';
 
 @Injectable({ providedIn: 'root' })
 export class SaleDecisionService {
@@ -31,26 +30,31 @@ export class SaleDecisionService {
 
   getById(id: string): Observable<ApiResponse<SaleDecisionDetail>> {
     return this.api.get<any>(ENDPOINTS.SALE_DECISION(id)).pipe(
-      map(res => ({ ...res, data: toSaleDecisionList(res.data) }))
+      map(res => ({ ...res, data: toSaleDecisionList(res.data) as unknown as SaleDecisionDetail }))
     );
   }
 
-  // ── Decidir ───────────────────────────────────────────────────────
+  // ── Decidir (Actualizado para coincidir con el Backend) ───────────
 
   makeDecision(id: string, payload: MakeDecisionPayload): Observable<ApiResponse<SaleDecisionDetail>> {
-    return this.api.post<any>(ENDPOINTS.SALE_DECISION_DECIDE(id), {
+    const body: Record<string, any> = {
       decision_type: payload.decisionType,
-      reinvest_amount: payload.reinvestAmount,
-      withdraw_amount: payload.withdrawAmount,
-      notes: payload.notes,
-    }).pipe(
-      map(res => ({ ...res, data: toSaleDecisionList(res.data) }))
+      notes: payload.notes || '',
+    };
+
+    // ⚠️ Solo enviar withdraw_amount si la decisión es PARTIAL
+    if (payload.decisionType === SaleDecisionType.PARTIAL) {
+      body['withdraw_amount'] = payload.withdrawAmount;
+    }
+
+    return this.api.post<any>(ENDPOINTS.SALE_DECISION_DECIDE(id), body).pipe(
+      map(res => ({ ...res, data: toSaleDecisionList(res.data) as unknown as SaleDecisionDetail }))
     );
   }
 
   resetDecision(id: string): Observable<ApiResponse<SaleDecisionDetail>> {
     return this.api.post<any>(ENDPOINTS.SALE_DECISION_RESET(id), {}).pipe(
-      map(res => ({ ...res, data: toSaleDecisionList(res.data) }))
+      map(res => ({ ...res, data: toSaleDecisionList(res.data) as unknown as SaleDecisionDetail }))
     );
   }
 

@@ -1,5 +1,3 @@
-// pages/sale-detail/sale-detail.component.ts
-
 import {
   Component,
   OnInit,
@@ -51,10 +49,6 @@ export class SaleDetailComponent implements OnInit, OnDestroy {
   private  route  = inject(ActivatedRoute);
   private  dialog = inject(MatDialog);
 
-  // ═══════════════════════════════════════════════════════════════
-  // LIFECYCLE
-  // ═══════════════════════════════════════════════════════════════
-
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) this.facade.loadSaleDetail(id);
@@ -64,14 +58,6 @@ export class SaleDetailComponent implements OnInit, OnDestroy {
     this.facade.resetDetail();
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // ACTIONS
-  // ═══════════════════════════════════════════════════════════════
-
-  /**
-   * Abre el modal de confirmación para finalizar la venta.
-   * Solo disponible si no está finalizada y no hay decisiones pendientes.
-   */
   openFinalizeConfirm(): void {
     const sale = this.facade.detail();
     if (!sale) return;
@@ -80,7 +66,7 @@ export class SaleDetailComponent implements OnInit, OnDestroy {
       .open(ConfirmDialogComponent, {
         data: {
           title:       'Finalizar venta',
-          message:     '¿Confirmas la finalización de esta venta? Se procesarán todas las decisiones y no podrá reiniciarse.',
+          message:     '¿Confirmas la finalización de esta venta? Se procesarán todas las decisiones, se aplicará el 4x1000 y no podrá reiniciarse.',
           confirmText: 'Finalizar',
           type:        'primary',
         },
@@ -91,10 +77,6 @@ export class SaleDetailComponent implements OnInit, OnDestroy {
       });
   }
 
-  /**
-   * Confirma y reinicia una decisión ya tomada al estado PENDING.
-   * Solo disponible mientras la venta no esté finalizada.
-   */
   confirmResetDecision(d: SaleDecisionList): void {
     const sale = this.facade.detail();
     if (!sale) return;
@@ -103,8 +85,7 @@ export class SaleDetailComponent implements OnInit, OnDestroy {
       .open(ConfirmDialogComponent, {
         data: {
           title:       'Reiniciar decisión',
-          message:     `¿Reiniciar la decisión de ${d.investorName}?
-                        La decisión volverá al estado pendiente y el inversionista podrá elegir nuevamente.`,
+          message:     `¿Reiniciar la decisión de ${d.investorName}? La decisión volverá al estado pendiente y el inversionista podrá elegir de nuevo.`,
           confirmText: 'Reiniciar',
           type:        'warning',
         },
@@ -114,10 +95,6 @@ export class SaleDetailComponent implements OnInit, OnDestroy {
         if (ok) this.facade.resetDecision(d.id, sale.id);
       });
   }
-
-    // ═══════════════════════════════════════════════════════════════
-  // ✅ REPORTE
-  // ═══════════════════════════════════════════════════════════════
 
   openReport(): void {
     const sale = this.facade.detail();

@@ -1,6 +1,14 @@
 // sale-detail.component.scss
 @use '../../../../../styles/variables' as *;
 
+// ── Variables locales temporales si no existen en el core ──
+$border-radius-card: 12px;
+$transition-fast: all 0.15s ease;
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ESTRUCTURA Y KPIS
+// ═════════════════════════════════════════════════════════════════════════════
+
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -25,11 +33,25 @@
   flex-direction: column;
   gap: $space-1;
   min-width: 140px;
-  &.full { width: 100%; }
+  
+  &.full { 
+    width: 100%; 
+  }
 }
 
-.lbl { font-size: $font-xs; color: $slate-400; font-weight: $weight-medium; text-transform: uppercase; letter-spacing: .04em; }
-.val { font-size: $font-sm; color: $slate-800; font-weight: $weight-medium; }
+.lbl { 
+  font-size: $font-xs; 
+  color: $slate-400; 
+  font-weight: $weight-medium; 
+  text-transform: uppercase; 
+  letter-spacing: .04em; 
+}
+
+.val { 
+  font-size: $font-sm; 
+  color: $slate-800; 
+  font-weight: $weight-medium; 
+}
 
 .section-header {
   display: flex;
@@ -37,57 +59,119 @@
   align-items: center;
   margin-bottom: $space-4;
 
-  h3 { margin: 0; font-size: $font-lg; font-weight: $weight-bold; color: $slate-900; }
+  h3 { 
+    margin: 0; 
+    font-size: $font-lg; 
+    font-weight: $weight-bold; 
+    color: $slate-900; 
+  }
 }
 
-.decision-summary { display: flex; gap: $space-2; flex-wrap: wrap; align-items: center; }
+.decision-summary { 
+  display: flex; 
+  gap: $space-2; 
+  flex-wrap: wrap; 
+  align-items: center; 
+}
 
-.table-card { background: $white; border: 1px solid $border-color; border-radius: $border-radius-md; overflow-x: auto; box-shadow: $shadow-sm; }
+// ═════════════════════════════════════════════════════════════════════════════
+// TABLA DE GANADO DE ALTA DENSIDAD
+// ═════════════════════════════════════════════════════════════════════════════
+
+.table-card { 
+  background: $white; 
+  border: 1px solid $border-color; 
+  border-radius: $border-radius-md; 
+  overflow-x: auto; 
+  box-shadow: $shadow-sm; 
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: $slate-300;
+    border-radius: 4px;
+  }
+}
 
 .data-table {
-  width: 100%; border-collapse: collapse;
-  th, td { padding: $space-3 $space-4; text-align: left; font-size: $font-sm; border-bottom: 1px solid $border-color; vertical-align: middle; white-space: nowrap; }
-  th { background: $slate-50; font-size: $font-xs; font-weight: $weight-semibold; color: $slate-600; text-transform: uppercase; letter-spacing: .04em; }
-  tbody tr.row-pending { background: rgba($warning, .04); }
-  tbody tr:hover { background: $slate-50; }
-  tbody tr:last-child td { border-bottom: none; }
+  width: 100%; 
+  border-collapse: collapse;
+
+  th, td { 
+    padding: $space-3 $space-4; 
+    text-align: left; 
+    font-size: $font-sm; 
+    border-bottom: 1px solid $border-color; 
+    vertical-align: middle; 
+    white-space: nowrap; 
+  }
+
+  th { 
+    background: $slate-50; 
+    font-size: $font-xs; 
+    font-weight: $weight-semibold; 
+    color: $slate-600; 
+    text-transform: uppercase; 
+    letter-spacing: .04em; 
+
+    &.right { text-align: right; }
+    &.center { text-align: center; }
+  }
+
+  tbody {
+    tr {
+      @include transition(background-color);
+
+      &:hover { background: $slate-50; }
+      &:last-child td { border-bottom: none; }
+
+      &.row-pending { 
+        background: rgba($warning, .04); 
+      }
+    }
+  }
+
+  // Clases utilitarias internas de alineación
   .center { text-align: center; }
+  .right { text-align: right; }
+
+  // Resaltado de Columna Valor Neto a Decidir
+  .highlight-net {
+    background: rgba($primary, 0.02);
+    font-weight: $weight-bold;
+    border-left: 1px solid rgba($primary, 0.05);
+    border-right: 1px solid rgba($primary, 0.05);
+  }
 }
 
-.investor-cell { display: flex; flex-direction: column; }
-.code { font-size: $font-xs; font-weight: $weight-bold; color: $primary; text-transform: uppercase; }
+// Estructura de celda del inversionista
+.investor-cell { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 2px;
+
+  .code { 
+    font-size: $font-xs; 
+    font-weight: $weight-bold; 
+    color: $primary; 
+    text-transform: uppercase; 
+    width: fit-content;
+  }
+
+  .name {
+    font-size: 0.8rem;
+    color: $slate-600;
+  }
+}
 
 .date-cell { color: $slate-500; }
 .muted     { color: $slate-300; }
+.text-red  { color: rgba($danger, 0.95); }
 
-.btn-decide {
-  font-size: $font-xs; font-weight: $weight-bold;
-  color: $primary; text-decoration: none;
-  &:hover { text-decoration: underline; }
-}
-
-.btn {
-  display: inline-flex; align-items: center; gap: $space-2;
-  border: 1.5px solid transparent; border-radius: $border-radius;
-  font-size: $font-sm; font-weight: $weight-medium; cursor: pointer;
-  @include transition(background-color, border-color);
-
-  &.btn-primary { padding: $space-2 $space-4; background: $primary; color: $white; &:hover:not(:disabled) { background: $primary-hover; } }
-  &:disabled    { opacity: .5; cursor: not-allowed; }
-  .btn-spinner-sm { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,.4); border-top-color: $white; border-radius: 50%; animation: spin .6s linear infinite; }
-}
-
-.bc-link { color: $primary; text-decoration: none; font-size: $font-sm; &:hover { text-decoration: underline; } }
-.bc-sep  { margin: 0 $space-2; color: $slate-400; font-size: $font-sm; }
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-// sale-detail.component.scss
-// ... tu SCSS existente ...
-
-// ══════════════════════════════════════════════════════════════════
-// ROW ACTIONS
-// ══════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════════════════════
+// ACCIONES Y ESTADOS DE FILA
+// ═════════════════════════════════════════════════════════════════════════════
 
 .row-actions {
   display:         flex;
@@ -99,17 +183,18 @@
 .btn-action {
   display:         inline-flex;
   align-items:     center;
+  justify-content: center;
   gap:             5px;
   padding:         6px 12px;
   border-radius:   6px;
   border:          1.5px solid transparent;
-  background:      white;
+  background:      $white;
   font-size:       0.78rem;
   font-weight:     600;
   font-family:     inherit;
   cursor:          pointer;
   text-decoration: none;
-  transition:      all 0.15s ease;
+  transition:      $transition-fast;
   white-space:     nowrap;
 
   svg { flex-shrink: 0; }
@@ -121,28 +206,9 @@
 
   &:active:not(:disabled) { transform: scale(0.97); }
 
-  &:focus-visible {
-    outline:        2px solid #3b6bde;
-    outline-offset: 2px;
-  }
-
-  // ── Primary (Decidir) ────────────────────────────────
-  &--primary {
-    background:   #3b6bde;
-    color:        white;
-    border-color: #3b6bde;
-    box-shadow:   0 1px 3px rgba(59, 107, 222, 0.25);
-
-    &:hover:not(:disabled) {
-      background:   #2a54c7;
-      border-color: #2a54c7;
-      box-shadow:   0 3px 8px rgba(59, 107, 222, 0.35);
-    }
-  }
-
   // ── Warning (Reiniciar) ──────────────────────────────
   &--warning {
-    background:   white;
+    background:   $white;
     color:        #b45309;
     border-color: rgba(180, 83, 9, 0.35);
 
@@ -165,12 +231,79 @@
   font-size:     0.72rem;
   font-weight:   600;
   font-style:    italic;
+  border: 1px dashed $border-color;
+  user-select: none;
 
   svg { opacity: 0.7; }
 }
 
-// ── Utilidad para alineación derecha en TD ─────────────────────
-.data-table th.right,
-.data-table td.right {
-  text-align: right;
+// ═════════════════════════════════════════════════════════════════════════════
+// BOTONES GLOBALES Y NAVEGACIÓN
+// ═════════════════════════════════════════════════════════════════════════════
+
+.btn {
+  display: inline-flex; 
+  align-items: center; 
+  gap: $space-2;
+  border: 1.5px solid transparent; 
+  border-radius: $border-radius;
+  font-size: $font-sm; 
+  font-weight: $weight-medium; 
+  cursor: pointer;
+  @include transition(background-color, border-color);
+
+  &.btn-primary { 
+    padding: $space-2 $space-4; 
+    background: $primary; 
+    color: $white; 
+    
+    &:hover:not(:disabled) { 
+      background: $primary-hover; 
+    } 
+  }
+
+  &.btn-outline {
+    padding: $space-2 $space-4; 
+    background: $white;
+    border-color: $border-color;
+    color: $slate-600;
+
+    &:hover:not(:disabled) {
+      background: $slate-50;
+      color: $slate-800;
+    }
+  }
+
+  &:disabled { 
+    opacity: .5; 
+    cursor: not-allowed; 
+  }
+
+  .btn-spinner-sm { 
+    display: inline-block; 
+    width: 12px; 
+    height: 12px; 
+    border: 2px solid rgba(255, 255, 255, .4); 
+    border-top-color: $white; 
+    border-radius: 50%; 
+    animation: spin .6s linear infinite; 
+  }
+}
+
+.bc-link { 
+  color: $primary; 
+  text-decoration: none; 
+  font-size: $font-sm; 
+  
+  &:hover { text-decoration: underline; } 
+}
+
+.bc-sep { 
+  margin: 0 $space-2; 
+  color: $slate-400; 
+  font-size: $font-sm; 
+}
+
+@keyframes spin { 
+  to { transform: rotate(360deg); } 
 }

@@ -1,5 +1,3 @@
-// models/sale.model.ts
-
 import { SaleDecisionType } from './enums';
 
 // ── Sale Event Item ────────────────────────────────────────────────
@@ -59,15 +57,24 @@ export interface SaleDecisionSummary {
   saleEventDescription: string;
   investorCode: string;
   investorName: string;
-  investorAmount: string;
-  profitLoss: string;
+
+  // ── Desglose Financiero ──
+  investorAmount: string;       // Valor Total (Participación)
+  profitLoss: string;           // Ganancia / Pérdida bruta
+  effectiveProfit: string;      // ✨ Ganancia efectiva (0 si pérdida)
+  tax4x1000: string;            // ✨ Gravamen GMF 4x1000
+  netValueToDecide: string;     // ✨ VALOR NETO A DECIDIR
+
+  // ── Decisión ──
   decisionType: SaleDecisionType;
-  decisionTypeDisplay: string;  
+  decisionTypeDisplay: string;
   reinvestAmount: string;
   withdrawAmount: string;
   decisionDate: string | null;
   decisionDeadline: string | null;
   createdAt: string;
+
+  // ── Estados ──
   isPending: boolean;
   isDecided: boolean;
   isLoss: boolean;
@@ -86,8 +93,14 @@ export interface SaleDecisionList {
   investorName: string;
   saleEventId: string;
   saleDate: string;
+
+  // ── Desglose Financiero ──
   investorAmount: string;
   profitLoss: string;
+  effectiveProfit: string;      // ✨
+  tax4x1000: string;            // ✨
+  netValueToDecide: string;     // ✨
+
   isLoss: boolean;
   decisionType: SaleDecisionType;
   decisionTypeDisplay: string;
@@ -102,7 +115,7 @@ export interface SaleDecisionList {
   notes: string;
 }
 
-export type SaleDecisionDetail = SaleDecisionList;
+export type SaleDecisionDetail = SaleDecisionSummary;
 
 // ── Payloads ───────────────────────────────────────────────────────
 export interface CreateSaleEventPayload {
@@ -128,9 +141,16 @@ export interface GenerateDecisionsResult {
   autoResolved: number;
 }
 
+/**
+ * Payload para registrar decisión.
+ *
+ * ⚠️ En PARTIAL:
+ *   - withdrawAmount = monto a retirar DEL VALOR NETO A DECIDIR
+ *   - NO incluir ganancias (se retiran automáticamente)
+ *   - Máximo: netValueToDecide
+ */
 export interface MakeDecisionPayload {
   decisionType: SaleDecisionType;
-  reinvestAmount?: number | null;
   withdrawAmount?: number | null;
   notes?: string;
 }
@@ -171,6 +191,9 @@ export interface SaleSummaryInvestor {
     type: SaleDecisionType;
     investorAmount: string;
     profitLoss: string;
+    effectiveProfit: string;       // ✨
+    tax4x1000: string;             // ✨
+    netValueToDecide: string;      // ✨
     reinvestAmount: string;
     withdrawAmount: string;
     isProcessed: boolean;

@@ -1,76 +1,80 @@
 <div class="options-grid">
+
+  <!-- Opción 1: Reinvertir Todo -->
   <button
+    type="button"
     class="option-card"
     [class.selected]="selectedType() === SaleDecisionType.REINVEST"
     (click)="typeSelected.emit(SaleDecisionType.REINVEST)"
   >
+    <div class="option-badge">Deduce GMF</div>
     <div class="option-icon option-icon--success">
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-      >
-        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-        <polyline points="16 7 22 7 22 13" />
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <polyline points="23 4 23 10 17 10"/>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
       </svg>
     </div>
     <div class="option-content">
-      <span class="option-title">Reinvertir Todo</span>
-      <span class="option-desc"
-        >El monto completo se reinvierte en la siguiente operación</span
-      >
-      <span class="option-amount success">{{ fmt(investorAmount()) }}</span>
+      <span class="option-title">Reinvertir Neto</span>
+      <p class="option-desc">
+        Reinvierte <strong>{{ fmt(netValueToDecide()) }}</strong> en el hato y retira tus ganancias de <strong>{{ fmt(effectiveProfit()) }}</strong>.
+      </p>
+      <div class="option-breakdown">
+        <span>A reinvertir:</span>
+        <span class="option-amount success">{{ fmt(netValueToDecide()) }}</span>
+      </div>
     </div>
   </button>
 
+  <!-- Opción 2: Retirar Todo -->
   <button
+    type="button"
     class="option-card"
     [class.selected]="selectedType() === SaleDecisionType.WITHDRAW"
     (click)="typeSelected.emit(SaleDecisionType.WITHDRAW)"
   >
+    <div class="option-badge">Deduce GMF</div>
     <div class="option-icon option-icon--danger">
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-      >
-        <line x1="5" y1="12" x2="19" y2="12" />
-        <polyline points="12 5 19 12 12 19" />
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M12 19V5"/>
+        <polyline points="5 12 12 5 19 12"/>
       </svg>
     </div>
     <div class="option-content">
       <span class="option-title">Retirar Todo</span>
-      <span class="option-desc">El monto completo se acredita a tu cuenta</span>
-      <span class="option-amount danger">{{ fmt(investorAmount()) }}</span>
+      <p class="option-desc">
+        Retira el capital neto más tus ganancias. El banco cobrará <strong>{{ fmt(tax4x1000()) }}</strong> por concepto de 4x1000.
+      </p>
+      <div class="option-breakdown">
+        <span>A tu banco:</span>
+        <span class="option-amount danger">{{ fmt(investorAmount() - tax4x1000()) }}</span>
+      </div>
     </div>
   </button>
 
+  <!-- Opción 3: Distribución Parcial -->
   <button
+    type="button"
     class="option-card"
     [class.selected]="selectedType() === SaleDecisionType.PARTIAL"
     (click)="typeSelected.emit(SaleDecisionType.PARTIAL)"
   >
+    <div class="option-badge">Flexible</div>
     <div class="option-icon option-icon--warning">
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-      >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
         <circle cx="12" cy="12" r="10" />
-        <line x1="12" y1="8" x2="12" y2="16" />
-        <line x1="8" y1="12" x2="16" y2="12" />
+        <path d="M12 2a10 10 0 0 1 10 10H12V2z" fill="currentColor" stroke="none"/>
       </svg>
     </div>
     <div class="option-content">
-      <span class="option-title">Distribuir</span>
-      <span class="option-desc">Decide cuánto reinvertir y cuánto retirar</span>
-      <span class="option-amount warning">Personalizable</span>
+      <span class="option-title">Distribución Parcial</span>
+      <p class="option-desc">
+        Retira tus ganancias automáticamente y elige qué porcentaje del neto disponible (<strong>{{ fmt(netValueToDecide()) }}</strong>) deseas reinvertir.
+      </p>
+      <div class="option-breakdown">
+        <span>Monto regulable:</span>
+        <span class="option-amount warning">A medida</span>
+      </div>
     </div>
   </button>
 </div>

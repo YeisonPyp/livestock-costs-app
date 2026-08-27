@@ -212,20 +212,48 @@ export class InvestorDashboardFacade {
       this.partialModalOpen.set(true);
       return;
     }
+
+    // REINVEST y WITHDRAW: no requieren montos, el backend calcula todo
     this.submitDecision(decision.id, { decisionType: type });
   }
 
-  onPartialSubmit(result: {
-    reinvestAmount: number;
-    withdrawAmount: number;
-  }): void {
+  /**
+   * Recibe el monto que el usuario quiere retirar DEL VALOR NETO.
+   * Las ganancias se retiran automáticamente por el backend.
+   *
+   * ⚠️ Ya no recibe reinvestAmount: el backend lo calcula como
+   *    netValueToDecide - withdrawAmount
+   */
+  onPartialSubmit(result: { withdrawAmount: number }): void {
     const d = this.pendingDecisionForPartial();
     if (!d) return;
+
+    // Validar contra el neto, no contra el total
+    const net = parseDecimal(
+      (d as unknown as SaleDecisionSummary).netValueToDecide ?? '0'
+    );
+
+    if (result.withdrawAmount <= 0) {
+      this.notify.warning(
+        'El monto a retirar del valor neto debe ser mayor a cero.'
+      );
+      return;
+    }
+
+    if (result.withdrawAmount > net + 0.01) {
+      this.notify.warning(
+        `El monto a retirar ($${result.withdrawAmount.toLocaleString('es-CO')}) ` +
+        `excede el valor neto a decidir ($${net.toLocaleString('es-CO')}).`
+      );
+      return;
+    }
+
     this.partialModalOpen.set(false);
     this.pendingDecisionForPartial.set(null);
+
+    // Solo enviar withdrawAmount; el backend calcula reinvestAmount
     this.submitDecision(d.id, {
-      decisionType:   SaleDecisionType.PARTIAL,
-      reinvestAmount: result.reinvestAmount,
+      decisionType: SaleDecisionType.PARTIAL,
       withdrawAmount: result.withdrawAmount,
     });
   }
@@ -250,7 +278,9 @@ export class InvestorDashboardFacade {
         },
         error: (err) =>
           this.notify.error(
-            err?.error?.message || 'Error al registrar la decisión'
+            err?.error?.message
+              || err?.error?.withdraw_amount?.[0]
+              || 'Error al registrar la decisión'
           ),
       });
   }

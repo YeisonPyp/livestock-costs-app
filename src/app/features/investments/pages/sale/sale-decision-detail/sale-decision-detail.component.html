@@ -4,7 +4,7 @@
   <ng-container breadcrumb>
     <a routerLink="/investments/sales" class="bc-link">Ventas</a>
     <span class="bc-sep">/</span>
-    <a [routerLink]="['/investments/sales', facade.decision()?.saleEventId]" class="bc-link">Venta</a>
+    <a [routerLink]="['/investments/sales', facade.decision()?.saleEvent]" class="bc-link">Venta</a>
     <span class="bc-sep">/</span>
     <span>Decisión</span>
   </ng-container>
@@ -28,26 +28,35 @@
       </app-badge>
     </div>
 
+    <!-- Nuevo desglose financiero detallado -->
     <div class="amounts-row">
       <div class="amount-block">
-        <span class="amount-label">Monto de la Venta</span>
+        <span class="amount-label">Valor Total (Participación)</span>
         <app-amount-display
           [amount]="facade.parseDecimal(d.investorAmount)"
+          type="income" size="lg" />
+      </div>
+      
+      <div class="amount-block">
+        <span class="amount-label">Ganancias</span>
+        <app-amount-display
+          [amount]="facade.parseDecimal(d.effectiveProfit)"
+          type="income" size="lg" />
+      </div>
+
+      <div class="amount-block">
+        <span class="amount-label">GMF (4x1000)</span>
+        <app-amount-display
+          [amount]="facade.parseDecimal(d.tax4x1000)"
+          type="expense" size="lg" />
+      </div>
+
+      <div class="amount-block highlight-net">
+        <span class="amount-label text-primary">Valor Neto a Decidir</span>
+        <app-amount-display
+          [amount]="facade.parseDecimal(d.netValueToDecide)"
           type="income" size="xl" />
       </div>
-      <div class="amount-block">
-        <span class="amount-label">Ganancia / Pérdida</span>
-        <app-amount-display
-          [amount]="facade.parseDecimal(d.profitLoss)"
-          [type]="facade.parseDecimal(d.profitLoss) >= 0 ? 'income' : 'expense'"
-          [showSign]="true" size="lg" />
-      </div>
-      @if (d.decisionDeadline) {
-        <div class="amount-block">
-          <span class="amount-label">Fecha Límite</span>
-          <span class="deadline">{{ d.decisionDeadline }}</span>
-        </div>
-      }
     </div>
   </div>
 
@@ -56,13 +65,13 @@
     <app-alert type="success" [dismissible]="false">
       Ya se registró una decisión: <strong>{{ facade.decisionLabel(d.decisionType) }}</strong>.
       @if (facade.parseDecimal(d.reinvestAmount) > 0) {
-        Se reinvertirán {{ facade.formatCurrency(facade.parseDecimal(d.reinvestAmount)) }}.
+        Se reinvertirán <strong>{{ facade.formatCurrency(facade.parseDecimal(d.reinvestAmount)) }}</strong>.
       }
       @if (facade.parseDecimal(d.withdrawAmount) > 0) {
-        Se retirarán {{ facade.formatCurrency(facade.parseDecimal(d.withdrawAmount)) }}.
+        Se retirarán <strong>{{ facade.formatCurrency(facade.parseDecimal(d.withdrawAmount)) }}</strong>.
       }
     </app-alert>
-    <a [routerLink]="['/investments/sales', d.saleEventId]" class="btn btn-outline">
+    <a [routerLink]="['/investments/sales', d.saleEvent]" class="btn btn-outline">
       ← Volver a la Venta
     </a>
   }
@@ -72,33 +81,44 @@
     <div class="decision-section">
       <h3>¿Qué deseas hacer con tu monto?</h3>
 
-      <!-- Opciones (componente presentacional) -->
+      <!-- Opciones con todos los inputs financieros requeridos -->
       <app-decision-options
         [investorAmount]="facade.parseDecimal(d.investorAmount)"
+        [effectiveProfit]="facade.parseDecimal(d.effectiveProfit)"
+        [tax4x1000]="facade.parseDecimal(d.tax4x1000)"
+        [netValueToDecide]="facade.parseDecimal(d.netValueToDecide)"
         [selectedType]="facade.selectedType()"
         (typeSelected)="onSelectType($event)" />
 
-      <!-- Formulario parcial -->
+      <!-- Formulario parcial interactivo corregido -->
       @if (facade.selectedType() === SaleDecisionType.PARTIAL) {
         <form [formGroup]="partialForm" class="partial-form">
+          <p class="partial-info-desc">
+            Tus ganancias de <strong class="text-green">{{ facade.formatCurrency(facade.effectiveProfit()) }}</strong> se retirarán automáticamente. Distribuye el valor neto restante:
+          </p>
+
           <div class="partial-fields">
             <div class="field">
-              <label class="field-label">Monto a Reinvertir *</label>
-              <input type="number" formControlName="reinvestAmount"
+              <label class="field-label">Monto Neto a Retirar *</label>
+              <input type="number" formControlName="withdrawAmount"
                 class="field-input" min="0"
-                [max]="facade.parseDecimal(d.investorAmount)"
+                [max]="facade.netValueToDecide()"
                 step="0.01" placeholder="0.00" />
-              @if (partialForm.get('reinvestAmount')?.invalid && partialForm.get('reinvestAmount')?.touched) {
-                <span class="field-error">Ingresa un monto válido</span>
+              @if (partialForm.get('withdrawAmount')?.invalid && partialForm.get('withdrawAmount')?.touched) {
+                <span class="field-error">Monto inválido. Máximo disponible: {{ facade.formatCurrency(facade.netValueToDecide()) }}</span>
               }
             </div>
+
             <div class="field">
-              <label class="field-label">Monto a Retirar (automático)</label>
-              <input type="text" formControlName="withdrawAmount" class="field-input field-readonly" readonly />
+              <label class="field-label">Monto Neto a Reinvertir (Simulado)</label>
+              <div class="simulation-readonly">
+                {{ facade.formatCurrency(calculatedReinvest()) }}
+              </div>
             </div>
           </div>
+          
           <p class="total-display">
-            Total disponible: <strong>{{ facade.formatCurrency(facade.parseDecimal(d.investorAmount)) }}</strong>
+            Total Neto disponible a distribuir: <strong>{{ facade.formatCurrency(facade.netValueToDecide()) }}</strong>
           </p>
         </form>
       }
@@ -108,8 +128,11 @@
         <div class="confirm-actions">
           <button class="btn btn-ghost" (click)="facade.cancelDecisionSelection()">Cancelar</button>
           <button class="btn btn-primary" (click)="onConfirm()" [disabled]="facade.decisionSaving()">
-            @if (facade.decisionSaving()) { <span class="btn-spinner-sm"></span> Guardando... }
-            @else { Confirmar Decisión }
+            @if (facade.decisionSaving()) { 
+              <span class="btn-spinner-sm"></span> Guardando... 
+            } @else { 
+              Confirmar {{ facade.decisionLabel(facade.selectedType()!) }} 
+            }
           </button>
         </div>
       }

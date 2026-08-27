@@ -27,20 +27,34 @@ export class DecisionCardComponent {
   }>();
 
   readonly SaleDecisionType = SaleDecisionType;
-  
-  // Helpers de conversión
-  readonly fmt = (v: number) => formatCurrency(v);
+  readonly fmt = (v: string | number) => formatCurrency(parseDecimal(v));
   readonly pd  = parseDecimal;
 
-  // ── 🧠 Señales Computadas para Cálculos Financieros ─────────────────
-  readonly totalAmount = computed(() => this.pd(this.decision().investorAmount));
-  readonly profitLoss  = computed(() => this.pd(this.decision().profitLoss));
-  
-  // 4x1000 basado en el valor total de la participación (0.4% -> 0.004)
-  readonly tax4x1000 = computed(() => this.totalAmount() * 0.004);
+  // ── ✨ Valores financieros desde el backend (con fallback) ────────
+  readonly totalAmount = computed(() => {
+    const d = this.decision();
+    return parseDecimal(d.investorAmount);
+  });
 
-  // Valor a decidir = Valor total - ganancias - 4x1000
-  readonly valueToDecide = computed(() => {
+  readonly profitLoss = computed(() => {
+    const d = this.decision();
+    // Usar effectiveProfit del backend si existe, fallback a profitLoss
+    return d.effectiveProfit
+      ? parseDecimal(d.effectiveProfit)
+      : Math.max(parseDecimal(d.profitLoss), 0);
+  });
+
+  readonly tax4x1000 = computed(() => {
+    const d = this.decision();
+    // Usar valor del backend si existe, fallback a cálculo local
+    if (d.tax4x1000) return parseDecimal(d.tax4x1000);
+    return parseDecimal(d.investorAmount) * 0.004;
+  });
+
+  readonly netValueToDecide = computed(() => {
+    const d = this.decision();
+    // Usar valor del backend si existe, fallback a cálculo local
+    if (d.netValueToDecide) return parseDecimal(d.netValueToDecide);
     return this.totalAmount() - this.profitLoss() - this.tax4x1000();
   });
 

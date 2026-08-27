@@ -1,4 +1,4 @@
-// sale-summary-report.component.scss
+@use '../../../../styles/variables' as *;
 
 $ssr-primary: #185FA5;
 $ssr-success: #16a34a;
@@ -425,6 +425,15 @@ $ssr-surface: #f8fafc;
 
   tbody tr:hover      { background: $ssr-surface; }
   tbody tr:last-child td { border-bottom: none; }
+
+  // Resaltado de la columna Valor Neto en el listado
+  .ssr-highlight-net {
+    background: rgba($ssr-primary, 0.02);
+    font-weight: 700;
+    border-left: 1px solid rgba($ssr-primary, 0.05);
+    border-right: 1px solid rgba($ssr-primary, 0.05);
+    color: $ssr-text;
+  }
 }
 
 .ssr-investor-cell {
@@ -458,7 +467,10 @@ $ssr-surface: #f8fafc;
 
 .muted { color: #cbd5e1; }
 
-// sale-summary-report.component.scss
+.text-green { color: $ssr-success !important; }
+.text-red   { color: $ssr-danger !important; }
+.text-primary { color: $ssr-primary !important; }
+.font-bold  { font-weight: 700; }
 
 // ══════════════════════════════════════════════════════════════════
 // GRUPO DE INVERSIONISTA (con animales)
@@ -507,7 +519,7 @@ $ssr-surface: #f8fafc;
   }
 }
 
-// Mini estadísticas del inversionista
+// Mini estadísticas
 .ssr-mini-stat {
   display:        flex;
   flex-direction: column;
