@@ -286,7 +286,7 @@
         @if (facade.partialModalOpen()) {
           <app-partial-decision-modal
             [totalAmount]="facade.parseDecimal(
-              facade.pendingDecisionForPartial()?.investorAmount ?? '0'
+              facade.pendingDecisionForPartial()?.netValueToDecide ?? 0
             )"
             (submitted)="onPartialSubmit($event)"
             (cancelled)="facade.closePartialModal()"

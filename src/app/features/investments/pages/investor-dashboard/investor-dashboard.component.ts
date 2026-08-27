@@ -250,10 +250,7 @@ export class InvestorDashboardComponent
     this.facade.onDecide(event.decision, event.type);
   }
 
-  onPartialSubmit(result: {
-    reinvestAmount: number;
-    withdrawAmount: number;
-  }): void {
+  onPartialSubmit(result: { withdrawAmount: number }): void {
     this.facade.onPartialSubmit(result);
   }
 

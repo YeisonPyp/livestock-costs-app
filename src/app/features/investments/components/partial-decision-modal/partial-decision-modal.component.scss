@@ -1,119 +1,245 @@
 @use "../../../../styles/variables" as *;
 
+$opt-success:        #1D9E75;
+$opt-border-radius:  12px;
+$transition-fast:    all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
+// Backdrop oscuro
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 300;
+  background: rgba(15, 23, 42, 0.55); // slate-900 con opacidad
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: modalFadeIn 0.2s ease-out;
 }
+
+// Ventana del Modal
 .modal-box {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   background: $white;
-  border-radius: $border-radius-md;
-  width: 420px;
+  border-radius: $opt-border-radius;
+  width: 440px;
   max-width: 95vw;
-  box-shadow: $shadow-lg;
-  z-index: 301;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 1001;
   overflow: hidden;
+  animation: modalSlideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: $space-4 $space-5;
   border-bottom: 1px solid $border-color;
+  background: $slate-50;
+
   h3 {
     margin: 0;
-    font-size: $font-md;
-    font-weight: $weight-bold;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: $slate-800;
   }
 }
+
 .close-btn {
   background: none;
   border: none;
-  font-size: 22px;
+  font-size: 24px;
+  line-height: 1;
   cursor: pointer;
   color: $slate-400;
+  transition: color 0.15s ease;
+
   &:hover {
-    color: $slate-700;
+    color: $danger;
   }
 }
+
 .modal-body {
   padding: $space-5;
 }
+
 .modal-desc {
-  font-size: $font-sm;
-  color: $slate-600;
+  font-size: 0.82rem;
+  color: $slate-500;
+  line-height: 1.5;
   margin: 0 0 $space-4;
 }
+
+// Caja de resumen de saldo
+.net-summary-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba($primary, 0.04);
+  border: 1px solid rgba($primary, 0.12);
+  border-radius: 8px;
+  padding: $space-3 $space-4;
+  margin-bottom: $space-4;
+
+  .net-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: $primary;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .net-value {
+    font-size: 1.15rem;
+    font-weight: 850;
+    color: $slate-900;
+  }
+}
+
+// Formularios
 .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   margin-bottom: $space-4;
 }
+
 .form-label {
-  display: block;
-  font-size: $font-sm;
-  font-weight: $weight-medium;
-  color: $slate-700;
-  margin-bottom: $space-1;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: $slate-600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
   &.required::after {
     content: " *";
     color: $danger;
   }
 }
+
+.input-prefix-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-prefix {
+  position: absolute;
+  left: $space-3;
+  font-weight: 700;
+  color: $slate-400;
+}
+
 .form-control {
   width: 100%;
-  padding: $space-2 $space-3;
-  border: 1px solid $border-color;
+  height: 40px;
+  padding: 0 $space-3 0 calc($space-3 + 12px);
+  border: 1.5px solid $border-color;
   border-radius: $border-radius;
-  font-size: $font-sm;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: $slate-800;
+  outline: none;
+  transition: $transition-fast;
+
   &:focus {
-    outline: none;
     border-color: $primary;
+    box-shadow: 0 0 0 3px rgba($primary, 0.12);
   }
 }
+
+// Simulador readonly
+.simulation-readonly {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: $slate-800;
+  font-variant-numeric: tabular-nums;
+
+  &.success {
+    color: $opt-success;
+  }
+}
+
+.form-help {
+  font-size: 0.7rem;
+  color: $slate-400;
+}
+
 .error-text {
   display: block;
   color: $danger;
-  font-size: $font-xs;
-  margin-top: $space-1;
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-top: 4px;
 }
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: $space-3;
   padding-top: $space-4;
   border-top: 1px solid $border-color;
-  margin-top: $space-2;
+  margin-top: $space-5;
 }
+
+// Botones
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: $space-2;
-  padding: $space-2 $space-4;
+  justify-content: center;
+  height: 38px;
+  padding: 0 $space-4;
   border: none;
   border-radius: $border-radius;
   font-size: $font-sm;
-  font-weight: $weight-medium;
+  font-weight: 700;
   cursor: pointer;
+  transition: $transition-fast;
+
   &.btn-primary {
     background: $primary;
     color: $white;
+
     &:hover:not(:disabled) {
       background: $primary-hover;
     }
+
     &:disabled {
-      opacity: 0.5;
+      opacity: 0.4;
       cursor: not-allowed;
     }
   }
+
   &.btn-ghost {
     background: transparent;
     color: $slate-600;
+    border: 1px solid $border-color;
+
     &:hover {
-      background: $slate-100;
+      background: $slate-50;
+      color: $slate-800;
     }
+  }
+}
+
+// Animaciones de entrada
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -40%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
   }
 }

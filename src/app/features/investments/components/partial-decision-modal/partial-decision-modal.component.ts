@@ -2,7 +2,7 @@
 
 import {
   Component, OnInit, ChangeDetectionStrategy,
-  input, output, inject
+  input, output, inject, signal, effect
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { formatCurrency } from '../../../../core/utils/helpers';
@@ -17,35 +17,106 @@ import { formatCurrency } from '../../../../core/utils/helpers';
 })
 export class PartialDecisionModalComponent implements OnInit {
   readonly totalAmount = input.required<number>();
-  readonly submitted   = output<{ reinvestAmount: number; withdrawAmount: number }>();
+  readonly submitted   = output<{ withdrawAmount: number }>();
   readonly cancelled   = output<void>();
 
   private fb = inject(FormBuilder);
   readonly fmt = formatCurrency;
-  sumError = false;
+  
+  // Señales reactivas
+  readonly calculatedReinvest = signal(0);
+  readonly formattedWithdraw = signal('0'); // Controla el texto formateado en pantalla
 
-  form = this.fb.group({
-    reinvestAmount: [{ value: 0, disabled: true }],
-    withdrawAmount: [0, [Validators.required, Validators.min(0)]]
+  readonly form = this.fb.group({
+    withdrawAmount: [0, [Validators.required, Validators.min(1)]]
   });
 
-  ngOnInit(): void {
-    this.form.get('withdrawAmount')?.valueChanges.subscribe(v => {
-      const withdraw = +(v ?? 0);
-      this.form.get('reinvestAmount')?.setValue(
-        Number(Math.max(0, this.totalAmount() - withdraw).toFixed(2)),
-        { emitEvent: false }
-      );
+  constructor() {
+    effect(() => {
+      const maxAvailable = this.totalAmount();
+      const withdrawCtrl = this.form.get('withdrawAmount');
+      if (withdrawCtrl) {
+        withdrawCtrl.setValidators([
+          Validators.required,
+          Validators.min(1),
+          Validators.max(maxAvailable)
+        ]);
+        withdrawCtrl.updateValueAndValidity();
+      }
     });
   }
 
+  ngOnInit(): void {
+    this.calculatedReinvest.set(this.totalAmount());
+
+    // Sincronizar el cálculo de la simulación de reinversión
+    this.form.get('withdrawAmount')?.valueChanges.subscribe(v => {
+      const withdraw = +(v ?? 0);
+      const net = this.totalAmount();
+      this.calculatedReinvest.set(Number(Math.max(0, net - withdraw).toFixed(2)));
+    });
+  }
+
+  // ── 🎛️ GESTIÓN DE FORMATO E INTERACCIÓN DEL INPUT ──────────────────
+
+  /**
+   * Se ejecuta al escribir: limpia caracteres, actualiza el valor numérico
+   * real en el Form y formatea visualmente con puntos.
+   */
+  onInputChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    
+    // Eliminar todo lo que no sea un dígito numérico
+    let rawValue = input.value.replace(/[^0-9]/g, '');
+
+    if (rawValue === '') {
+      this.form.get('withdrawAmount')?.setValue(0);
+      this.formattedWithdraw.set('');
+      input.value = '';
+      return;
+    }
+
+    const numValue = parseInt(rawValue, 10);
+
+    // Guardar el número entero real en el FormGroup para validaciones
+    this.form.get('withdrawAmount')?.setValue(numValue);
+
+    // Formatear visualmente con puntos de miles (localización alemana/colombiana usa puntos)
+    const formatted = numValue.toLocaleString('de-DE');
+    this.formattedWithdraw.set(formatted);
+    input.value = formatted;
+  }
+
+  /**
+   * Al hacer clic/enfocar, si el valor es 0, vacía el campo para escribir directamente.
+   */
+  onInputFocus(event: FocusEvent): void {
+    const input = event.target as HTMLInputElement;
+    if (this.form.get('withdrawAmount')?.value === 0) {
+      input.value = '';
+      this.formattedWithdraw.set('');
+    }
+  }
+
+  /**
+   * Al perder el foco, si el campo quedó vacío, lo restablece visualmente a 0.
+   */
+  onInputBlur(event: FocusEvent): void {
+    const input = event.target as HTMLInputElement;
+    if (input.value.trim() === '') {
+      input.value = '0';
+      this.formattedWithdraw.set('0');
+      this.form.get('withdrawAmount')?.setValue(0);
+    }
+  }
+
   onSubmit(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    const raw = this.form.getRawValue();
-    const reinvest  = +(raw.reinvestAmount ?? 0);
-    const withdraw  = +(raw.withdrawAmount ?? 0);
-    this.sumError = Math.abs((reinvest + withdraw) - this.totalAmount()) > 0.01;
-    if (this.sumError) return;
-    this.submitted.emit({ reinvestAmount: reinvest, withdrawAmount: withdraw });
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    
+    const withdraw = +(this.form.get('withdrawAmount')?.value ?? 0);
+    this.submitted.emit({ withdrawAmount: withdraw });
   }
 }

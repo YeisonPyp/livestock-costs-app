@@ -1,54 +1,64 @@
 <div class="modal-overlay" (click)="cancelled.emit()"></div>
 <div class="modal-box">
   <div class="modal-header">
-    <h3>Distribuir monto</h3>
-    <button class="close-btn" (click)="cancelled.emit()">×</button>
+    <h3>Distribuir Capital Neto</h3>
+    <button type="button" class="close-btn" (click)="cancelled.emit()" aria-label="Cerrar">×</button>
   </div>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="modal-body">
     <p class="modal-desc">
-      Disponible: <strong>{{ fmt(totalAmount()) }}</strong>
+      Tus ganancias se transferirán automáticamente. Aquí decides cómo distribuir tu capital neto disponible:
     </p>
 
+    <!-- Caja de Resumen de Saldo Neto -->
+    <div class="net-summary-box">
+      <span class="net-label">Capital Neto Disponible:</span>
+      <strong class="net-value">{{ fmt(totalAmount()) }}</strong>
+    </div>
+
+        <!-- Campo 1: Monto Neto a Retirar -->
     <div class="form-group">
-      <label class="form-label required">Monto a Retirar</label>
-      <input
-        type="number"
-        formControlName="withdrawAmount"
-        class="form-control"
-        min="0"
-        [max]="totalAmount()"
-        step="0.01"
-        placeholder="0.00"
-      />
-      @if (
-        form.get("reinvestAmount")?.invalid &&
-        form.get("reinvestAmount")?.touched
-      ) {
-        <span class="error-text">Monto inválido</span>
+      <label class="form-label required" for="withdrawAmount">Monto Neto a Retirar</label>
+      <div class="input-prefix-wrapper">
+        <span class="input-prefix">$</span>
+        <input
+          id="withdrawAmount"
+          type="text"
+          class="form-control"
+          placeholder="0"
+          [value]="formattedWithdraw()"
+          (input)="onInputChange($event)"
+          (focus)="onInputFocus($event)"
+          (blur)="onInputBlur($event)"
+        />
+      </div>
+      @if (form.get('withdrawAmount')?.touched && form.get('withdrawAmount')?.invalid) {
+        <span class="error-text">
+          @if (form.get('withdrawAmount')?.errors?.['max']) {
+            Monto excede el neto disponible (Máx: {{ fmt(totalAmount()) }}).
+          } @else {
+            Por favor, ingresa un monto válido mayor a $0.
+          }
+        </span>
       }
     </div>
 
+    <!-- Campo 2: Monto Neto que se Reinvertirá (Simulado) -->
     <div class="form-group">
-      <label class="form-label">Monto a  Reinvertir (automático)</label>
-      <input
-        type="text"
-        formControlName="reinvestAmount"
-        class="form-control"
-        readonly
-      />
+      <label class="form-label">Monto Neto a Reinvertir (Simulado)</label>
+      <div class="simulation-readonly success">
+        {{ fmt(calculatedReinvest()) }}
+      </div>
+      <span class="form-help">Monto que permanecerá activo en el proyecto hato.</span>
     </div>
 
-    @if (sumError) {
-      <p class="error-text">La suma debe igualar {{ fmt(totalAmount()) }}</p>
-    }
-
+    <!-- Acciones -->
     <div class="modal-footer">
       <button type="button" class="btn btn-ghost" (click)="cancelled.emit()">
         Cancelar
       </button>
       <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
-        Confirmar
+        Confirmar Distribución
       </button>
     </div>
   </form>
